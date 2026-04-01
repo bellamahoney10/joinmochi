@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0065)file:///Users/bellamahoney/Downloads/mochi_call_script%20(4).html -->
+<!-- saved from url=(0065)file:///Users/bellamahoney/Downloads/mochi_call_script%20(5).html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -178,7 +178,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <span class="logo-word">mochi</span>
     <span class="logo-sub">health · pcs</span>
   </div>
-  <div class="clocks" id="clocks"><div class="ck"><span class="ck-tz">ET</span><span class="ck-t">2:30 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">CT</span><span class="ck-t">1:30 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">MT</span><span class="ck-t">12:30 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">PT</span><span class="ck-t">11:30 PM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div></div>
+  <div class="clocks" id="clocks"><div class="ck"><span class="ck-tz">ET</span><span class="ck-t">2:41 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">CT</span><span class="ck-t">1:41 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">MT</span><span class="ck-t">12:41 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">PT</span><span class="ck-t">11:41 PM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div></div>
 </header>
 
 <div class="modebar">
@@ -560,12 +560,16 @@ function loadContacts(agentNum,callback){
       var today=getTodayStr();
       console.log('Today string:',today);
       console.log('Total rows from sheet:',rows.length);
+      console.log('Headers:',headers);
       var result=[];
       for(var i=dataStart;i<rows.length;i++){
         var row=rows[i];
         var obj={rowIndex:i+1};
-        for(var j=0;j<headers.length;j++){obj[headers[j]]=row[j]||'';}
-        var dateVal=obj['Date Assigned']||'';
+        for(var j=0;j<headers.length;j++){
+          var hdr=(headers[j]||'').trim();
+          obj[hdr]=row[j]||'';
+        }
+        var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
         var contacted=(obj['Contacted']||'').trim();
         console.log('Row '+(i+1)+': date='+dateVal+' contacted=['+contacted+'] tz='+obj['Time Zone']);
         if(dateVal===today&&(contacted===''||contacted==='-'||contacted==='Assigned')){result.push(obj);}
