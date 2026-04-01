@@ -749,6 +749,9 @@ function refreshContacts(){
   });
 }
 
+/ ─────────────────────────────────────────────
+// CHANGE 1: Replace renderContactPanel() in full
+// ─────────────────────────────────────────────
 function renderContactPanel(){
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){
@@ -764,6 +767,12 @@ function renderContactPanel(){
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
   var bc=tzColors[tz]||'#534AB7';
   var initials=(c['Name']||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+  var btStyles={
+    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
+    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)'
+  };
   var html='<div class="panel">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
     +'<div class="panel-title" style="margin-bottom:0">Next Contact</div>'
@@ -779,25 +788,19 @@ function renderContactPanel(){
     +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Phone Number</div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between">'
     +'<div style="font-size:20px;font-weight:700;color:var(--brand);letter-spacing:.05em">'+(c['Phone']||'')+'</div>'
-    +'<button onclick="copyPhone(\''+( c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
-    +'</div></div>'
-    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Actions</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
-  var btStyles={
-    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
-    'No Answer':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)'
-  };
+    +'<div style="display:flex;gap:8px">'
+    +'<button onclick="copyPhone(\''+(c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
+    +'<button onclick="startCall('+idx+')" style="padding:4px 14px;font-size:11px;font-weight:700;border-radius:6px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Call</button>'
+    +'</div></div></div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Result</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
   OUTCOMES.forEach(function(o){
-    html+='<button onclick="selectOutcome('+idx+',\''+o+'\')" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
+    html+='<button onclick="selectOutcome('+idx+',\''+o+'\')" id="oc-btn-'+o.replace(/\s/g,'-')+'" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
   });
   html+='</div>'
     +'<div id="notes-panel" style="display:none">'
-    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
-    +'<textarea id="outcome-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<textarea id="outcome-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:8px">'
     +'<button onclick="submitOutcome()" id="submit-outcome-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
     +'<button onclick="cancelOutcome()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
     +'</div></div>'
