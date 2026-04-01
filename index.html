@@ -531,39 +531,44 @@ function getTodayStr(){
 function loadContacts(agentNum,callback){
   var tab=agentTabs[agentNum];
   if(!tab){callback([]);return;}
-  fetch(APPS_SCRIPT_URL+'?tab='+encodeURIComponent(tab), {mode:'cors'})
-    .then(function(r){return r.json();})
-    .then(function(data){
-      var rows=data.values||[];
-      if(rows.length<2){callback([]);return;}
-      var headers=null;
-      var dataStart=0;
-      for(var h=0;h<Math.min(5,rows.length);h++){
-        if(rows[h][0]&&rows[h][0].toString().toLowerCase().indexOf('date')>=0){
-          headers=rows[h];dataStart=h+1;break;
-        }
-      }
-      if(!headers){callback([]);return;}
-      var today=getTodayStr();
-      var result=[];
-      for(var i=dataStart;i<rows.length;i++){
-        var row=rows[i];
-        var obj={rowIndex:i+1};
-        for(var j=0;j<headers.length;j++){
-          var hdr=(headers[j]||'').trim();
-          obj[hdr]=row[j]||'';
-        }
-        var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
-        var contacted=(obj['Contacted']||'').trim();
-        if(dateVal===today&&(contacted===''||contacted==='-'||contacted==='Assigned')){result.push(obj);}
-      }
-      result.sort(function(a,b){
-        var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
-        return pa-pb;
-      });
-      callback(result);
-    })
-    .catch(function(){callback([]);});
+  var cbName='cb_'+Date.now();
+window[cbName]=function(data){
+  delete window[cbName];
+  var sc=document.getElementById('jsonp-'+cbName);
+  if(sc)sc.parentNode.removeChild(sc);
+  var rows=data.values||[];
+  if(rows.length<2){callback([]);return;}
+  var headers=null;
+  var dataStart=0;
+  for(var h=0;h<Math.min(5,rows.length);h++){
+    if(rows[h][0]&&rows[h][0].toString().toLowerCase().indexOf('date')>=0){
+      headers=rows[h];dataStart=h+1;break;
+    }
+  }
+  if(!headers){callback([]);return;}
+  var today=getTodayStr();
+  var result=[];
+  for(var i=dataStart;i<rows.length;i++){
+    var row=rows[i];
+    var obj={rowIndex:i+1};
+    for(var j=0;j<headers.length;j++){
+      var hdr=(headers[j]||'').trim();
+      obj[hdr]=row[j]||'';
+    }
+    var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
+    var contacted=(obj['Contacted']||'').trim();
+    if(dateVal===today&&(contacted===''||contacted==='-'||contacted==='Assigned')){result.push(obj);}
+  }
+  result.sort(function(a,b){
+    var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
+    return pa-pb;
+  });
+  callback(result);
+};
+var sc=document.createElement('script');
+sc.id='jsonp-'+cbName;
+sc.src=APPS_SCRIPT_URL+'?tab='+encodeURIComponent(tab)+'&callback='+cbName;
+document.body.appendChild(sc);
 }
 
 function tzPriority(tz){
