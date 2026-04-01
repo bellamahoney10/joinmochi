@@ -259,8 +259,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
 
 <script>
 var PIN='2026';
-var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ';
-var API_KEY='AIzaSyCzUwI-DEdwx1eX34FWeFkicnWFd0AnQyQ';
+var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz8l2y8IhW-bwmK1q6q0vSBx59zTJ-uXcKRWrKwCzhc04KeYdEtt0xm4q5Mwaen6IH7qQ/exec';
 var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null;
 var contacts=[], contactIdx=0;
 var agentTabs={1:'Agent 1',2:'Agent 2',3:'Agent 3',4:'Agent 4'};
@@ -271,13 +270,6 @@ function normTz(tz){
   return map[tz]||tz;
 }
 var OUTCOMES=['Voicemail Left','Call Answered','Inbox Full','Hung Up'];
-var OUTCOME_STYLES={
-  'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-  'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
-  'No Answer':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-  'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-  'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)'
-};
 
 var CTA='<div class="cta-box"><div class="cta-lbl">Tell Them How To Get Back In</div><div class="cta-row"><span class="cta-num">1</span><span>Check <b>email inbox</b> for a Mochi Health message.</span></div><div class="cta-row"><span class="cta-num">2</span><span>Check <b>text messages</b> for a link we may have sent.</span></div><div class="cta-row"><span class="cta-num">3</span><span>Go to <b>joinmochi.com</b> and log in with the email used to sign up.</span></div></div>';
 var NEXT='<div class="steps-box"><div class="steps-lbl">What Happens Next</div><div class="step-row"><span class="step-num">1</span><span>Sign up and pick your membership plan.</span></div><div class="step-row"><span class="step-num">2</span><span>Schedule a video visit with a provider and dietitian within one week.</span></div><div class="step-row"><span class="step-num">3</span><span>Medication shipped to your door, or access brand-name through your pharmacy.</span></div><div class="step-row"><span class="step-num">4</span><span>Regular check-ins with your care team. Access the Mochi shop for more.</span></div></div>';
@@ -536,14 +528,10 @@ function getTodayStr(){
   return (d.getMonth()+1)+'/'+(d.getDate())+'/'+d.getFullYear();
 }
 
-function sheetUrl(tab,range){
-  return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY;
-}
-
 function loadContacts(agentNum,callback){
   var tab=agentTabs[agentNum];
   if(!tab){callback([]);return;}
-  fetch(sheetUrl(tab,'A:L'))
+  fetch(APPS_SCRIPT_URL+'?tab='+encodeURIComponent(tab))
     .then(function(r){return r.json();})
     .then(function(data){
       var rows=data.values||[];
@@ -556,11 +544,7 @@ function loadContacts(agentNum,callback){
         }
       }
       if(!headers){callback([]);return;}
-      console.log('Headers found at row '+(dataStart)+':',headers);
       var today=getTodayStr();
-      console.log('Today string:',today);
-      console.log('Total rows from sheet:',rows.length);
-      console.log('Headers:',headers);
       var result=[];
       for(var i=dataStart;i<rows.length;i++){
         var row=rows[i];
@@ -571,7 +555,6 @@ function loadContacts(agentNum,callback){
         }
         var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
         var contacted=(obj['Contacted']||'').trim();
-        console.log('Row '+(i+1)+': date='+dateVal+' contacted=['+contacted+'] tz='+obj['Time Zone']);
         if(dateVal===today&&(contacted===''||contacted==='-'||contacted==='Assigned')){result.push(obj);}
       }
       result.sort(function(a,b){
@@ -592,35 +575,18 @@ function tzPriority(tz){
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
 
-// Paste your deployed Web App URL here
-var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz8l2y8IhW-bwmK1q6q0vSBx59zTJ-uXcKRWrKwCzhc04KeYdEtt0xm4q5Mwaen6IH7qQ/exec';
-
-function writeOutcome(agentNum, rowIndex, outcome, notes) {
-  var tab = agentTabs[agentNum];
-  if (!tab) return;
-
-  console.log('Writing to row ' + rowIndex + ': outcome=' + outcome + ' notes=' + notes);
-
-  fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    // NOTE: mode no-cors means we won't see the response body,
-    // but the write will succeed. Switch to 'cors' only if you
-    // add CORS headers in the Apps Script (not needed for basic logging).
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      tab: tab,
-      row: rowIndex,
-      outcome: outcome,
-      notes: notes || ''
-    })
+function writeOutcome(agentNum,rowIndex,outcome,notes){
+  var tab=agentTabs[agentNum];
+  if(!tab)return;
+  console.log('Writing to row '+rowIndex+': outcome='+outcome+' notes='+notes);
+  fetch(APPS_SCRIPT_URL,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({tab:tab,row:rowIndex,outcome:outcome,notes:notes||''})
   })
-  .then(function() {
-    console.log('Write sent for row ' + rowIndex);
-  })
-  .catch(function(err) {
-    console.error('Write error:', err);
-  });
+  .then(function(){console.log('Write sent for row '+rowIndex);})
+  .catch(function(e){console.error('Write error:',e);});
 }
 
 function getDashboardStats(){
@@ -749,8 +715,6 @@ function refreshContacts(){
   });
 }
 
-// CHANGE 1: Replace renderContactPanel() in full
-// ─────────────────────────────────────────────
 function renderContactPanel(){
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){
@@ -810,6 +774,13 @@ function renderContactPanel(){
 var pendingOutcome=null;
 var pendingIdx=null;
 
+function startCall(idx){
+  pendingIdx=idx;
+  cur=mode==='inbound'?'inbound_open':'open';
+  hist=[];
+  render();
+}
+
 function copyPhone(num){
   navigator.clipboard.writeText(num).then(function(){
     var btn=document.getElementById('copy-phone-btn');
@@ -820,8 +791,33 @@ function copyPhone(num){
   });
 }
 
-// CHANGE 2: Replace showLogResult() in full
-// ─────────────────────────────────────────────
+function selectOutcome(idx,outcome){
+  pendingOutcome=outcome;
+  pendingIdx=idx;
+  var np=document.getElementById('notes-panel');
+  if(np){np.style.display='block';}
+  var btn=document.getElementById('submit-outcome-btn');
+  if(btn)btn.textContent='Submit — '+outcome;
+}
+
+function cancelOutcome(){
+  pendingOutcome=null;pendingIdx=null;
+  var np=document.getElementById('notes-panel');
+  if(np)np.style.display='none';
+}
+
+function submitOutcome(){
+  if(pendingOutcome===null||pendingIdx===null)return;
+  var notes=document.getElementById('outcome-notes');
+  var notesVal=notes?notes.value:'';
+  var c=contacts[pendingIdx];
+  c['Contacted']=pendingOutcome;
+  c['Notes']=notesVal;
+  writeOutcome(selectedAgent,c.rowIndex,pendingOutcome,notesVal);
+  pendingOutcome=null;pendingIdx=null;
+  renderContactPanel();
+}
+
 function showLogResult(){
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
@@ -858,17 +854,6 @@ function showLogResult(){
   document.getElementById('content').innerHTML=html;
 }
 
-// Called when agent clicks Call button on contact panel
-function startCall(idx){
-  // Store which contact we're calling so Log Result knows
-  pendingIdx=idx;
-  // Navigate to the call flow opening
-  cur=mode==='inbound'?'inbound_open':'open';
-  hist=[];
-  render();
-}
-
-// Log Result footer — outcome selected
 var pendingLogOutcome=null;
 var pendingLogIdx=null;
 
@@ -907,41 +892,6 @@ function submitLogOutcome(){
   banner.textContent='Result logged: '+outcome+(notesVal?' — "'+notesVal+'"':'')+'. Ready for next call.';
   content.insertBefore(banner,content.firstChild);
   setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
-}
-
-function quickVoicemail(idx){
-  var c=contacts[idx];
-  if(!c)return;
-  c['Contacted']='Voicemail Left';
-  writeOutcome(selectedAgent,c.rowIndex,'Voicemail Left','');
-  renderContactPanel();
-}
-
-function selectOutcome(idx,outcome){
-  pendingOutcome=outcome;
-  pendingIdx=idx;
-  var np=document.getElementById('notes-panel');
-  if(np){np.style.display='block';}
-  var btn=document.getElementById('submit-outcome-btn');
-  if(btn)btn.textContent='Submit — '+outcome;
-}
-
-function cancelOutcome(){
-  pendingOutcome=null;pendingIdx=null;
-  var np=document.getElementById('notes-panel');
-  if(np)np.style.display='none';
-}
-
-function submitOutcome(){
-  if(pendingOutcome===null||pendingIdx===null)return;
-  var notes=document.getElementById('outcome-notes');
-  var notesVal=notes?notes.value:'';
-  var c=contacts[pendingIdx];
-  c['Contacted']=pendingOutcome;
-  c['Notes']=notesVal;
-  writeOutcome(selectedAgent,c.rowIndex,pendingOutcome,notesVal);
-  pendingOutcome=null;pendingIdx=null;
-  renderContactPanel();
 }
 
 function vmText(){
