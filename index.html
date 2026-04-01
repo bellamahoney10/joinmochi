@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0065)file:///Users/bellamahoney/Downloads/mochi_call_script%20(2).html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mochi Health — Call Script</title>
-<link href="./index_files/css2" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -178,13 +178,15 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <span class="logo-word">mochi</span>
     <span class="logo-sub">health · pcs</span>
   </div>
-  <div class="clocks" id="clocks"><div class="ck"><span class="ck-tz">ET</span><span class="ck-t">1:46 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">CT</span><span class="ck-t">12:46 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">MT</span><span class="ck-t">11:46 PM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">PT</span><span class="ck-t">10:46 PM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div></div>
+  <div class="clocks" id="clocks"></div>
 </header>
 
 <div class="modebar">
   <span class="mlabel">Call type:</span>
-  <button class="mbtn ao" id="btn-out" onclick="setMode(&#39;outbound&#39;)">Outbound — I'm calling them</button>
-  <button class="mbtn" id="btn-in" onclick="setMode(&#39;inbound&#39;)">Inbound — they called us</button>
+  <select id="mode-select" onchange="setMode(this.value)" style="font-size:13px;padding:7px 20px;border-radius:var(--radius);border:1.5px solid var(--border);background:#fff;color:var(--brand);cursor:pointer;font-family:var(--font);font-weight:600;outline:none">
+    <option value="outbound">Calling Them</option>
+    <option value="inbound">They Called Us</option>
+  </select>
   <span style="width:1px;height:18px;background:var(--border);margin:0 4px;display:inline-block"></span>
   <span id="mhint" class="mhint">Select mode before starting the call</span>
 </div>
@@ -192,13 +194,13 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
 <div class="app">
   <nav class="sidebar">
     <div style="padding:12px 14px 0">
-      <input type="text" id="srch" placeholder="Search scripts..." oninput="doSearch(this.value)" style="width:100%;padding:7px 10px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none">
+      <input type="text" id="srch" placeholder="Search..." oninput="doSearch(this.value)" style="width:100%;padding:7px 10px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none">
       <div id="srch-res" style="margin-top:6px;display:none"></div>
     </div>
     <hr class="sbdiv">
     <div style="padding:0 14px 6px">
-      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showDashboard()">📈 My Dashboard</button>
-      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContacts()">📞 My Contacts</button>
+      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showDashboard()">&#128200; My Dashboard</button>
+      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContacts()">&#128222; My Contacts</button>
       <button class="qbtn n" style="margin:0;width:100%" onclick="showSchedule()">Call Schedule</button>
     </div>
     <hr class="sbdiv">
@@ -208,17 +210,17 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     </div>
     <hr class="sbdiv">
     <div class="sb-lbl" style="padding:0 14px;margin-bottom:6px">Quick Jump</div>
-    <button class="qbtn f" onclick="goTo(&#39;wellness&#39;)">Wellness+</button>
-    <button class="qbtn f" onclick="goTo(&#39;howitworks&#39;)">How It Works</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_pricing&#39;)">FAQ — Pricing</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_medication&#39;)">FAQ — Medication</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_compounded&#39;)">FAQ — Compounded GLP-1s</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_program&#39;)">FAQ — The Program</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_hesitations&#39;)">FAQ — Hesitations</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_logistics&#39;)">FAQ — Logistics</button>
+    <button class="qbtn f" onclick="goTo('wellness')">Wellness+</button>
+    <button class="qbtn f" onclick="goTo('howitworks')">How It Works</button>
+    <button class="qbtn f" onclick="goTo('faq_pricing')">FAQ — Pricing</button>
+    <button class="qbtn f" onclick="goTo('faq_medication')">FAQ — Medication</button>
+    <button class="qbtn f" onclick="goTo('faq_compounded')">FAQ — Compounded GLP-1s</button>
+    <button class="qbtn f" onclick="goTo('faq_program')">FAQ — The Program</button>
+    <button class="qbtn f" onclick="goTo('faq_hesitations')">FAQ — Hesitations</button>
+    <button class="qbtn f" onclick="goTo('faq_logistics')">FAQ — Logistics</button>
     <hr class="sbdiv">
-    <button class="qbtn" onclick="goTo(&#39;rude&#39;)">Hostile Caller</button>
-    <button class="qbtn" onclick="goTo(&#39;optout&#39;)">Opt-Out Request</button>
+    <button class="qbtn" onclick="goTo('rude')">Hostile Caller</button>
+    <button class="qbtn" onclick="goTo('optout')">Opt-Out Request</button>
     <button class="qbtn n" onclick="showCompliance()">Compliance Rules</button>
     <hr class="sbdiv">
     <div class="ref-sec">
@@ -248,7 +250,8 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div class="content" id="content"></div>
     <div class="footer">
       <button class="btn" id="back-btn" onclick="goBack()">Back</button>
-      <button class="btn btn-d" onclick="goTo(&#39;optout&#39;)">Opt-Out</button>
+      <button class="btn btn-d" onclick="goTo('optout')">Opt-Out</button>
+      <button class="btn" onclick="showLogResult()" style="border-color:#534AB7;color:#3C3489;background:#EEEDFE">Log Result</button>
       <span class="khint" id="khint">Click a response to advance</span>
     </div>
   </div>
@@ -545,12 +548,20 @@ function loadContacts(agentNum,callback){
     .then(function(data){
       var rows=data.values||[];
       if(rows.length<2){callback([]);return;}
-      var headers=rows[0];
+      var headers=null;
+      var dataStart=0;
+      for(var h=0;h<Math.min(5,rows.length);h++){
+        if(rows[h][0]&&rows[h][0].toString().toLowerCase().indexOf('date')>=0){
+          headers=rows[h];dataStart=h+1;break;
+        }
+      }
+      if(!headers){callback([]);return;}
+      console.log('Headers found at row '+(dataStart)+':',headers);
       var today=getTodayStr();
-      console.log('Today string:', today);
-      console.log('Total rows from sheet:', rows.length);
+      console.log('Today string:',today);
+      console.log('Total rows from sheet:',rows.length);
       var result=[];
-      for(var i=1;i<rows.length;i++){
+      for(var i=dataStart;i<rows.length;i++){
         var row=rows[i];
         var obj={rowIndex:i+1};
         for(var j=0;j<headers.length;j++){obj[headers[j]]=row[j]||'';}
@@ -620,22 +631,27 @@ function refreshAndDash(){
 function renderDashboard(){
   var st=getDashboardStats();
   var agentName=agentTabs[selectedAgent]||'Agent';
-  var today=getTodayStr();
+  var now=new Date();
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dateStr=months[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
   var html='<div class="panel" style="margin-bottom:14px">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
-    +'<div><div class="panel-title" style="margin-bottom:2px">'+agentName+' — '+today+'</div>'
-    +'<div style="font-size:12px;color:var(--text-hint)">'+st.total+' contacts assigned today</div></div>'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">'
+    +'<div><div style="font-size:18px;font-weight:700;color:var(--brand);margin-bottom:4px">'+agentName+'</div>'
+    +'<div style="font-size:13px;color:var(--text-secondary)">'+dateStr+'</div></div>'
     +'<button onclick="showContacts()" style="padding:8px 16px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Start Calling</button>'
     +'</div>'
-    +'<div class="stat-grid">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Overview</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'
+    +'<div class="stat-card"><div class="stat-num" style="color:#0a0a74">'+st.total+'</div><div class="stat-lbl">Assigned Today</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:#0a0a74">'+(st.total-st.remaining)+'</div><div class="stat-lbl">Total Contacted</div></div>'
     +'<div class="stat-card"><div class="stat-num" style="color:#0a0a74">'+st.remaining+'</div><div class="stat-lbl">Remaining</div></div>'
+    +'</div>'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Call Results</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">'
     +'<div class="stat-card"><div class="stat-num" style="color:#1D9E75">'+st['Call Answered']+'</div><div class="stat-lbl">Call Answered</div></div>'
     +'<div class="stat-card"><div class="stat-num" style="color:#534AB7">'+st['Voicemail Left']+'</div><div class="stat-lbl">Voicemail Left</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#8A8FA8">'+st['No Answer']+'</div><div class="stat-lbl">No Answer</div></div>'
     +'<div class="stat-card"><div class="stat-num" style="color:#8A8FA8">'+st['Inbox Full']+'</div><div class="stat-lbl">Inbox Full</div></div>'
     +'<div class="stat-card"><div class="stat-num" style="color:var(--amber-dark)">'+st['Hung Up']+'</div><div class="stat-lbl">Hung Up</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#0a0a74">'+(st.total-st.remaining)+'</div><div class="stat-lbl">Total Contacted</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#0a0a74">'+st.total+'</div><div class="stat-lbl">Assigned Today</div></div>'
     +'</div></div>';
   document.getElementById('content').innerHTML=html;
 }
@@ -686,9 +702,13 @@ function renderContactPanel(){
     +'</div>'
     +'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px">'
     +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Phone Number</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between">'
     +'<div style="font-size:20px;font-weight:700;color:var(--brand);letter-spacing:.05em">'+(c['Phone']||'')+'</div>'
-    +'</div>'
-    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Outcome</div>'
+    +'<button onclick="copyPhone(\''+( c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
+    +'</div></div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Quick Log</div>'
+    +'<button onclick="quickVoicemail('+idx+')" style="width:100%;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489;cursor:pointer;font-family:var(--font);margin-bottom:12px">Left Voicemail — log and move to next</button>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Other Outcome</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
   var btStyles={
     'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
@@ -714,6 +734,70 @@ function renderContactPanel(){
 
 var pendingOutcome=null;
 var pendingIdx=null;
+
+function copyPhone(num){
+  navigator.clipboard.writeText(num).then(function(){
+    var btn=document.getElementById('copy-phone-btn');
+    if(btn){btn.textContent='Copied!';btn.style.color='#085041';btn.style.borderColor='#1D9E75';setTimeout(function(){btn.textContent='Copy';btn.style.color='';btn.style.borderColor='';},2000);}
+  }).catch(function(){
+    var btn=document.getElementById('copy-phone-btn');
+    if(btn){btn.textContent='Failed';setTimeout(function(){btn.textContent='Copy';},2000);}
+  });
+}
+
+function showLogResult(){
+  var uncalled=[];
+  for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
+  var idx=uncalled.length?uncalled[0]:null;
+  var c=idx!==null?contacts[idx]:null;
+  hist.push({id:cur});cur='_log';
+  document.getElementById('crumb').innerHTML='<span class="crumb-a">Log Call Result</span>';
+  document.getElementById('tbr').innerHTML='';
+  var btStyles={
+    'Voicemail Left':'border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489',
+    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
+    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)'
+  };
+  var contactInfo=c?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>':'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved to sheet.</div>';
+  var btns=Object.keys(btStyles).map(function(o){
+    return '<button onclick="logFromAnywhere(\''+o+'\','+idx+')" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
+  }).join('');
+  document.getElementById('content').innerHTML='<div class="panel">'
+    +'<div class="panel-title" style="margin-bottom:12px">Log Result for Current Call</div>'
+    +contactInfo
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Select Outcome</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+btns+'</div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
+    +'<textarea id="log-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
+    +'</div>';
+}
+
+function logFromAnywhere(outcome, idx){
+  var notes=document.getElementById('log-notes');
+  var notesVal=notes?notes.value.trim():'';
+  if(idx!==null&&idx!==undefined&&contacts[idx]){
+    contacts[idx]['Contacted']=outcome;
+    contacts[idx]['Notes']=notesVal;
+    writeOutcome(selectedAgent,contacts[idx].rowIndex,outcome,notesVal);
+  }
+  cur='open';hist=[];
+  render();
+  var content=document.getElementById('content');
+  var banner=document.createElement('div');
+  banner.style.cssText='background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#085041';
+  banner.textContent='Result logged: '+outcome+(notesVal?' — "'+notesVal+'"':'')+'. Ready for next call.';
+  content.insertBefore(banner,content.firstChild);
+  setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
+}
+
+function quickVoicemail(idx){
+  var c=contacts[idx];
+  if(!c)return;
+  c['Contacted']='Voicemail Left';
+  writeOutcome(selectedAgent,c.rowIndex,'Voicemail Left','');
+  renderContactPanel();
+}
 
 function selectOutcome(idx,outcome){
   pendingOutcome=outcome;
@@ -750,8 +834,8 @@ function vmText(){
 
 function setMode(m){
   mode=m;cur=m==='inbound'?'inbound_open':'open';hist=[];
-  document.getElementById('btn-out').className='mbtn'+(m==='outbound'?' ao':'');
-  document.getElementById('btn-in').className='mbtn'+(m==='inbound'?' ai':'');
+  var sel=document.getElementById('mode-select');
+  if(sel)sel.value=m;
   document.getElementById('mhint').textContent=m==='inbound'?'Inbound mode — patient called in':'Outbound mode — you are calling the patient';
   render();
 }
@@ -918,6 +1002,5 @@ document.addEventListener('keydown',function(e){
   }
 });
 </script>
-
-
-</body></html>
+</body>
+</html>
