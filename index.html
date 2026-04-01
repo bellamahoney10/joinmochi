@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0065)file:///Users/bellamahoney/Downloads/mochi_call_script%20(7).html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mochi Health — Call Script</title>
-<link href="./index_files/css2" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -178,7 +178,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <span class="logo-word">mochi</span>
     <span class="logo-sub">health · pcs</span>
   </div>
-  <div class="clocks" id="clocks"><div class="ck"><span class="ck-tz">ET</span><span class="ck-t">3:00 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">CT</span><span class="ck-t">2:00 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">MT</span><span class="ck-t">1:00 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">PT</span><span class="ck-t">12:00 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div></div>
+  <div class="clocks" id="clocks"></div>
 </header>
 
 <div class="modebar">
@@ -199,8 +199,8 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     </div>
     <hr class="sbdiv">
     <div style="padding:0 14px 6px">
-      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showDashboard()">📈 My Dashboard</button>
-      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContacts()">📞 My Contacts</button>
+      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showDashboard()">&#128200; My Dashboard</button>
+      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContacts()">&#128222; My Contacts</button>
       <button class="qbtn n" style="margin:0;width:100%" onclick="showSchedule()">Call Schedule</button>
     </div>
     <hr class="sbdiv">
@@ -210,17 +210,17 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     </div>
     <hr class="sbdiv">
     <div class="sb-lbl" style="padding:0 14px;margin-bottom:6px">Quick Jump</div>
-    <button class="qbtn f" onclick="goTo(&#39;wellness&#39;)">Wellness+</button>
-    <button class="qbtn f" onclick="goTo(&#39;howitworks&#39;)">How It Works</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_pricing&#39;)">FAQ — Pricing</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_medication&#39;)">FAQ — Medication</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_compounded&#39;)">FAQ — Compounded GLP-1s</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_program&#39;)">FAQ — The Program</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_hesitations&#39;)">FAQ — Hesitations</button>
-    <button class="qbtn f" onclick="goTo(&#39;faq_logistics&#39;)">FAQ — Logistics</button>
+    <button class="qbtn f" onclick="goTo('wellness')">Wellness+</button>
+    <button class="qbtn f" onclick="goTo('howitworks')">How It Works</button>
+    <button class="qbtn f" onclick="goTo('faq_pricing')">FAQ — Pricing</button>
+    <button class="qbtn f" onclick="goTo('faq_medication')">FAQ — Medication</button>
+    <button class="qbtn f" onclick="goTo('faq_compounded')">FAQ — Compounded GLP-1s</button>
+    <button class="qbtn f" onclick="goTo('faq_program')">FAQ — The Program</button>
+    <button class="qbtn f" onclick="goTo('faq_hesitations')">FAQ — Hesitations</button>
+    <button class="qbtn f" onclick="goTo('faq_logistics')">FAQ — Logistics</button>
     <hr class="sbdiv">
-    <button class="qbtn" onclick="goTo(&#39;rude&#39;)">Hostile Caller</button>
-    <button class="qbtn" onclick="goTo(&#39;optout&#39;)">Opt-Out Request</button>
+    <button class="qbtn" onclick="goTo('rude')">Hostile Caller</button>
+    <button class="qbtn" onclick="goTo('optout')">Opt-Out Request</button>
     <button class="qbtn n" onclick="showCompliance()">Compliance Rules</button>
     <hr class="sbdiv">
     <div class="ref-sec">
@@ -250,7 +250,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div class="content" id="content"></div>
     <div class="footer">
       <button class="btn" id="back-btn" onclick="goBack()">Back</button>
-      <button class="btn btn-d" onclick="goTo(&#39;optout&#39;)">Opt-Out</button>
+      <button class="btn btn-d" onclick="goTo('optout')">Opt-Out</button>
       <button class="btn" onclick="showLogResult()" style="border-color:#534AB7;color:#3C3489;background:#EEEDFE">Log Result</button>
       <span class="khint" id="khint">Click a response to advance</span>
     </div>
@@ -1065,6 +1065,5 @@ document.addEventListener('keydown',function(e){
   }
 });
 </script>
-
-
-</body></html>
+</body>
+</html>
