@@ -860,14 +860,47 @@ function showLogResult(){
   document.getElementById('content').innerHTML=html;
 }
 
-function logFromAnywhere(outcome, idx){
+/ Called when agent clicks Call button on contact panel
+function startCall(idx){
+  // Store which contact we're calling so Log Result knows
+  pendingIdx=idx;
+  // Navigate to the call flow opening
+  cur=mode==='inbound'?'inbound_open':'open';
+  hist=[];
+  render();
+}
+
+// Log Result footer — outcome selected
+var pendingLogOutcome=null;
+var pendingLogIdx=null;
+
+function selectLogOutcome(outcome,idx){
+  pendingLogOutcome=outcome;
+  pendingLogIdx=idx;
+  var np=document.getElementById('log-notes-panel');
+  if(np)np.style.display='block';
+  var btn=document.getElementById('submit-log-btn');
+  if(btn)btn.textContent='Submit — '+outcome;
+}
+
+function cancelLogOutcome(){
+  pendingLogOutcome=null;pendingLogIdx=null;
+  var np=document.getElementById('log-notes-panel');
+  if(np)np.style.display='none';
+}
+
+function submitLogOutcome(){
+  if(pendingLogOutcome===null||pendingLogIdx===null)return;
   var notes=document.getElementById('log-notes');
   var notesVal=notes?notes.value.trim():'';
-  if(idx!==null&&idx!==undefined&&contacts[idx]){
-    contacts[idx]['Contacted']=outcome;
-    contacts[idx]['Notes']=notesVal;
-    writeOutcome(selectedAgent,contacts[idx].rowIndex,outcome,notesVal);
+  var c=contacts[pendingLogIdx];
+  if(c){
+    c['Contacted']=pendingLogOutcome;
+    c['Notes']=notesVal;
+    writeOutcome(selectedAgent,c.rowIndex,pendingLogOutcome,notesVal);
   }
+  var outcome=pendingLogOutcome;
+  pendingLogOutcome=null;pendingLogIdx=null;
   cur='open';hist=[];
   render();
   var content=document.getElementById('content');
