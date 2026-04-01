@@ -592,25 +592,35 @@ function tzPriority(tz){
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
 
-function writeOutcome(agentNum,rowIndex,outcome,notes){
-  var tab=agentTabs[agentNum];
-  if(!tab)return;
-  var url='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!J'+rowIndex+':K'+rowIndex)+'?valueInputOption=RAW&key='+API_KEY;
-  console.log('Writing to row '+rowIndex+': outcome='+outcome+' notes='+notes);
-  console.log('URL:',url);
-  fetch(url,{
-    method:'PUT',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({values:[[outcome,notes||'']]})
+// Paste your deployed Web App URL here
+var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz8l2y8IhW-bwmK1q6q0vSBx59zTJ-uXcKRWrKwCzhc04KeYdEtt0xm4q5Mwaen6IH7qQ/exec';
+
+function writeOutcome(agentNum, rowIndex, outcome, notes) {
+  var tab = agentTabs[agentNum];
+  if (!tab) return;
+
+  console.log('Writing to row ' + rowIndex + ': outcome=' + outcome + ' notes=' + notes);
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    // NOTE: mode no-cors means we won't see the response body,
+    // but the write will succeed. Switch to 'cors' only if you
+    // add CORS headers in the Apps Script (not needed for basic logging).
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      tab: tab,
+      row: rowIndex,
+      outcome: outcome,
+      notes: notes || ''
+    })
   })
-  .then(function(r){
-    console.log('Write response status:',r.status);
-    return r.json();
+  .then(function() {
+    console.log('Write sent for row ' + rowIndex);
   })
-  .then(function(d){
-    console.log('Write response:',JSON.stringify(d));
-  })
-  .catch(function(e){console.log('Write error:',e);});
+  .catch(function(err) {
+    console.error('Write error:', err);
+  });
 }
 
 function getDashboardStats(){
