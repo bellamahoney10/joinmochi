@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0065)file:///Users/bellamahoney/Downloads/mochi_call_script%20(5).html -->
+<!-- saved from url=(0065)file:///Users/bellamahoney/Downloads/mochi_call_script%20(6).html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -178,14 +178,14 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <span class="logo-word">mochi</span>
     <span class="logo-sub">health · pcs</span>
   </div>
-  <div class="clocks" id="clocks"><div class="ck"><span class="ck-tz">ET</span><span class="ck-t">2:41 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">CT</span><span class="ck-t">1:41 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">MT</span><span class="ck-t">12:41 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">PT</span><span class="ck-t">11:41 PM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div></div>
+  <div class="clocks" id="clocks"><div class="ck"><span class="ck-tz">ET</span><span class="ck-t">2:54 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">CT</span><span class="ck-t">1:54 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">MT</span><span class="ck-t">12:54 AM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div><div class="ck-div"></div><div class="ck"><span class="ck-tz">PT</span><span class="ck-t">11:54 PM</span><span class="ck-status" style="color:#E24B4A">Do Not Call</span></div></div>
 </header>
 
 <div class="modebar">
   <span class="mlabel">Call type:</span>
   <select id="mode-select" onchange="setMode(this.value)" style="font-size:13px;padding:7px 20px;border-radius:var(--radius);border:1.5px solid var(--border);background:#fff;color:var(--brand);cursor:pointer;font-family:var(--font);font-weight:600;outline:none">
-    <option value="outbound">Calling Them</option>
-    <option value="inbound">They Called Us</option>
+    <option value="outbound">Outbound</option>
+    <option value="inbound">Inbound</option>
   </select>
   <span style="width:1px;height:18px;background:var(--border);margin:0 4px;display:inline-block"></span>
   <span id="mhint" class="mhint">Select mode before starting the call</span>
@@ -596,11 +596,21 @@ function writeOutcome(agentNum,rowIndex,outcome,notes){
   var tab=agentTabs[agentNum];
   if(!tab)return;
   var url='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!J'+rowIndex+':K'+rowIndex)+'?valueInputOption=RAW&key='+API_KEY;
+  console.log('Writing to row '+rowIndex+': outcome='+outcome+' notes='+notes);
+  console.log('URL:',url);
   fetch(url,{
     method:'PUT',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({values:[[outcome,notes||'']]})
-  }).catch(function(e){console.log('Write error',e);});
+  })
+  .then(function(r){
+    console.log('Write response status:',r.status);
+    return r.json();
+  })
+  .then(function(d){
+    console.log('Write response:',JSON.stringify(d));
+  })
+  .catch(function(e){console.log('Write error:',e);});
 }
 
 function getDashboardStats(){
@@ -627,7 +637,7 @@ function refreshAndDash(){
   if(btn)btn.textContent='Loading...';
   loadContacts(selectedAgent,function(result){
     contacts=result;contactIdx=0;
-    if(btn)btn.textContent='&#8635; Refresh';
+    if(btn)btn.textContent='Refresh';
     renderDashboard();
   });
 }
@@ -638,26 +648,77 @@ function renderDashboard(){
   var now=new Date();
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var dateStr=months[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
+  function statCard(num,lbl,color,filter){
+    return '<div class="stat-card" onclick="showContactList(\''+filter+'\')" style="cursor:pointer" title="Click to view contacts">'
+      +'<div class="stat-num" style="color:'+color+'">'+num+'</div>'
+      +'<div class="stat-lbl">'+lbl+'</div>'
+      +'</div>';
+  }
   var html='<div class="panel" style="margin-bottom:14px">'
     +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">'
     +'<div><div style="font-size:18px;font-weight:700;color:var(--brand);margin-bottom:4px">'+agentName+'</div>'
     +'<div style="font-size:13px;color:var(--text-secondary)">'+dateStr+'</div></div>'
     +'<button onclick="showContacts()" style="padding:8px 16px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Start Calling</button>'
     +'</div>'
-    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Overview</div>'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Overview <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint)">(click any card to view contacts)</span></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'
-    +'<div class="stat-card"><div class="stat-num" style="color:#0a0a74">'+st.total+'</div><div class="stat-lbl">Assigned Today</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#0a0a74">'+(st.total-st.remaining)+'</div><div class="stat-lbl">Total Contacted</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#0a0a74">'+st.remaining+'</div><div class="stat-lbl">Remaining</div></div>'
+    +statCard(st.total,'Assigned Today','#0a0a74','all')
+    +statCard((st.total-st.remaining),'Total Contacted','#0a0a74','contacted')
+    +statCard(st.remaining,'Remaining','#0a0a74','remaining')
     +'</div>'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Call Results</div>'
     +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">'
-    +'<div class="stat-card"><div class="stat-num" style="color:#1D9E75">'+st['Call Answered']+'</div><div class="stat-lbl">Call Answered</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#534AB7">'+st['Voicemail Left']+'</div><div class="stat-lbl">Voicemail Left</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#8A8FA8">'+st['Inbox Full']+'</div><div class="stat-lbl">Inbox Full</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:var(--amber-dark)">'+st['Hung Up']+'</div><div class="stat-lbl">Hung Up</div></div>'
+    +statCard(st['Call Answered'],'Call Answered','#1D9E75','Call Answered')
+    +statCard(st['Voicemail Left'],'Voicemail Left','#534AB7','Voicemail Left')
+    +statCard(st['Inbox Full'],'Inbox Full','#8A8FA8','Inbox Full')
+    +statCard(st['Hung Up'],'Hung Up','var(--amber-dark)','Hung Up')
     +'</div></div>';
   document.getElementById('content').innerHTML=html;
+}
+
+function showContactList(filter){
+  hist.push({id:cur});cur='_clist';
+  var title=filter==='all'?'All Contacts':filter==='contacted'?'Total Contacted':filter==='remaining'?'Remaining':filter;
+  document.getElementById('crumb').innerHTML='<span class="crumb-a">'+title+'</span>';
+  document.getElementById('tbr').innerHTML='';
+  var rows=contacts.filter(function(c){
+    if(filter==='all')return true;
+    if(filter==='remaining')return !c['Contacted'];
+    if(filter==='contacted')return !!c['Contacted'];
+    return c['Contacted']===filter;
+  });
+  if(!rows.length){
+    document.getElementById('content').innerHTML='<div class="panel"><div style="font-size:13px;color:var(--text-secondary)">No contacts in this category.</div></div>';
+    return;
+  }
+  var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)',''  :'#8A8FA8'};
+  var outcomeBg={'Call Answered':'#E1F5EE','Voicemail Left':'#EEEDFE','Inbox Full':'#F2F3F7','Hung Up':'var(--amber-light)',''  :'#F2F3F7'};
+  var html='<div class="panel">'
+    +'<div style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:14px">'+title+' <span style="font-weight:400;color:var(--text-hint)">('+rows.length+')</span></div>';
+  rows.forEach(function(c){
+    var outcome=c['Contacted']||'Not called';
+    var oc=outcomeColors[c['Contacted']]||'#8A8FA8';
+    var ob=outcomeBg[c['Contacted']]||'#F2F3F7';
+    var tz=normTz(c['Time Zone']||'');
+    var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
+    var tzBg=tzColors[tz]||'#534AB7';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light);gap:10px;flex-wrap:wrap">'
+      +'<div style="display:flex;align-items:center;gap:10px;min-width:0">'
+      +'<div style="width:34px;height:34px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brand);flex-shrink:0">'+(c['Name']||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase()+'</div>'
+      +'<div style="min-width:0">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(c['Name']||'')+'</div>'
+      +'<div style="font-size:11px;color:var(--text-secondary)">'+(c['State']||'')+' &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>'
+      +(c['Notes']?'<div style="font-size:11px;color:var(--text-secondary);font-style:italic;margin-top:2px">"'+(c['Notes']||'')+'"</div>':'')
+      +'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
+      +(tz?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+tzBg+';color:#fff">'+tz+'</span>':'')
+      +'<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;background:'+ob+';color:'+oc+'">'+outcome+'</span>'
+      +'</div>'
+      +'</div>';
+  });
+  html+='</div>';
+  document.getElementById('content').innerHTML=html;
+  document.getElementById('back-btn').disabled=false;
 }
 
 function showContacts(){
