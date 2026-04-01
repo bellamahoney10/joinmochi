@@ -531,7 +531,7 @@ function getTodayStr(){
 function loadContacts(agentNum,callback){
   var tab=agentTabs[agentNum];
   if(!tab){callback([]);return;}
-  fetch(APPS_SCRIPT_URL+'?tab='+encodeURIComponent(tab))
+  fetch(APPS_SCRIPT_URL+'?tab='+encodeURIComponent(tab), {mode:'cors'})
     .then(function(r){return r.json();})
     .then(function(data){
       var rows=data.values||[];
