@@ -24,13 +24,13 @@ module.exports = async (req, res) => {
   if (!agent_id) return res.status(400).json({ error: 'agent_id required' });
   try {
     const result = await getPool().query(`
-      SELECT id, first_name, last_name, phone, state, priority_score
+      SELECT id, first_name, last_name, phone, state, assigned_at
       FROM outreach_call_queue
       WHERE assigned_agent_id = $1
         AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
         AND status = 'assigned'
         AND deleted_at IS NULL
-      ORDER BY priority_score DESC, added_to_queue_at ASC
+      ORDER BY added_to_queue_at ASC
     `, [agent_id]);
     res.json(result.rows);
   } catch (e) {

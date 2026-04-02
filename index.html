@@ -504,6 +504,7 @@ function startTool(){
   loadContacts(selectedAgent,function(result){
     contacts=result;
     contactIdx=0;
+    initSheetSession(contacts);
     var el=document.getElementById('load-msg');
     if(el)el.parentNode.removeChild(el);
     cur='open';hist=[];
@@ -564,6 +565,8 @@ function loadContacts(agentId,callback){
       var result=data.map(function(row){
         var tz=STATE_TZ[row.state]||'ET';
         var entry=logged[row.id]||{};
+        var assignedDate=row.assigned_at?new Date(row.assigned_at):new Date();
+        var assignedStr=(assignedDate.getMonth()+1)+'/'+(assignedDate.getDate())+'/'+assignedDate.getFullYear();
         return {
           id:row.id,
           'Name':((row.first_name||'')+' '+(row.last_name||'')).trim(),
@@ -572,6 +575,7 @@ function loadContacts(agentId,callback){
           'Phone':row.phone||'',
           'State':row.state||'',
           'Time Zone':tz,
+          'Date Assigned':assignedStr,
           'Contacted':entry.outcome||'',
           'Notes':entry.notes||''
         };
@@ -591,17 +595,32 @@ function tzPriority(tz){
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
 
+function getSessionKey(){return 'mochi_session_'+getTodayStr()+'_'+selectedAgent;}
+function initSheetSession(contacts){
+  if(localStorage.getItem(getSessionKey()))return;
+  if(!contacts.length)return;
+  var rows=contacts.map(function(c){
+    return [c['Date Assigned'],selectedAgentName,c['Name'],c['Phone'],''];
+  });
+  fetch(APPS_SCRIPT_URL,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'initSession',rows:rows})
+  }).catch(function(e){console.error('Sheet init error:',e);});
+  localStorage.setItem(getSessionKey(),'1');
+}
+
 function writeOutcome(agentId,contactId,outcome,notes){
   var c=null;
   for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){c=contacts[i];break;}}
   if(!c)return;
   saveLogged(contactId,outcome,notes);
-  var agentFirst=selectedAgentName.split(' ')[0]||selectedAgentName;
   fetch(APPS_SCRIPT_URL,{
     method:'POST',
     mode:'no-cors',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'append',tab:agentFirst,row:[getTodayStr(),selectedAgentName,c['First Name'],c['Last Name'],c['Phone'],c['State'],c['Time Zone'],outcome,notes||'']})
+    body:JSON.stringify({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,phone:c['Phone'],result:outcome})
   })
   .catch(function(e){console.error('Write error:',e);});
 }
@@ -625,13 +644,26 @@ function showDashboard(){
   document.getElementById('back-btn').disabled=false;
 }
 
+function checkAndTopup(callback){
+  var remaining=contacts.filter(function(c){return !c['Contacted'];}).length;
+  if(remaining<=10){
+    fetch('/api/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
+      .then(function(){callback();})
+      .catch(function(){callback();});
+  } else {
+    callback();
+  }
+}
+
 function refreshAndDash(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  loadContacts(selectedAgent,function(result){
-    contacts=result;contactIdx=0;
-    if(btn)btn.textContent='Refresh';
-    renderDashboard();
+  checkAndTopup(function(){
+    loadContacts(selectedAgent,function(result){
+      contacts=result;contactIdx=0;
+      if(btn)btn.textContent='Refresh';
+      renderDashboard();
+    });
   });
 }
 
@@ -725,10 +757,12 @@ function showContacts(){
 function refreshContacts(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  loadContacts(selectedAgent,function(result){
-    contacts=result;contactIdx=0;
-    if(btn)btn.textContent='Refresh';
-    renderContactPanel();
+  checkAndTopup(function(){
+    loadContacts(selectedAgent,function(result){
+      contacts=result;contactIdx=0;
+      if(btn)btn.textContent='Refresh';
+      renderContactPanel();
+    });
   });
 }
 
