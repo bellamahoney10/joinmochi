@@ -589,7 +589,7 @@ function writeOutcome(agentNum,rowIndex,outcome,notes){
 }
 
 function getDashboardStats(){
-  var stats={total:0,'Voicemail Left':0,'Call Answered':0,'No Answer':0,'Inbox Full':0,'Hung Up':0,'Call Back Request':0,remaining:0};
+  var stats={total:0,'Voicemail Left':0,'Call Answered':0,'No Answer':0,'Inbox Full':0,'Hung Up':0,remaining:0};
   for(var i=0;i<contacts.length;i++){
     stats.total++;
     var c=contacts[i]['Contacted']||'';
@@ -642,12 +642,11 @@ function renderDashboard(){
     +statCard(st.remaining,'Remaining','#0a0a74','remaining')
     +'</div>'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Call Results</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">'
     +statCard(st['Call Answered'],'Call Answered','#1D9E75','Call Answered')
     +statCard(st['Voicemail Left'],'Voicemail Left','#534AB7','Voicemail Left')
     +statCard(st['Inbox Full'],'Inbox Full','#8A8FA8','Inbox Full')
     +statCard(st['Hung Up'],'Hung Up','var(--amber-dark)','Hung Up')
-    +statCard(st['Call Back Request'],'Call Back Request','#0a0a74','Call Back Request')
     +'</div></div>';
   document.getElementById('content').innerHTML=html;
 }
@@ -667,8 +666,8 @@ function showContactList(filter){
     document.getElementById('content').innerHTML='<div class="panel"><div style="font-size:13px;color:var(--text-secondary)">No contacts in this category.</div></div>';
     return;
   }
-  var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)','Call Back Request':'#0a0a74',''  :'#8A8FA8'};
-  var outcomeBg={'Call Answered':'#E1F5EE','Voicemail Left':'#EEEDFE','Inbox Full':'#F2F3F7','Hung Up':'var(--amber-light)','Call Back Request':'var(--brand-light)',''  :'#F2F3F7'};
+  var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)',''  :'#8A8FA8'};
+  var outcomeBg={'Call Answered':'#E1F5EE','Voicemail Left':'#EEEDFE','Inbox Full':'#F2F3F7','Hung Up':'var(--amber-light)',''  :'#F2F3F7'};
   var html='<div class="panel">'
     +'<div style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:14px">'+title+' <span style="font-weight:400;color:var(--text-hint)">('+rows.length+')</span></div>';
   rows.forEach(function(c){
@@ -797,6 +796,7 @@ function copyPhone(num){
 function selectOutcome(idx,outcome){
   pendingOutcome=outcome;
   pendingIdx=idx;
+  pendingCbr=false;
   var np=document.getElementById('notes-panel');
   if(np)np.style.display='block';
   var cbrRow=document.getElementById('cbr-row');
@@ -808,15 +808,13 @@ function selectOutcome(idx,outcome){
   var btn=document.getElementById('submit-outcome-btn');
   if(btn)btn.textContent='Submit — '+outcome;
 }
+var pendingCbr=false;
 function toggleCbr(){
-  var isCbr=pendingOutcome==='Call Back Request';
-  pendingOutcome=isCbr?'Call Answered':'Call Back Request';
+  pendingCbr=!pendingCbr;
   var btn=document.getElementById('cbr-btn');
-  if(btn){btn.textContent=isCbr?'+ Mark as Call Back Request':'✓ Call Back Request';btn.style.background=isCbr?'#fff':'var(--brand-light)';btn.style.borderColor=isCbr?'var(--border)':'var(--brand)';btn.style.color=isCbr?'var(--text-secondary)':'var(--brand)';}
+  if(btn){btn.textContent=pendingCbr?'✓ Call Back Request':'+ Mark as Call Back Request';btn.style.background=pendingCbr?'var(--brand-light)':'#fff';btn.style.borderColor=pendingCbr?'var(--brand)':'var(--border)';btn.style.color=pendingCbr?'var(--brand)':'var(--text-secondary)';}
   var ta=document.getElementById('outcome-notes');
-  if(ta)ta.placeholder=isCbr?'Add notes (optional)...':'Add callback time and any notes...';
-  var submitBtn=document.getElementById('submit-outcome-btn');
-  if(submitBtn)submitBtn.textContent='Submit — '+pendingOutcome;
+  if(ta)ta.placeholder=pendingCbr?'Add callback time and any notes...':'Add notes (optional)...';
 }
 
 function cancelOutcome(){
@@ -829,6 +827,8 @@ function submitOutcome(){
   if(pendingOutcome===null||pendingIdx===null)return;
   var notes=document.getElementById('outcome-notes');
   var notesVal=notes?notes.value:'';
+  if(pendingCbr)notesVal=notesVal?'Callback Request — '+notesVal:'Callback Request';
+  pendingCbr=false;
   var c=contacts[pendingIdx];
   c['Contacted']=pendingOutcome;
   c['Notes']=notesVal;
@@ -882,6 +882,7 @@ var pendingLogIdx=null;
 function selectLogOutcome(outcome,idx){
   pendingLogOutcome=outcome;
   pendingLogIdx=idx;
+  pendingLogCbr=false;
   var np=document.getElementById('log-notes-panel');
   if(np)np.style.display='block';
   var cbrRow=document.getElementById('log-cbr-row');
@@ -893,15 +894,13 @@ function selectLogOutcome(outcome,idx){
   var btn=document.getElementById('submit-log-btn');
   if(btn)btn.textContent='Submit — '+outcome;
 }
+var pendingLogCbr=false;
 function toggleLogCbr(){
-  var isCbr=pendingLogOutcome==='Call Back Request';
-  pendingLogOutcome=isCbr?'Call Answered':'Call Back Request';
+  pendingLogCbr=!pendingLogCbr;
   var btn=document.getElementById('log-cbr-btn');
-  if(btn){btn.textContent=isCbr?'+ Mark as Call Back Request':'✓ Call Back Request';btn.style.background=isCbr?'#fff':'var(--brand-light)';btn.style.borderColor=isCbr?'var(--border)':'var(--brand)';btn.style.color=isCbr?'var(--text-secondary)':'var(--brand)';}
+  if(btn){btn.textContent=pendingLogCbr?'✓ Call Back Request':'+ Mark as Call Back Request';btn.style.background=pendingLogCbr?'var(--brand-light)':'#fff';btn.style.borderColor=pendingLogCbr?'var(--brand)':'var(--border)';btn.style.color=pendingLogCbr?'var(--brand)':'var(--text-secondary)';}
   var ta=document.getElementById('log-notes');
-  if(ta)ta.placeholder=isCbr?'Add notes (optional)...':'Add callback time and any notes...';
-  var submitBtn=document.getElementById('submit-log-btn');
-  if(submitBtn)submitBtn.textContent='Submit — '+pendingLogOutcome;
+  if(ta)ta.placeholder=pendingLogCbr?'Add callback time and any notes...':'Add notes (optional)...';
 }
 
 function cancelLogOutcome(){
@@ -914,6 +913,8 @@ function submitLogOutcome(){
   if(pendingLogOutcome===null||pendingLogIdx===null)return;
   var notes=document.getElementById('log-notes');
   var notesVal=notes?notes.value.trim():'';
+  if(pendingLogCbr)notesVal=notesVal?'Callback Request — '+notesVal:'Callback Request';
+  pendingLogCbr=false;
   var c=contacts[pendingLogIdx];
   if(c){
     c['Contacted']=pendingLogOutcome;
