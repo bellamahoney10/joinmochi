@@ -524,8 +524,7 @@ function updateClocks(){
 updateClocks();setInterval(updateClocks,1000);
 
 function getTodayStr(){
-  var d=new Date();
-  return (d.getMonth()+1)+'/'+(d.getDate())+'/'+d.getFullYear();
+  return new Date().toLocaleDateString('en-US',{timeZone:'America/New_York',month:'numeric',day:'numeric',year:'numeric'});
 }
 
 function loadContacts(agentNum,callback){
