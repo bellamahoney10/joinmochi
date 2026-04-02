@@ -339,7 +339,7 @@ var S={
     q:'How do they respond?',
     br:[{t:'Ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Need to think about it',n:'notready'}]},
   safety:{title:'Medication Question',trail:['Medication'],type:'normal',
-    script:'<i>Our compounded semaglutide and tirzepatide contain the <b>same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b> with added B12 and B6 for energy and metabolism. If you are switching from another program, <b>no need to restart at the lowest dose</b> — we continue you at the same dose with documentation.</i>',
+    script:'<i>Our compounded semaglutide and tirzepatide contain the <b>same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b> with added B12 and B6 for energy and metabolism. If you are switching from another program, <b>no need to restart at the lowest dose</b> — we continue you at the same dose with documentation.</i><br><br><i>On pricing — compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Both are injectable doses that last <b>28 days</b>, with shipping included. Flat rate regardless of your dose level.</i><br><br><i>And beyond GLP-1s, Mochi gives you access to <b>over 1,000 non-GLP-1 medications</b> across dermatology, hair loss, mental health, hormone therapy, longevity, sexual health, and more — all through your same provider.</i>',
     q:'Do they have more questions?',
     br:[{t:"That's reassuring — let's continue",n:'close'},{t:'Question about pricing',n:'price'},{t:'Question about insurance',n:'insurance'},{t:'Still have questions',n:'notready'}]},
   notready:{title:'Not Ready Yet',trail:['Not Ready'],type:'warn',
@@ -386,7 +386,9 @@ var S={
   faq_medication:{title:'FAQ — Medication',trail:['FAQ','Medication'],type:'normal',faq:true,
     faqs:[
       {q:'Is compounded semaglutide or tirzepatide safe?',a:'<i>Our compounded medications contain the <b>exact same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b>. They also include B12 and B6 to support energy and metabolism.</i>'},
-      {q:'How does compounded compare to Ozempic or Wegovy?',a:'<i>Same active ingredient — semaglutide — just prepared differently. Brand-name can run $900 to $1,300 a month. Our compounded version is <b>$99/month</b> with shipping.</i>'},
+      {q:'How much does the medication cost?',a:'<i>Compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Both are injectable doses that last <b>28 days</b>, with shipping included — flat rate regardless of your dose level. Compare that to $900–$1,300/month for brand-name.</i>'},
+      {q:'How does compounded compare to Ozempic or Wegovy?',a:'<i>Same active ingredient — semaglutide — just prepared differently. Brand-name can run $900 to $1,300 a month. Our compounded version is <b>$99/month</b> with shipping included.</i>'},
+      {q:'Does Mochi offer medications beyond GLP-1s?',a:'<i>Yes — Mochi gives access to <b>over 1,000 non-GLP-1 medications</b> across dermatology, hair loss, mental health, hormone therapy, longevity, sexual health, and more. All prescribed through your same Mochi provider.</i>'},
       {q:'Can I get brand-name GLP-1s through Mochi?',a:'<i>Yes — our team handles the prior authorization on your behalf for Wegovy, Ozempic, Zepbound, or Mounjaro. Insurance has up to 30 days to respond, and we bridge you with medication in the meantime.</i>'},
       {q:'How is medication delivered?',a:'<i>Compounded medications ship directly to your door — shipping included. Brand-name prescriptions can be picked up at your local retail pharmacy once the prior authorization is approved.</i>'},
       {q:'What is Wellness+ and do I qualify?',a:'<i>Wellness+ is an upgrade at <b>$69/month</b> with additional preventative health services and no surprise bills guaranteed. Most standard commercial insurance qualifies. I can walk you through whether your plan would be eligible.</i>'}
@@ -396,6 +398,7 @@ var S={
   faq_compounded:{title:'FAQ — Compounded GLP-1s',trail:['FAQ','Compounded GLP-1s'],type:'normal',faq:true,
     faqs:[
       {q:'What exactly is a compounded medication?',a:'<i>Compounded medications are custom-prepared by a licensed pharmacy — like a dosage strength not available commercially, or added nutrients. Made in <b>FDA-inspected, state-licensed facilities</b> held to strict safety and quality standards.</i>'},
+      {q:'How much do the compounded medications cost?',a:'<i>Compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Each is an injectable dose that covers <b>28 days</b> — shipping included. The price is flat regardless of your dose level, so it does not increase as your dose goes up.</i>'},
       {q:"What is in Mochi's compounded semaglutide or tirzepatide?",a:"<i>Same active ingredient as the brand-name versions, plus nutrient-based additives like <b>B12 for energy</b>, B6 for metabolism, and glycine for muscle recovery.</i>"},
       {q:'Is it the same as Ozempic or Mounjaro?',a:'<i>The active ingredient is the same — semaglutide matches Ozempic and Wegovy, tirzepatide matches Mounjaro and Zepbound. Compounded versions are made by <b>FDA-inspected pharmacies</b> rather than the original manufacturer.</i>'},
       {q:'Will I need to restart at the lowest dose when switching?',a:'<i>Not at all — with documentation of your current dose, your Mochi provider will <b>continue you at that same dose</b>.</i>'},
