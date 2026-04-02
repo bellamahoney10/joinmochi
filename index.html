@@ -160,13 +160,10 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div class="pin-error" id="pin-err"></div>
     <div id="agent-sel" style="display:none;margin-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Which agent are you?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="agent-btn" onclick="selAgent(1)">Agent 1</button>
-        <button class="agent-btn" onclick="selAgent(2)">Agent 2</button>
-        <button class="agent-btn" onclick="selAgent(3)">Agent 3</button>
-        <button class="agent-btn" onclick="selAgent(4)">Agent 4</button>
-      </div>
-      <div id="agent-assign" style="margin-top:12px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
+      <select id="agent-dropdown" onchange="selAgent(this.value,this.options[this.selectedIndex].text)" style="width:100%;padding:10px 12px;font-size:14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none">
+        <option value="" disabled selected>Agent Name</option>
+      </select>
+      <div id="agent-assign" style="margin-top:10px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
       <button class="pin-btn" id="start-btn" style="display:none;margin-top:12px" onclick="startTool()">Start calling</button>
     </div>
     <button class="pin-btn" id="pin-btn" onclick="checkPin()">Enter</button>
@@ -260,9 +257,9 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
 <script>
 var PIN='2026';
 var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz8l2y8IhW-bwmK1q6q0vSBx59zTJ-uXcKRWrKwCzhc04KeYdEtt0xm4q5Mwaen6IH7qQ/exec'; var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ'; var API_KEY='AIzaSyAuA4DWGlVrZX-NAh7Zhf8jvQKGd7HSKG4'; function sheetUrl(tab,range){   return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY; } var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ'; var API_KEY='AIzaSyAuA4DWGlVrZX-NAh7Zhf8jvQKGd7HSKG4'; function sheetUrl(tab,range){   return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY; }
-var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null;
+var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null, selectedAgentName='', agentsList=[];
 var contacts=[], contactIdx=0;
-var agentTabs={1:'Agent 1',2:'Agent 2',3:'Agent 3',4:'Agent 4'};
+var STATE_TZ={Connecticut:'ET',Delaware:'ET','District of Columbia':'ET',Florida:'ET',Georgia:'ET',Indiana:'ET',Kentucky:'ET',Maine:'ET',Maryland:'ET',Massachusetts:'ET',Michigan:'ET','New Hampshire':'ET','New Jersey':'ET','New York':'ET','North Carolina':'ET',Ohio:'ET',Pennsylvania:'ET','Rhode Island':'ET','South Carolina':'ET',Vermont:'ET',Virginia:'ET','West Virginia':'ET',Alabama:'CT',Arkansas:'CT',Illinois:'CT',Iowa:'CT',Kansas:'CT',Louisiana:'CT',Minnesota:'CT',Mississippi:'CT',Missouri:'CT',Nebraska:'CT','North Dakota':'CT',Oklahoma:'CT','South Dakota':'CT',Tennessee:'CT',Texas:'CT',Wisconsin:'CT',Arizona:'MT',Colorado:'MT',Idaho:'MT',Montana:'MT','New Mexico':'MT',Utah:'MT',Wyoming:'MT',Alaska:'PT',California:'PT',Hawaii:'PT',Nevada:'PT',Oregon:'PT',Washington:'PT'};
 var OFFSETS={ET:3,CT:2,MT:1,PT:0,Eastern:3,Central:2,Mountain:1,Pacific:0};
 
 function normTz(tz){
@@ -456,16 +453,43 @@ function checkPin(){
     document.getElementById('pin-btn').style.display='none';
     document.getElementById('pin-err').textContent='';
     document.getElementById('pin-inp').disabled=true;
+    loadAgents();
   } else {
     document.getElementById('pin-err').textContent='Incorrect PIN. Try again.';
     document.getElementById('pin-inp').value='';
   }
 }
 
-function selAgent(n){
-  selectedAgent=n;
-  document.querySelectorAll('.agent-btn').forEach(function(b,i){b.classList.toggle('sel',i===n-1);});
-  vmS1=getScript(n)===1;
+function loadAgents(){
+  var dd=document.getElementById('agent-dropdown');
+  if(!dd)return;
+  dd.disabled=true;
+  fetch('/api/agents')
+    .then(function(r){return r.json();})
+    .then(function(agents){
+      agentsList=agents;
+      dd.innerHTML='<option value="" disabled selected>Agent Name</option>';
+      agents.forEach(function(a){
+        var opt=document.createElement('option');
+        opt.value=a.id;
+        opt.textContent=a.first_name+' '+a.last_name;
+        dd.appendChild(opt);
+      });
+      dd.disabled=false;
+    })
+    .catch(function(){
+      dd.innerHTML='<option value="" disabled selected>Failed to load — refresh page</option>';
+      dd.disabled=false;
+    });
+}
+function selAgent(agentId,agentName){
+  if(!agentId)return;
+  selectedAgent=agentId;
+  selectedAgentName=agentName.trim();
+  var agentIdx=0;
+  for(var i=0;i<agentsList.length;i++){if(agentsList[i].id===agentId){agentIdx=i;break;}}
+  var odd=getWk()%2===1,g1=agentIdx%2===0;
+  vmS1=g1?odd:!odd;
   document.getElementById('agent-assign').innerHTML='<strong>Week '+getWk()+' assignment:</strong> '+(vmS1?'Script 1 — Weight Loss':'Script 2 — Personalized Care');
   document.getElementById('start-btn').style.display='block';
 }
@@ -528,39 +552,31 @@ function getTodayStr(){
   return (d.getMonth()+1)+'/'+(d.getDate())+'/'+d.getFullYear();
 }
 
-function loadContacts(agentNum,callback){
-  var tab=agentTabs[agentNum];
-  if(!tab){callback([]);return;}
-  fetch(sheetUrl(tab,'A:L'))
+function getLoggedKey(){return 'mochi_logged_'+getTodayStr()+'_'+selectedAgent;}
+function getLoggedToday(){try{return JSON.parse(localStorage.getItem(getLoggedKey()))||{};}catch(e){return {};}}
+function saveLogged(contactId,outcome,notes){var d=getLoggedToday();d[contactId]={outcome:outcome,notes:notes||''};localStorage.setItem(getLoggedKey(),JSON.stringify(d));}
+function loadContacts(agentId,callback){
+  if(!agentId){callback([]);return;}
+  fetch('/api/contacts?agent_id='+encodeURIComponent(agentId))
     .then(function(r){return r.json();})
     .then(function(data){
-      var rows=data.values||[];
-      if(rows.length<2){callback([]);return;}
-      var headers=null;
-      var dataStart=0;
-      for(var h=0;h<Math.min(5,rows.length);h++){
-        if(rows[h][0]&&rows[h][0].toString().toLowerCase().indexOf('date')>=0){
-          headers=rows[h];dataStart=h+1;break;
-        }
-      }
-      if(!headers){callback([]);return;}
-      var today=getTodayStr();
-      var result=[];
-      for(var i=dataStart;i<rows.length;i++){
-        var row=rows[i];
-        var obj={rowIndex:i+1};
-        for(var j=0;j<headers.length;j++){
-          var hdr=(headers[j]||'').trim();
-          obj[hdr]=row[j]||'';
-        }
-        var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
-        var contacted=(obj['Contacted']||'').trim();
-        if(dateVal===today&&(contacted===''||contacted==='-'||contacted==='Assigned')){result.push(obj);}
-      }
-      result.sort(function(a,b){
-        var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
-        return pa-pb;
+      var logged=getLoggedToday();
+      var result=data.map(function(row){
+        var tz=STATE_TZ[row.state]||'ET';
+        var entry=logged[row.id]||{};
+        return {
+          id:row.id,
+          'Name':((row.first_name||'')+' '+(row.last_name||'')).trim(),
+          'First Name':row.first_name||'',
+          'Last Name':row.last_name||'',
+          'Phone':row.phone||'',
+          'State':row.state||'',
+          'Time Zone':tz,
+          'Contacted':entry.outcome||'',
+          'Notes':entry.notes||''
+        };
       });
+      result.sort(function(a,b){return tzPriority(a['Time Zone'])-tzPriority(b['Time Zone']);});
       callback(result);
     })
     .catch(function(){callback([]);});
@@ -575,17 +591,18 @@ function tzPriority(tz){
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
 
-function writeOutcome(agentNum,rowIndex,outcome,notes){
-  var tab=agentTabs[agentNum];
-  if(!tab)return;
-  console.log('Writing to row '+rowIndex+': outcome='+outcome+' notes='+notes);
+function writeOutcome(agentId,contactId,outcome,notes){
+  var c=null;
+  for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){c=contacts[i];break;}}
+  if(!c)return;
+  saveLogged(contactId,outcome,notes);
+  var agentFirst=selectedAgentName.split(' ')[0]||selectedAgentName;
   fetch(APPS_SCRIPT_URL,{
     method:'POST',
     mode:'no-cors',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({tab:tab,row:rowIndex,outcome:outcome,notes:notes||''})
+    body:JSON.stringify({action:'append',tab:agentFirst,row:[getTodayStr(),selectedAgentName,c['First Name'],c['Last Name'],c['Phone'],c['State'],c['Time Zone'],outcome,notes||'']})
   })
-  .then(function(){console.log('Write sent for row '+rowIndex);})
   .catch(function(e){console.error('Write error:',e);});
 }
 
@@ -620,7 +637,7 @@ function refreshAndDash(){
 
 function renderDashboard(){
   var st=getDashboardStats();
-  var agentName=agentTabs[selectedAgent]||'Agent';
+  var agentName=selectedAgentName||'Agent';
   var now=new Date();
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var dateStr=months[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
@@ -813,7 +830,7 @@ function submitOutcome(){
   var c=contacts[pendingIdx];
   c['Contacted']=pendingOutcome;
   c['Notes']=notesVal;
-  writeOutcome(selectedAgent,c.rowIndex,pendingOutcome,notesVal);
+  writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal);
   pendingOutcome=null;pendingIdx=null;
   renderContactPanel();
 }
@@ -880,7 +897,7 @@ function submitLogOutcome(){
   if(c){
     c['Contacted']=pendingLogOutcome;
     c['Notes']=notesVal;
-    writeOutcome(selectedAgent,c.rowIndex,pendingLogOutcome,notesVal);
+    writeOutcome(selectedAgent,c.id,pendingLogOutcome,notesVal);
   }
   var outcome=pendingLogOutcome;
   pendingLogOutcome=null;pendingLogIdx=null;
