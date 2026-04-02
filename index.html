@@ -269,7 +269,7 @@ function normTz(tz){
   var map={Eastern:'ET',Central:'CT',Mountain:'MT',Pacific:'PT'};
   return map[tz]||tz;
 }
-var OUTCOMES=['Voicemail Left','Call Answered','Inbox Full','Hung Up','Call Back Request'];
+var OUTCOMES=['Voicemail Left','Call Answered','Inbox Full','Hung Up'];
 
 var CTA='<div class="cta-box"><div class="cta-lbl">Tell Them How To Get Back In</div><div class="cta-row"><span class="cta-num">1</span><span>Check <b>email inbox</b> for a Mochi Health message.</span></div><div class="cta-row"><span class="cta-num">2</span><span>Check <b>text messages</b> for a link we may have sent.</span></div><div class="cta-row"><span class="cta-num">3</span><span>Go to <b>joinmochi.com</b> and log in with the email used to sign up.</span></div></div>';
 var NEXT='<div class="steps-box"><div class="steps-lbl">What Happens Next</div><div class="step-row"><span class="step-num">1</span><span>Sign up and pick your membership plan.</span></div><div class="step-row"><span class="step-num">2</span><span>Schedule a video visit with a provider and dietitian within one week.</span></div><div class="step-row"><span class="step-num">3</span><span>Medication shipped to your door, or access brand-name through your pharmacy.</span></div><div class="step-row"><span class="step-num">4</span><span>Regular check-ins with your care team. Access the Mochi shop for more.</span></div></div>';
@@ -763,6 +763,7 @@ function renderContactPanel(){
   });
   html+='</div>'
     +'<div id="notes-panel" style="display:none">'
+    +'<div id="cbr-row" style="display:none;margin-bottom:8px"><button id="cbr-btn" onclick="toggleCbr()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);text-align:left">+ Mark as Call Back Request</button></div>'
     +'<textarea id="outcome-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:8px">'
     +'<button onclick="submitOutcome()" id="submit-outcome-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
@@ -797,11 +798,25 @@ function selectOutcome(idx,outcome){
   pendingOutcome=outcome;
   pendingIdx=idx;
   var np=document.getElementById('notes-panel');
-  if(np){np.style.display='block';}
+  if(np)np.style.display='block';
+  var cbrRow=document.getElementById('cbr-row');
+  var cbrBtn=document.getElementById('cbr-btn');
+  if(cbrRow)cbrRow.style.display=outcome==='Call Answered'?'block':'none';
+  if(cbrBtn){cbrBtn.textContent='+ Mark as Call Back Request';cbrBtn.style.background='#fff';cbrBtn.style.borderColor='var(--border)';cbrBtn.style.color='var(--text-secondary)';}
   var ta=document.getElementById('outcome-notes');
-  if(ta)ta.placeholder=outcome==='Call Back Request'?'Add callback time and any notes...':'Add notes (optional)...';
+  if(ta)ta.placeholder='Add notes (optional)...';
   var btn=document.getElementById('submit-outcome-btn');
   if(btn)btn.textContent='Submit — '+outcome;
+}
+function toggleCbr(){
+  var isCbr=pendingOutcome==='Call Back Request';
+  pendingOutcome=isCbr?'Call Answered':'Call Back Request';
+  var btn=document.getElementById('cbr-btn');
+  if(btn){btn.textContent=isCbr?'+ Mark as Call Back Request':'✓ Call Back Request';btn.style.background=isCbr?'#fff':'var(--brand-light)';btn.style.borderColor=isCbr?'var(--border)':'var(--brand)';btn.style.color=isCbr?'var(--text-secondary)':'var(--brand)';}
+  var ta=document.getElementById('outcome-notes');
+  if(ta)ta.placeholder=isCbr?'Add notes (optional)...':'Add callback time and any notes...';
+  var submitBtn=document.getElementById('submit-outcome-btn');
+  if(submitBtn)submitBtn.textContent='Submit — '+pendingOutcome;
 }
 
 function cancelOutcome(){
@@ -851,6 +866,7 @@ function showLogResult(){
   });
   html+='</div>'
     +'<div id="log-notes-panel" style="display:none">'
+    +'<div id="log-cbr-row" style="display:none;margin-bottom:8px"><button id="log-cbr-btn" onclick="toggleLogCbr()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);text-align:left">+ Mark as Call Back Request</button></div>'
     +'<textarea id="log-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:8px">'
     +'<button onclick="submitLogOutcome()" id="submit-log-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
@@ -868,10 +884,24 @@ function selectLogOutcome(outcome,idx){
   pendingLogIdx=idx;
   var np=document.getElementById('log-notes-panel');
   if(np)np.style.display='block';
+  var cbrRow=document.getElementById('log-cbr-row');
+  var cbrBtn=document.getElementById('log-cbr-btn');
+  if(cbrRow)cbrRow.style.display=outcome==='Call Answered'?'block':'none';
+  if(cbrBtn){cbrBtn.textContent='+ Mark as Call Back Request';cbrBtn.style.background='#fff';cbrBtn.style.borderColor='var(--border)';cbrBtn.style.color='var(--text-secondary)';}
   var ta=document.getElementById('log-notes');
-  if(ta)ta.placeholder=outcome==='Call Back Request'?'Add callback time and any notes...':'Add notes (optional)...';
+  if(ta)ta.placeholder='Add notes (optional)...';
   var btn=document.getElementById('submit-log-btn');
   if(btn)btn.textContent='Submit — '+outcome;
+}
+function toggleLogCbr(){
+  var isCbr=pendingLogOutcome==='Call Back Request';
+  pendingLogOutcome=isCbr?'Call Answered':'Call Back Request';
+  var btn=document.getElementById('log-cbr-btn');
+  if(btn){btn.textContent=isCbr?'+ Mark as Call Back Request':'✓ Call Back Request';btn.style.background=isCbr?'#fff':'var(--brand-light)';btn.style.borderColor=isCbr?'var(--border)':'var(--brand)';btn.style.color=isCbr?'var(--text-secondary)':'var(--brand)';}
+  var ta=document.getElementById('log-notes');
+  if(ta)ta.placeholder=isCbr?'Add notes (optional)...':'Add callback time and any notes...';
+  var submitBtn=document.getElementById('submit-log-btn');
+  if(submitBtn)submitBtn.textContent='Submit — '+pendingLogOutcome;
 }
 
 function cancelLogOutcome(){
