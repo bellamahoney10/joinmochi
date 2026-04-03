@@ -4,7 +4,7 @@ let pool;
 function getPool() {
   if (!pool) {
     pool = new Pool({
-      host: process.env.DB_HOST || 'db-ro1.ourmochi.com',
+      host: process.env.DB_WRITE_HOST || 'db-prod.ourmochi.com',
       port: 5432,
       database: 'postgres',
       user: process.env.DB_USER || 'bella_mahoney_prod',
