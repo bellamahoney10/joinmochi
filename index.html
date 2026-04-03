@@ -608,17 +608,20 @@ function tzPriority(tz){
 }
 
 function getSessionKey(){return 'mochi_session_'+getTodayStr()+'_'+selectedAgent;}
+function sheetPost(payload){
+  fetch('/api/sheet',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).catch(function(e){console.error('Sheet error:',e);});
+}
+
 function initSheetSession(contacts){
   if(!contacts.length)return;
   var rows=contacts.map(function(c){
     return [c['Date Assigned'],selectedAgentName,c['Name'],c['Phone'],'',''];
   });
-  fetch(APPS_SCRIPT_URL,{
-    method:'POST',
-    mode:'no-cors',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({action:'initSession',agent:selectedAgentName,rows:rows})
-  }).catch(function(e){console.error('Sheet init error:',e);});
+  sheetPost({action:'initSession',agent:selectedAgentName,rows:rows});
 }
 
 function writeOutcome(agentId,contactId,outcome,notes){
@@ -626,12 +629,7 @@ function writeOutcome(agentId,contactId,outcome,notes){
   for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){c=contacts[i];break;}}
   if(!c)return;
   saveLogged(contactId,outcome,notes);
-  fetch(APPS_SCRIPT_URL,{
-    method:'POST',
-    mode:'no-cors',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,name:c['Name'],phone:c['Phone'],result:outcome,notes:notes})
-  }).catch(function(e){console.error('Write error:',e);});
+  sheetPost({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,name:c['Name'],phone:c['Phone'],result:outcome,notes:notes});
 }
 
 function getDashboardStats(){
