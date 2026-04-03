@@ -567,6 +567,7 @@ function getTodayStr(){
 function getLoggedKey(){return 'mochi_logged_'+getTodayStr()+'_'+selectedAgent;}
 function getLoggedToday(){try{return JSON.parse(localStorage.getItem(getLoggedKey()))||{};}catch(e){return {};}}
 function saveLogged(contactId,outcome,notes){var d=getLoggedToday();d[contactId]={outcome:outcome,notes:notes||''};localStorage.setItem(getLoggedKey(),JSON.stringify(d));}
+function cap(s){return(s||'').replace(/\b\w/g,function(c){return c.toUpperCase();});}
 function loadContacts(agentId,callback){
   if(!agentId){callback([]);return;}
   fetch('/api/contacts?agent_id='+encodeURIComponent(agentId))
@@ -580,9 +581,9 @@ function loadContacts(agentId,callback){
         var assignedStr=(assignedDate.getMonth()+1)+'/'+(assignedDate.getDate())+'/'+assignedDate.getFullYear();
         return {
           id:row.id,
-          'Name':((row.first_name||'')+' '+(row.last_name||'')).trim(),
-          'First Name':row.first_name||'',
-          'Last Name':row.last_name||'',
+          'Name':(cap(row.first_name)+' '+cap(row.last_name)).trim(),
+          'First Name':cap(row.first_name),
+          'Last Name':cap(row.last_name),
           'Phone':row.phone||'',
           'State':row.state||'',
           'Time Zone':tz,
@@ -608,7 +609,6 @@ function tzPriority(tz){
 
 function getSessionKey(){return 'mochi_session_'+getTodayStr()+'_'+selectedAgent;}
 function initSheetSession(contacts){
-  if(localStorage.getItem(getSessionKey()))return;
   if(!contacts.length)return;
   var rows=contacts.map(function(c){
     return [c['Date Assigned'],selectedAgentName,c['Name'],c['Phone'],'',''];
@@ -619,7 +619,6 @@ function initSheetSession(contacts){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action:'initSession',agent:selectedAgentName,rows:rows})
   }).catch(function(e){console.error('Sheet init error:',e);});
-  localStorage.setItem(getSessionKey(),'1');
 }
 
 function writeOutcome(agentId,contactId,outcome,notes){
@@ -631,7 +630,7 @@ function writeOutcome(agentId,contactId,outcome,notes){
     method:'POST',
     mode:'no-cors',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,phone:c['Phone'],result:outcome,notes:notes})
+    body:JSON.stringify({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,name:c['Name'],phone:c['Phone'],result:outcome,notes:notes})
   })
   .catch(function(e){console.error('Write error:',e);});
 }
@@ -672,6 +671,7 @@ function refreshAndDash(){
   checkAndTopup(function(){
     loadContacts(selectedAgent,function(result){
       contacts=result;contactIdx=0;
+      initSheetSession(contacts);
       if(btn)btn.textContent='Refresh';
       renderDashboard();
     });
@@ -771,6 +771,7 @@ function refreshContacts(){
   checkAndTopup(function(){
     loadContacts(selectedAgent,function(result){
       contacts=result;contactIdx=0;
+      initSheetSession(contacts);
       if(btn)btn.textContent='Refresh';
       renderContactPanel();
     });
