@@ -160,13 +160,10 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div class="pin-error" id="pin-err"></div>
     <div id="agent-sel" style="display:none;margin-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Which agent are you?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="agent-btn" onclick="selAgent(1)">Agent 1</button>
-        <button class="agent-btn" onclick="selAgent(2)">Agent 2</button>
-        <button class="agent-btn" onclick="selAgent(3)">Agent 3</button>
-        <button class="agent-btn" onclick="selAgent(4)">Agent 4</button>
-      </div>
-      <div id="agent-assign" style="margin-top:12px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
+      <select id="agent-dropdown" onchange="selAgent(this.value,this.options[this.selectedIndex].text)" style="width:100%;padding:10px 12px;font-size:14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none">
+        <option value="" disabled selected>Agent Name</option>
+      </select>
+      <div id="agent-assign" style="margin-top:10px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
       <button class="pin-btn" id="start-btn" style="display:none;margin-top:12px" onclick="startTool()">Start calling</button>
     </div>
     <button class="pin-btn" id="pin-btn" onclick="checkPin()">Enter</button>
@@ -260,9 +257,9 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
 <script>
 var PIN='2026';
 var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz8l2y8IhW-bwmK1q6q0vSBx59zTJ-uXcKRWrKwCzhc04KeYdEtt0xm4q5Mwaen6IH7qQ/exec'; var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ'; var API_KEY='AIzaSyAuA4DWGlVrZX-NAh7Zhf8jvQKGd7HSKG4'; function sheetUrl(tab,range){   return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY; } var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ'; var API_KEY='AIzaSyAuA4DWGlVrZX-NAh7Zhf8jvQKGd7HSKG4'; function sheetUrl(tab,range){   return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY; }
-var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null, activeContactName='';
+var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null, selectedAgentName='', agentsList=[];
 var contacts=[], contactIdx=0;
-var agentTabs={1:'Agent 1',2:'Agent 2',3:'Agent 3',4:'Agent 4'};
+var STATE_TZ={Connecticut:'ET',Delaware:'ET','District of Columbia':'ET',Florida:'ET',Georgia:'ET',Indiana:'ET',Kentucky:'ET',Maine:'ET',Maryland:'ET',Massachusetts:'ET',Michigan:'ET','New Hampshire':'ET','New Jersey':'ET','New York':'ET','North Carolina':'ET',Ohio:'ET',Pennsylvania:'ET','Rhode Island':'ET','South Carolina':'ET',Vermont:'ET',Virginia:'ET','West Virginia':'ET',Alabama:'CT',Arkansas:'CT',Illinois:'CT',Iowa:'CT',Kansas:'CT',Louisiana:'CT',Minnesota:'CT',Mississippi:'CT',Missouri:'CT',Nebraska:'CT','North Dakota':'CT',Oklahoma:'CT','South Dakota':'CT',Tennessee:'CT',Texas:'CT',Wisconsin:'CT',Arizona:'MT',Colorado:'MT',Idaho:'MT',Montana:'MT','New Mexico':'MT',Utah:'MT',Wyoming:'MT',Alaska:'PT',California:'PT',Hawaii:'PT',Nevada:'PT',Oregon:'PT',Washington:'PT'};
 var OFFSETS={ET:3,CT:2,MT:1,PT:0,Eastern:3,Central:2,Mountain:1,Pacific:0};
 
 function normTz(tz){
@@ -342,7 +339,7 @@ var S={
     q:'How do they respond?',
     br:[{t:'Ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Need to think about it',n:'notready'}]},
   safety:{title:'Medication Question',trail:['Medication'],type:'normal',
-    script:'<i>Our compounded semaglutide and tirzepatide contain the <b>same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b> with added B12 and B6 for energy and metabolism. If you are switching from another program, <b>no need to restart at the lowest dose</b> — we continue you at the same dose with documentation.</i>',
+    script:'<i>Our compounded semaglutide and tirzepatide contain the <b>same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b> with added B12 and B6 for energy and metabolism. If you are switching from another program, <b>no need to restart at the lowest dose</b> — we continue you at the same dose with documentation.</i><br><br><i>On pricing — compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Both are injectable doses that last <b>28 days</b>, with shipping included. Flat rate regardless of your dose level.</i><br><br><i>And beyond GLP-1s, Mochi gives you access to <b>over 1,000 non-GLP-1 medications</b> across dermatology, hair loss, mental health, hormone therapy, longevity, sexual health, and more — all through your same provider.</i>',
     q:'Do they have more questions?',
     br:[{t:"That's reassuring — let's continue",n:'close'},{t:'Question about pricing',n:'price'},{t:'Question about insurance',n:'insurance'},{t:'Still have questions',n:'notready'}]},
   notready:{title:'Not Ready Yet',trail:['Not Ready'],type:'warn',
@@ -389,7 +386,13 @@ var S={
   faq_medication:{title:'FAQ — Medication',trail:['FAQ','Medication'],type:'normal',faq:true,
     faqs:[
       {q:'Is compounded semaglutide or tirzepatide safe?',a:'<i>Our compounded medications contain the <b>exact same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b>. They also include B12 and B6 to support energy and metabolism.</i>'},
-      {q:'How does compounded compare to Ozempic or Wegovy?',a:'<i>Same active ingredient — semaglutide — just prepared differently. Brand-name can run $900 to $1,300 a month. Our compounded version is <b>$99/month</b> with shipping.</i>'},
+      {q:'How much does the medication cost?',a:'<i>Compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Both are injectable doses that last <b>28 days</b>, with shipping included — flat rate regardless of your dose level. Compare that to $900–$1,300/month for brand-name.</i>'},
+      {q:'How does compounded compare to Ozempic or Wegovy?',a:'<i>Same active ingredient — semaglutide — just prepared differently. Brand-name can run $900 to $1,300 a month. Our compounded version is <b>$99/month</b> with shipping included.</i>'},
+      {q:'Does Mochi offer medications beyond GLP-1s?',a:'<i>Yes — Mochi gives access to <b>over 1,000 non-GLP-1 medications</b> across dermatology, hair loss, mental health, hormone therapy, longevity, sexual health, and more. All prescribed through your same Mochi provider.</i>'},
+      {q:'Do you offer oral GLP-1 options?',a:'<i>Yes — in addition to injectables, Mochi offers <b>oral GLP-1 medications</b> ranging from <b>$100–$250/month</b>, available through the medication shop. Your provider can help determine if an oral option is right for you.</i>'},
+      {q:'Is microdosing available?',a:'<i>Yes — Mochi offers microdosing as a treatment option at the <b>same price</b> as standard dosing. Your provider will determine if it is the right approach based on your health history and goals.</i>'},
+      {q:'Can I request an early refill?',a:'<i>Yes — with an active medication subscription, you can request an <b>early refill</b> through your patient portal. Your provider reviews and approves these on a case-by-case basis.</i>'},
+      {q:'What if I have side effects?',a:'<i>Common side effects like nausea or fatigue are normal early on and typically improve. Your provider monitors you throughout and can <b>adjust your dose, switch medications, or explore microdosing</b> if needed. You are never left to figure it out alone.</i>'},
       {q:'Can I get brand-name GLP-1s through Mochi?',a:'<i>Yes — our team handles the prior authorization on your behalf for Wegovy, Ozempic, Zepbound, or Mounjaro. Insurance has up to 30 days to respond, and we bridge you with medication in the meantime.</i>'},
       {q:'How is medication delivered?',a:'<i>Compounded medications ship directly to your door — shipping included. Brand-name prescriptions can be picked up at your local retail pharmacy once the prior authorization is approved.</i>'},
       {q:'What is Wellness+ and do I qualify?',a:'<i>Wellness+ is an upgrade at <b>$69/month</b> with additional preventative health services and no surprise bills guaranteed. Most standard commercial insurance qualifies. I can walk you through whether your plan would be eligible.</i>'}
@@ -399,8 +402,12 @@ var S={
   faq_compounded:{title:'FAQ — Compounded GLP-1s',trail:['FAQ','Compounded GLP-1s'],type:'normal',faq:true,
     faqs:[
       {q:'What exactly is a compounded medication?',a:'<i>Compounded medications are custom-prepared by a licensed pharmacy — like a dosage strength not available commercially, or added nutrients. Made in <b>FDA-inspected, state-licensed facilities</b> held to strict safety and quality standards.</i>'},
+      {q:'How much do the compounded medications cost?',a:'<i>Compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Each is an injectable dose that covers <b>28 days</b> — shipping included. The price is flat regardless of your dose level, so it does not increase as your dose goes up.</i>'},
       {q:"What is in Mochi's compounded semaglutide or tirzepatide?",a:"<i>Same active ingredient as the brand-name versions, plus nutrient-based additives like <b>B12 for energy</b>, B6 for metabolism, and glycine for muscle recovery.</i>"},
       {q:'Is it the same as Ozempic or Mounjaro?',a:'<i>The active ingredient is the same — semaglutide matches Ozempic and Wegovy, tirzepatide matches Mounjaro and Zepbound. Compounded versions are made by <b>FDA-inspected pharmacies</b> rather than the original manufacturer.</i>'},
+      {q:'Is microdosing available?',a:'<i>Yes — Mochi offers microdosing at the <b>same price</b> as standard dosing. Semaglutide ranges from 0.22mg to 2.67mg weekly and tirzepatide from 2.2mg to 16.6mg weekly — your provider determines the right starting point.</i>'},
+      {q:'Can I get an early refill?',a:'<i>Yes — with an active medication subscription you can request an <b>early refill</b> through the patient portal. Your provider approves these on a case-by-case basis.</i>'},
+      {q:'What if there is a medication shortage?',a:'<i>Not a concern — Mochi works with <b>multiple pharmacy partners across all 50 states</b> to guarantee consistent access regardless of shortages.</i>'},
       {q:'Will I need to restart at the lowest dose when switching?',a:'<i>Not at all — with documentation of your current dose, your Mochi provider will <b>continue you at that same dose</b>.</i>'},
       {q:'How is it shipped?',a:'<i>Ships directly to your door — shipping included. Typically arrives within a few business days after your provider approves the order.</i>'}
     ],
@@ -412,7 +419,8 @@ var S={
       {q:'What happens after I sign up?',a:'<i>Matched with a provider, first video visit usually within a week. Four-phase program:<br><br><b>Phase 1</b> — Meet your provider, discuss goals, start medication.<br><b>Phase 2</b> — Health baseline with labs and progress tracker.<br><b>Phase 3</b> — Ongoing provider and dietitian visits with plan adjustments.<br><b>Phase 4</b> — Recheck progress tracker, plan for long-term maintenance.</i><br><br>Unlimited provider and dietitian access throughout.'},
       {q:'How is Mochi different from other programs?',a:'<i>You have <b>direct access to your actual provider</b> — not just a chatbot. Message your provider directly for dosage questions or medication changes. Full pricing transparency — no surprise bills.</i>'},
       {q:'How much weight will I lose?',a:'<i>More than half of our members achieve <b>10% body weight loss within their first six months</b>. Your provider and dietitian work with you to set realistic goals.</i><br><br>Never guarantee specific results — always frame as averages.'},
-      {q:'Are there dietary restrictions?',a:'<i>None at all. Your registered dietitian makes small, <b>sustainable changes</b> that fit your lifestyle.</i>'}
+      {q:'Are there dietary restrictions?',a:'<i>None at all. Your registered dietitian makes small, <b>sustainable changes</b> that fit your lifestyle.</i>'},
+      {q:'Does Mochi include lab work?',a:'<i>Yes — labs are built into the program. In <b>Phase 2</b> your provider establishes a health baseline with labs and scans, and in <b>Phase 4</b> they recheck everything to track your progress and plan long-term maintenance.</i>'}
     ],
     q:'Do they have more questions?',
     br:[{t:'Question about pricing',n:'faq_pricing'},{t:'Question about medication',n:'faq_medication'},{t:'Hesitation about signing up',n:'faq_hesitations'},{t:'Ready to sign up',n:'close'}]},
@@ -456,16 +464,43 @@ function checkPin(){
     document.getElementById('pin-btn').style.display='none';
     document.getElementById('pin-err').textContent='';
     document.getElementById('pin-inp').disabled=true;
+    loadAgents();
   } else {
     document.getElementById('pin-err').textContent='Incorrect PIN. Try again.';
     document.getElementById('pin-inp').value='';
   }
 }
 
-function selAgent(n){
-  selectedAgent=n;
-  document.querySelectorAll('.agent-btn').forEach(function(b,i){b.classList.toggle('sel',i===n-1);});
-  vmS1=getScript(n)===1;
+function loadAgents(){
+  var dd=document.getElementById('agent-dropdown');
+  if(!dd)return;
+  dd.disabled=true;
+  fetch('/api/agents')
+    .then(function(r){return r.json();})
+    .then(function(agents){
+      agentsList=agents;
+      dd.innerHTML='<option value="" disabled selected>Agent Name</option>';
+      agents.forEach(function(a){
+        var opt=document.createElement('option');
+        opt.value=a.id;
+        opt.textContent=a.first_name+' '+a.last_name;
+        dd.appendChild(opt);
+      });
+      dd.disabled=false;
+    })
+    .catch(function(){
+      dd.innerHTML='<option value="" disabled selected>Failed to load — refresh page</option>';
+      dd.disabled=false;
+    });
+}
+function selAgent(agentId,agentName){
+  if(!agentId)return;
+  selectedAgent=agentId;
+  selectedAgentName=agentName.trim();
+  var agentIdx=0;
+  for(var i=0;i<agentsList.length;i++){if(agentsList[i].id===agentId){agentIdx=i;break;}}
+  var odd=getWk()%2===1,g1=agentIdx%2===0;
+  vmS1=g1?odd:!odd;
   document.getElementById('agent-assign').innerHTML='<strong>Week '+getWk()+' assignment:</strong> '+(vmS1?'Script 1 — Weight Loss':'Script 2 — Personalized Care');
   document.getElementById('start-btn').style.display='block';
 }
@@ -480,6 +515,7 @@ function startTool(){
   loadContacts(selectedAgent,function(result){
     contacts=result;
     contactIdx=0;
+    initSheetSession(contacts);
     var el=document.getElementById('load-msg');
     if(el)el.parentNode.removeChild(el);
     cur='open';hist=[];
@@ -527,38 +563,34 @@ function getTodayStr(){
   return new Date().toLocaleDateString('en-US',{timeZone:'America/New_York',month:'numeric',day:'numeric',year:'numeric'});
 }
 
-function loadContacts(agentNum,callback){
-  var tab=agentTabs[agentNum];
-  if(!tab){callback([]);return;}
-  fetch(sheetUrl(tab,'A:L'))
+function getLoggedKey(){return 'mochi_logged_'+getTodayStr()+'_'+selectedAgent;}
+function getLoggedToday(){try{return JSON.parse(localStorage.getItem(getLoggedKey()))||{};}catch(e){return {};}}
+function saveLogged(contactId,outcome,notes){var d=getLoggedToday();d[contactId]={outcome:outcome,notes:notes||''};localStorage.setItem(getLoggedKey(),JSON.stringify(d));}
+function loadContacts(agentId,callback){
+  if(!agentId){callback([]);return;}
+  fetch('/api/contacts?agent_id='+encodeURIComponent(agentId))
     .then(function(r){return r.json();})
     .then(function(data){
-      var rows=data.values||[];
-      if(rows.length<2){callback([]);return;}
-      var headers=null;
-      var dataStart=0;
-      for(var h=0;h<Math.min(5,rows.length);h++){
-        if(rows[h][0]&&rows[h][0].toString().toLowerCase().indexOf('date')>=0){
-          headers=rows[h];dataStart=h+1;break;
-        }
-      }
-      if(!headers){callback([]);return;}
-      var today=getTodayStr();
-      var result=[];
-      for(var i=dataStart;i<rows.length;i++){
-        var row=rows[i];
-        var obj={rowIndex:i+1};
-        for(var j=0;j<headers.length;j++){
-          var hdr=(headers[j]||'').trim();
-          obj[hdr]=row[j]||'';
-        }
-        var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
-        if(dateVal===today){result.push(obj);}
-      }
-      result.sort(function(a,b){
-        var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
-        return pa-pb;
+      var logged=getLoggedToday();
+      var result=data.map(function(row){
+        var tz=STATE_TZ[row.state]||'ET';
+        var entry=logged[row.id]||{};
+        var assignedDate=row.assigned_at?new Date(row.assigned_at):new Date();
+        var assignedStr=(assignedDate.getMonth()+1)+'/'+(assignedDate.getDate())+'/'+assignedDate.getFullYear();
+        return {
+          id:row.id,
+          'Name':((row.first_name||'')+' '+(row.last_name||'')).trim(),
+          'First Name':row.first_name||'',
+          'Last Name':row.last_name||'',
+          'Phone':row.phone||'',
+          'State':row.state||'',
+          'Time Zone':tz,
+          'Date Assigned':assignedStr,
+          'Contacted':entry.outcome||'',
+          'Notes':entry.notes||''
+        };
       });
+      result.sort(function(a,b){return tzPriority(a['Time Zone'])-tzPriority(b['Time Zone']);});
       callback(result);
     })
     .catch(function(){callback([]);});
@@ -573,17 +605,33 @@ function tzPriority(tz){
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
 
-function writeOutcome(agentNum,rowIndex,outcome,notes){
-  var tab=agentTabs[agentNum];
-  if(!tab)return;
-  console.log('Writing to row '+rowIndex+': outcome='+outcome+' notes='+notes);
+function getSessionKey(){return 'mochi_session_'+getTodayStr()+'_'+selectedAgent;}
+function initSheetSession(contacts){
+  if(localStorage.getItem(getSessionKey()))return;
+  if(!contacts.length)return;
+  var rows=contacts.map(function(c){
+    return [c['Date Assigned'],selectedAgentName,c['Name'],c['Phone'],''];
+  });
   fetch(APPS_SCRIPT_URL,{
     method:'POST',
     mode:'no-cors',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({tab:tab,row:rowIndex,outcome:outcome,notes:notes||''})
+    body:JSON.stringify({action:'initSession',rows:rows})
+  }).catch(function(e){console.error('Sheet init error:',e);});
+  localStorage.setItem(getSessionKey(),'1');
+}
+
+function writeOutcome(agentId,contactId,outcome,notes){
+  var c=null;
+  for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){c=contacts[i];break;}}
+  if(!c)return;
+  saveLogged(contactId,outcome,notes);
+  fetch(APPS_SCRIPT_URL,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,phone:c['Phone'],result:outcome})
   })
-  .then(function(){console.log('Write sent for row '+rowIndex);})
   .catch(function(e){console.error('Write error:',e);});
 }
 
@@ -606,19 +654,32 @@ function showDashboard(){
   document.getElementById('back-btn').disabled=false;
 }
 
+function checkAndTopup(callback){
+  var remaining=contacts.filter(function(c){return !c['Contacted'];}).length;
+  if(remaining<=10){
+    fetch('/api/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
+      .then(function(){callback();})
+      .catch(function(){callback();});
+  } else {
+    callback();
+  }
+}
+
 function refreshAndDash(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  loadContacts(selectedAgent,function(result){
-    contacts=result;contactIdx=0;
-    if(btn)btn.textContent='Refresh';
-    renderDashboard();
+  checkAndTopup(function(){
+    loadContacts(selectedAgent,function(result){
+      contacts=result;contactIdx=0;
+      if(btn)btn.textContent='Refresh';
+      renderDashboard();
+    });
   });
 }
 
 function renderDashboard(){
   var st=getDashboardStats();
-  var agentName=agentTabs[selectedAgent]||'Agent';
+  var agentName=selectedAgentName||'Agent';
   var now=new Date();
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var dateStr=months[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
@@ -706,10 +767,12 @@ function showContacts(){
 function refreshContacts(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  loadContacts(selectedAgent,function(result){
-    contacts=result;contactIdx=0;
-    if(btn)btn.textContent='Refresh';
-    renderContactPanel();
+  checkAndTopup(function(){
+    loadContacts(selectedAgent,function(result){
+      contacts=result;contactIdx=0;
+      if(btn)btn.textContent='Refresh';
+      renderContactPanel();
+    });
   });
 }
 
@@ -830,7 +893,7 @@ function submitOutcome(){
   var c=contacts[pendingIdx];
   c['Contacted']=pendingOutcome;
   c['Notes']=notesVal;
-  writeOutcome(selectedAgent,c.rowIndex,pendingOutcome,notesVal);
+  writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal);
   pendingOutcome=null;pendingIdx=null;
   activeContactName='';
   renderContactPanel();
@@ -916,7 +979,7 @@ function submitLogOutcome(){
   if(c){
     c['Contacted']=pendingLogOutcome;
     c['Notes']=notesVal;
-    writeOutcome(selectedAgent,c.rowIndex,pendingLogOutcome,notesVal);
+    writeOutcome(selectedAgent,c.id,pendingLogOutcome,notesVal);
   }
   var outcome=pendingLogOutcome;
   pendingLogOutcome=null;pendingLogIdx=null;

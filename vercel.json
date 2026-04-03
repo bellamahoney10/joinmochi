@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/*.js": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/assign",
+      "schedule": "45 12 * * 1-5"
+    }
+  ]
+}
