@@ -611,13 +611,13 @@ function initSheetSession(contacts){
   if(localStorage.getItem(getSessionKey()))return;
   if(!contacts.length)return;
   var rows=contacts.map(function(c){
-    return [c['Date Assigned'],selectedAgentName,c['Name'],c['Phone'],''];
+    return [c['Date Assigned'],selectedAgentName,c['Name'],c['Phone'],'',''];
   });
   fetch(APPS_SCRIPT_URL,{
     method:'POST',
     mode:'no-cors',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'initSession',rows:rows})
+    body:JSON.stringify({action:'initSession',agent:selectedAgentName,rows:rows})
   }).catch(function(e){console.error('Sheet init error:',e);});
   localStorage.setItem(getSessionKey(),'1');
 }
@@ -631,7 +631,7 @@ function writeOutcome(agentId,contactId,outcome,notes){
     method:'POST',
     mode:'no-cors',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,phone:c['Phone'],result:outcome})
+    body:JSON.stringify({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,phone:c['Phone'],result:outcome,notes:notes})
   })
   .catch(function(e){console.error('Write error:',e);});
 }
