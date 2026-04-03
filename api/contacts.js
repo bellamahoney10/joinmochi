@@ -30,6 +30,13 @@ module.exports = async (req, res) => {
         AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
         AND status = 'assigned'
         AND deleted_at IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM subscriptions s
+          WHERE s.patient_id = outreach_call_queue.patient_id
+            AND s.active = true
+            AND s.descriptor = 'HEALTH'
+            AND s.deleted_at IS NULL
+        )
       ORDER BY added_to_queue_at ASC
     `, [agent_id]);
     res.json(result.rows);
