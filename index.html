@@ -616,7 +616,7 @@ function initSheetSession(contacts){
   fetch(APPS_SCRIPT_URL,{
     method:'POST',
     mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
+    headers:{'Content-Type':'text/plain'},
     body:JSON.stringify({action:'initSession',agent:selectedAgentName,rows:rows})
   }).catch(function(e){console.error('Sheet init error:',e);});
 }
@@ -629,10 +629,9 @@ function writeOutcome(agentId,contactId,outcome,notes){
   fetch(APPS_SCRIPT_URL,{
     method:'POST',
     mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
+    headers:{'Content-Type':'text/plain'},
     body:JSON.stringify({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,name:c['Name'],phone:c['Phone'],result:outcome,notes:notes})
-  })
-  .catch(function(e){console.error('Write error:',e);});
+  }).catch(function(e){console.error('Write error:',e);});
 }
 
 function getDashboardStats(){
