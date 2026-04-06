@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
 
     // Get pending contacts not yet assigned, excluding active HEALTH subscribers
     const contactsRes = await client.query(`
-      SELECT ocq.id
+      SELECT DISTINCT ON (ocq.phone) ocq.id
       FROM outreach_call_queue ocq
       WHERE ocq.status = 'pending'
         AND ocq.deleted_at IS NULL
@@ -60,7 +60,13 @@ module.exports = async (req, res) => {
             AND s.descriptor = 'HEALTH'
             AND s.deleted_at IS NULL
         )
-      ORDER BY ocq.added_to_queue_at ASC
+        AND NOT EXISTS (
+          SELECT 1 FROM outreach_call_queue ocq2
+          WHERE ocq2.phone = ocq.phone
+            AND ocq2.status = 'assigned'
+            AND ocq2.deleted_at IS NULL
+        )
+      ORDER BY ocq.phone, ocq.added_to_queue_at ASC
       LIMIT $1
     `, [needed]);
 
