@@ -22,26 +22,42 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   const { agent_id } = req.query;
   if (!agent_id) return res.status(400).json({ error: 'agent_id required' });
+  const baseWhere = `
+    WHERE ocq.assigned_agent_id = $1
+      AND DATE(ocq.assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
+      AND ocq.status = 'assigned'
+      AND ocq.deleted_at IS NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM subscriptions s
+        WHERE s.patient_id = ocq.patient_id
+          AND s.active = true
+          AND s.descriptor = 'HEALTH'
+          AND s.deleted_at IS NULL
+      )
+    ORDER BY ocq.added_to_queue_at ASC
+  `;
   try {
     const result = await getPool().query(`
-      SELECT id, first_name, last_name, phone, state, assigned_at
-      FROM outreach_call_queue
-      WHERE assigned_agent_id = $1
-        AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
-        AND status = 'assigned'
-        AND deleted_at IS NULL
-        AND NOT EXISTS (
-          SELECT 1 FROM subscriptions s
-          WHERE s.patient_id = outreach_call_queue.patient_id
-            AND s.active = true
-            AND s.descriptor = 'HEALTH'
-            AND s.deleted_at IS NULL
-        )
-      ORDER BY added_to_queue_at ASC
+      SELECT ocq.id, ocq.first_name, ocq.last_name,
+             COALESCE(p.phone, ocq.phone) AS phone,
+             ocq.state, ocq.assigned_at
+      FROM outreach_call_queue ocq
+      LEFT JOIN patients p ON p.patient_id = ocq.patient_id
+      ${baseWhere}
     `, [agent_id]);
     res.json(result.rows);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
+  } catch (joinErr) {
+    console.error('patients join failed, falling back:', joinErr.message);
+    try {
+      const result = await getPool().query(`
+        SELECT ocq.id, ocq.first_name, ocq.last_name, ocq.phone, ocq.state, ocq.assigned_at
+        FROM outreach_call_queue ocq
+        ${baseWhere}
+      `, [agent_id]);
+      res.json(result.rows);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message });
+    }
   }
 };
