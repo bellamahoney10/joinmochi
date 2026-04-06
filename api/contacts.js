@@ -24,23 +24,20 @@ module.exports = async (req, res) => {
   if (!agent_id) return res.status(400).json({ error: 'agent_id required' });
   try {
     const result = await getPool().query(`
-      SELECT ocq.id, ocq.first_name, ocq.last_name,
-             COALESCE(p.phone, ocq.phone) AS phone,
-             ocq.state, ocq.assigned_at
-      FROM outreach_call_queue ocq
-      LEFT JOIN patients p ON p.patient_id = ocq.patient_id
-      WHERE ocq.assigned_agent_id = $1
-        AND DATE(ocq.assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
-        AND ocq.status = 'assigned'
-        AND ocq.deleted_at IS NULL
+      SELECT id, first_name, last_name, phone, state, assigned_at
+      FROM outreach_call_queue
+      WHERE assigned_agent_id = $1
+        AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
+        AND status = 'assigned'
+        AND deleted_at IS NULL
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
-          WHERE s.patient_id = ocq.patient_id
+          WHERE s.patient_id = outreach_call_queue.patient_id
             AND s.active = true
             AND s.descriptor = 'HEALTH'
             AND s.deleted_at IS NULL
         )
-      ORDER BY ocq.added_to_queue_at ASC
+      ORDER BY added_to_queue_at ASC
     `, [agent_id]);
     res.json(result.rows);
   } catch (e) {
