@@ -72,10 +72,9 @@ module.exports = async (req, res) => {
     const now = new Date();
     let totalAssigned = 0;
 
+    // Calculate how many each agent needs
+    const agentNeeds = [];
     for (let i = 0; i < agents.length; i++) {
-      const agent = agents[i];
-
-      // How many are already assigned to this agent today
       const existingRes = await client.query(`
         SELECT COUNT(*) as cnt
         FROM outreach_call_queue
@@ -83,13 +82,20 @@ module.exports = async (req, res) => {
           AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (NOW() AT TIME ZONE 'America/Los_Angeles')::date
           AND status = 'assigned'
           AND deleted_at IS NULL
-      `, [agent.id]);
+      `, [agents[i].id]);
       const existing = parseInt(existingRes.rows[0].cnt, 10);
-      const needed = Math.max(0, MAX_PER_AGENT - existing);
+      agentNeeds.push(Math.max(0, MAX_PER_AGENT - existing));
+    }
+
+    // Divide pool evenly across agents (capped at each agent's need)
+    const totalNeeded = agentNeeds.reduce((a, b) => a + b, 0);
+    const perAgent = Math.min(Math.floor(pending.length / agents.length), MAX_PER_AGENT);
+
+    for (let i = 0; i < agents.length; i++) {
+      const needed = Math.min(agentNeeds[i], perAgent);
       if (!needed) continue;
 
-      // Take this agent's slice from the pending pool
-      const slice = pending.splice(0, Math.ceil(needed));
+      const slice = pending.splice(0, needed);
       if (!slice.length) continue;
 
       const ids = slice.map(r => r.id);
@@ -100,7 +106,7 @@ module.exports = async (req, res) => {
             assigned_at = $2,
             updated_at = $2
         WHERE id = ANY($3::uuid[])
-      `, [agent.id, now, ids]);
+      `, [agents[i].id, now, ids]);
 
       totalAssigned += ids.length;
     }
