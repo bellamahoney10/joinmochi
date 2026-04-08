@@ -559,7 +559,7 @@ function updateClocks(){
 updateClocks();setInterval(updateClocks,1000);
 
 function getTodayStr(){
-  return new Date().toLocaleDateString('en-US',{timeZone:'America/New_York',month:'numeric',day:'numeric',year:'numeric'});
+  return new Date().toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric',year:'numeric'});
 }
 
 function getLoggedKey(){return 'mochi_logged_'+getTodayStr()+'_'+selectedAgent;}
@@ -574,7 +574,7 @@ function loadContacts(agentId,callback){
       var result=data.map(function(row){
         var tz=STATE_TZ[row.state]||'ET';
         var assignedDate=row.assigned_at?new Date(row.assigned_at):new Date();
-        var assignedStr=(assignedDate.getMonth()+1)+'/'+(assignedDate.getDate())+'/'+assignedDate.getFullYear();
+        var assignedStr=assignedDate.toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric',year:'numeric'});
         return {
           id:row.id,
           'Name':(cap(row.first_name)+' '+cap(row.last_name)).trim(),
@@ -692,9 +692,7 @@ function refreshAndDash(){
 function renderDashboard(){
   var st=getDashboardStats();
   var agentName=selectedAgentName||'Agent';
-  var now=new Date();
-  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var dateStr=months[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
+  var dateStr=new Date().toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'long',day:'numeric',year:'numeric'});
   function statCard(num,lbl,color,filter){
     return '<div class="stat-card" onclick="showContactList(\''+filter+'\')" style="cursor:pointer" title="Click to view contacts">'
       +'<div class="stat-num" style="color:'+color+'">'+num+'</div>'

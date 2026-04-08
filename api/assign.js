@@ -17,7 +17,7 @@ function getPool() {
 }
 
 const CRON_SECRET = process.env.CRON_SECRET;
-const MAX_PER_AGENT = 250;
+const MAX_PER_AGENT = 375;
 
 module.exports = async (req, res) => {
   // Allow cron (GET with secret) or manual POST trigger
@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
       FROM outreach_call_queue ocq
       WHERE ocq.status = 'pending'
         AND ocq.deleted_at IS NULL
-        AND ocq.added_to_queue_at >= NOW() - INTERVAL '24 hours'
+        AND ocq.added_to_queue_at >= NOW() - INTERVAL '3 days'
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
           WHERE s.patient_id = ocq.patient_id

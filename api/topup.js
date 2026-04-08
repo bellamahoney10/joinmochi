@@ -16,7 +16,7 @@ function getPool() {
   return pool;
 }
 
-const MAX_PER_AGENT = 250;
+const MAX_PER_AGENT = 375;
 const TOPUP_THRESHOLD = 10;
 
 module.exports = async (req, res) => {
