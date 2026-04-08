@@ -29,7 +29,8 @@ module.exports = async (req, res) => {
       AND ocq.deleted_at IS NULL
       AND NOT EXISTS (
         SELECT 1 FROM subscriptions s
-        WHERE s.patient_id = ocq.patient_id
+        JOIN patients p2 ON p2.id = s.patient_id
+        WHERE p2.phone = ocq.phone
           AND s.active = true
           AND s.descriptor = 'HEALTH'
           AND s.deleted_at IS NULL

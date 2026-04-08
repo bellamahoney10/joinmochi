@@ -571,10 +571,8 @@ function loadContacts(agentId,callback){
   fetch('/api/contacts?agent_id='+encodeURIComponent(agentId))
     .then(function(r){return r.json();})
     .then(function(data){
-      var logged=getLoggedToday();
       var result=data.map(function(row){
         var tz=STATE_TZ[row.state]||'ET';
-        var entry=logged[row.id]||{};
         var assignedDate=row.assigned_at?new Date(row.assigned_at):new Date();
         var assignedStr=(assignedDate.getMonth()+1)+'/'+(assignedDate.getDate())+'/'+assignedDate.getFullYear();
         return {
@@ -585,13 +583,13 @@ function loadContacts(agentId,callback){
           'Phone':row.phone||'',
           'State':row.state||'',
           'Time Zone':tz,
-          'Date Assigned':assignedStr,
-          'Contacted':entry.outcome||'',
-          'Notes':entry.notes||''
+          'Date Assigned':assignedStr
         };
       });
-      result.sort(function(a,b){return tzPriority(a['Time Zone'])-tzPriority(b['Time Zone']);});
-      callback(result);
+      var merged=mergeWithSnapshot(result);
+      saveSnapshot(merged);
+      merged.sort(function(a,b){return tzPriority(a['Time Zone'])-tzPriority(b['Time Zone']);});
+      callback(merged);
     })
     .catch(function(){callback([]);});
 }
@@ -606,6 +604,24 @@ function tzPriority(tz){
 }
 
 function getSessionKey(){return 'mochi_session_'+getTodayStr()+'_'+selectedAgent;}
+function getSnapshotKey(){return 'mochi_snap_'+getTodayStr()+'_'+selectedAgent;}
+function loadSnapshot(){try{return JSON.parse(localStorage.getItem(getSnapshotKey()))||[];}catch(e){return [];}}
+function saveSnapshot(list){
+  var raw=list.map(function(c){return {id:c.id,'Name':c['Name'],'First Name':c['First Name'],'Last Name':c['Last Name'],'Phone':c['Phone'],'State':c['State'],'Time Zone':c['Time Zone'],'Date Assigned':c['Date Assigned']};});
+  localStorage.setItem(getSnapshotKey(),JSON.stringify(raw));
+}
+function mergeWithSnapshot(liveContacts){
+  var snap=loadSnapshot();
+  var ids={};
+  var merged=[];
+  snap.forEach(function(c){ids[c.id]=true;merged.push(c);});
+  liveContacts.forEach(function(c){if(!ids[c.id]){ids[c.id]=true;merged.push(c);}});
+  var logged=getLoggedToday();
+  return merged.map(function(c){
+    var entry=logged[c.id]||{};
+    return Object.assign({},c,{'Contacted':entry.outcome||'','Notes':entry.notes||''});
+  });
+}
 function sheetPost(payload){
   fetch('/api/sheet',{
     method:'POST',
