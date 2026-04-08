@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const { getActiveMemberQueueIds } = require('./lib/dataPool');
 
 let pool;
 function getPool() {
@@ -45,7 +46,7 @@ module.exports = async (req, res) => {
     // Find pending contacts added in the last 24 hours
     // excluding anyone who already has an active HEALTH subscription
     const contactsRes = await client.query(`
-      SELECT DISTINCT ON (ocq.phone) ocq.id
+      SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone
       FROM outreach_call_queue ocq
       WHERE ocq.status = 'pending'
         AND ocq.deleted_at IS NULL
@@ -65,8 +66,13 @@ module.exports = async (req, res) => {
         )
       ORDER BY ocq.phone, ocq.added_to_queue_at ASC
     `);
-    const pending = contactsRes.rows;
-    if (!pending.length) return res.json({ assigned: 0, message: 'No pending contacts' });
+    const rawPending = contactsRes.rows;
+    if (!rawPending.length) return res.json({ assigned: 0, message: 'No pending contacts' });
+
+    // Scrub active HEALTH members via analytics DB
+    const activeMemberIds = await getActiveMemberQueueIds(rawPending);
+    const pending = rawPending.filter(c => !activeMemberIds.has(c.id));
+    if (!pending.length) return res.json({ assigned: 0, message: 'No pending contacts after member scrub' });
 
     // Split contacts equally across agents up to MAX_PER_AGENT each
     const now = new Date();
