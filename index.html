@@ -594,6 +594,16 @@ function loadContacts(agentId,callback){
     .catch(function(){callback([]);});
 }
 
+function getBestUncalledIdx(){
+  var best=null,bestP=Infinity;
+  for(var i=0;i<contacts.length;i++){
+    if(contacts[i]['Contacted'])continue;
+    var p=tzPriority(contacts[i]['Time Zone']);
+    if(p<bestP){bestP=p;best=i;}
+  }
+  return best;
+}
+
 function tzPriority(tz){
   var ptD=getPtDecimal();
   var loc=ptD+(OFFSETS[tz]||0);
@@ -666,7 +676,7 @@ function showDashboard(){
 }
 
 function checkAndTopup(callback){
-  var remaining=contacts.filter(function(c){return !c['Contacted'];}).length;
+  var remaining=contacts.filter(function(c){return !c['Contacted']&&tzPriority(c['Time Zone'])<999;}).length;
   if(remaining<=10){
     fetch('/api/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
       .then(function(){callback();})
@@ -769,9 +779,15 @@ function showContactList(filter){
 function showContacts(){
   hist.push({id:cur});cur='_contacts';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">My Contacts</span>';
-  document.getElementById('tbr').innerHTML='<button onclick="refreshContacts()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>';
+  document.getElementById('tbr').innerHTML='<button onclick="refreshContacts()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>'
+    +'<button onclick="openScript()" style="margin-left:6px;padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Script</button>';
   renderContactPanel();
   document.getElementById('back-btn').disabled=false;
+}
+
+function openScript(){
+  pendingIdx=null;activeContactName='';activeContactPhone='';
+  cur=mode==='inbound'?'inbound_open':'open';hist=[];render();
 }
 
 function refreshContacts(){
@@ -796,7 +812,7 @@ function renderContactPanel(){
     document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>';
     return;
   }
-  var idx=uncalled[0];
+  var idx=getBestUncalledIdx();
   var c=contacts[idx];
   var tz=normTz(c['Time Zone']||'');
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
@@ -850,6 +866,7 @@ var pendingIdx=null;
 function startCall(idx){
   pendingIdx=idx;
   activeContactName=contacts[idx]?contacts[idx]['Name']:'';
+  activeContactPhone=contacts[idx]?contacts[idx]['Phone']:'';
   cur=mode==='inbound'?'inbound_open':'open';
   hist=[];
   render();
@@ -906,14 +923,15 @@ function submitOutcome(){
   c['Notes']=notesVal;
   writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal);
   pendingOutcome=null;pendingIdx=null;
-  activeContactName='';
+  activeContactName='';activeContactPhone='';
   renderContactPanel();
 }
 
 function showLogResult(){
+  if(pendingIdx===null){showContacts();return;}
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
-  var idx=uncalled.length?uncalled[0]:null;
+  var idx=uncalled.length?getBestUncalledIdx():null;
   var c=idx!==null?contacts[idx]:null;
   hist.push({id:cur});cur='_log';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Log Call Result</span>';
@@ -994,7 +1012,7 @@ function submitLogOutcome(){
   }
   var outcome=pendingLogOutcome;
   pendingLogOutcome=null;pendingLogIdx=null;
-  activeContactName='';
+  activeContactName='';activeContactPhone='';
   cur='open';hist=[];
   render();
   var content=document.getElementById('content');
@@ -1056,7 +1074,7 @@ function render(){
     setTimeout(function(){var s=document.getElementById('vmsel');if(s){s.value=vmS1?'1':'2';s.onchange=function(){vmS1=s.value==='1';var el=document.getElementById('vm-txt');if(el)el.textContent=vmText();};}},0);
   } else {tbr.innerHTML='';}
   var ban=document.getElementById('mban');
-  ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>'+(activeContactName?'<span style="margin-left:10px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.9)">'+activeContactName+'</span>':'');
+  ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>'+(activeContactName?'<span style="margin-left:10px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.9)">'+activeContactName+'</span>':'')+(activeContactPhone?'<span style="margin-left:8px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.7);letter-spacing:.04em">'+activeContactPhone+'</span>':'');
   var navEl=document.getElementById('nav-stages');navEl.innerHTML='';
   document.getElementById('nav-lbl').textContent=mode==='inbound'?'Inbound Stages':'Call Stages';
   var navOrd=mode==='inbound'?IN_NAV:OUT_NAV;
