@@ -38,6 +38,7 @@ module.exports = async (req, res) => {
       FROM admins a
       JOIN outreach_agents oa ON a.id = oa.admin_id
       WHERE oa.is_active = true AND oa.deleted_at IS NULL
+        AND (a.first_name = 'AJ' OR a.first_name = 'Marien')
       ORDER BY a.first_name
     `);
     const agents = agentsRes.rows;
