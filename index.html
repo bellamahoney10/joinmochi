@@ -930,9 +930,7 @@ function submitOutcome(){
 
 function showLogResult(){
   if(pendingIdx===null){showContacts();return;}
-  var uncalled=[];
-  for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
-  var idx=uncalled.length?getBestUncalledIdx():null;
+  var idx=pendingIdx;
   var c=idx!==null?contacts[idx]:null;
   hist.push({id:cur});cur='_log';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Log Call Result</span>';
