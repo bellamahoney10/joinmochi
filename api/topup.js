@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
         AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (NOW() AT TIME ZONE 'America/Los_Angeles')::date
         AND status = 'assigned'
         AND deleted_at IS NULL
-        AND ($2::text[] IS NULL OR LOWER(state) = ANY(SELECT LOWER(s) FROM UNNEST($2::text[]) s))
+        AND ($2::text[] IS NULL OR state = ANY($2::text[]))
     `, [agent_id, callableStates.length ? callableStates : null]);
     const remaining = parseInt(remainingRes.rows[0].cnt, 10);
 
@@ -87,7 +87,7 @@ module.exports = async (req, res) => {
       FROM outreach_call_queue ocq
       WHERE ocq.status = 'pending'
         AND ocq.deleted_at IS NULL
-        AND LOWER(ocq.state) = ANY(SELECT LOWER(s) FROM UNNEST($2::text[]) s)
+        AND ocq.state = ANY($2::text[])
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
           WHERE s.patient_id = ocq.patient_id
