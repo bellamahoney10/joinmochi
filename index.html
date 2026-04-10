@@ -536,8 +536,8 @@ function tzStatus(tz){
   var ptD=getPtDecimal();
   var loc=ptD+(OFFSETS[tz]||0);
   if(loc<8||loc>=18.5)return{label:'Do Not Call',color:'#E24B4A'};
-  if((tz==='ET'&&ptD>=14)||(tz==='CT'&&ptD>=15))return{label:'Wind Down',color:'#EF9F27'};
-if((loc>=8&&loc<10)||(loc>=16&&loc<17))return{label:'Ideal Window',color:'#69F0AE'};
+  if((tz==='ET'&&ptD>=15)||(tz==='CT'&&ptD>=16))return{label:'Wind Down',color:'#EF9F27'};
+if((loc>=8&&loc<10)||(loc>=16&&loc<18))return{label:'Ideal Window',color:'#69F0AE'};
 return{label:'Call Now',color:'#90CAF9'};
 }
 
@@ -622,7 +622,7 @@ function tzPriority(tz){
   var ptD=getPtDecimal();
   var loc=ptD+(OFFSETS[tz]||0);
   if(loc<8||loc>=18.5)return 999;
-  var ideal=(loc>=8&&loc<10)||(loc>=16&&loc<17);
+  var ideal=(loc>=8&&loc<10)||(loc>=16&&loc<18);
   if(ideal)return 0;
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
@@ -1292,7 +1292,7 @@ function showSchedule(){
     if(loc<8)return 'Ideal morning window opens in '+Math.round((8-loc)*60)+' min';
     if(loc>=8&&loc<10)return 'In ideal morning window now';
     if(loc>=10&&loc<16)return 'Ideal afternoon window in '+Math.round((16-loc)*60)+' min';
-    if(loc>=16&&loc<17)return 'In ideal afternoon window now';
+    if(loc>=16&&loc<18)return 'In ideal afternoon window now';
     return 'No more ideal windows today';
   }
   var ptNow=now.toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit',hour12:true});
@@ -1307,11 +1307,12 @@ function showSchedule(){
   }).join('');
   var note='';
   if(ptD>=6&&ptD<8)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Early shift: focus ET and CT first — MT and PT not yet at 8 AM local.</div>';
-  else if(ptD>=14&&ptD<15)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down ET — shift focus to CT, MT, and PT.</div>';
-  else if(ptD>=15&&ptD<16)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down CT — focus MT and PT only.</div>';
-  else if(ptD>=16&&ptD<17)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Ideal afternoon window across MT and PT. ET and CT too late for cold calls.</div>';
+  else if(ptD>=15&&ptD<16)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down ET — shift focus to CT, MT, and PT.</div>';
+  else if(ptD>=16&&ptD<17)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down CT — focus MT and PT only.</div>';
+  else if(ptD>=13&&ptD<15)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Ideal afternoon window — 4–6 PM ET and CT, 4–5 PM MT/PT.</div>';
+  else if(ptD>=17&&ptD<18)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Ideal afternoon window across MT and PT. ET and CT too late for cold calls.</div>';
   else if(ptD>=17)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FCEBEB;border-radius:8px;border-left:3px solid #E24B4A;font-size:12px;color:#791F1F;font-weight:600">Outside calling hours for all zones.</div>';
-  var ideal='<div style="margin-top:14px;padding:12px 14px;background:var(--navy-faint);border-radius:8px;border:1px solid var(--border-light)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:10px">Best cold call windows (local time to PT)</div><div style="font-size:12px;color:var(--text-secondary);line-height:2"><div><b style="color:var(--brand)">ET</b> &nbsp; 8-10 AM local = 5-7 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-5 PM local = 1-2 PM PT &#9733;</span></div><div><b style="color:var(--brand)">CT</b> &nbsp; 8-10 AM local = 6-8 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-5 PM local = 2-3 PM PT &#9733;</span></div><div><b style="color:var(--brand)">MT</b> &nbsp; 8-10 AM local = 7-9 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-5 PM local = 3-4 PM PT &#9733;</span></div><div><b style="color:var(--brand)">PT</b> &nbsp; 8-10 AM local = 8-10 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-5 PM local = 4-5 PM PT &#9733;</span></div></div><div style="font-size:11px;color:var(--text-hint);margin-top:8px">&#9733; Late afternoon (4-5 PM local) is the single best cold call window.</div></div>';
+  var ideal='<div style="margin-top:14px;padding:12px 14px;background:var(--navy-faint);border-radius:8px;border:1px solid var(--border-light)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:10px">Best cold call windows (local time to PT)</div><div style="font-size:12px;color:var(--text-secondary);line-height:2"><div><b style="color:var(--brand)">ET</b> &nbsp; 8-10 AM local = 5-7 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 1-3 PM PT &#9733;</span></div><div><b style="color:var(--brand)">CT</b> &nbsp; 8-10 AM local = 6-8 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 2-4 PM PT &#9733;</span></div><div><b style="color:var(--brand)">MT</b> &nbsp; 8-10 AM local = 7-9 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 3-5 PM PT &#9733;</span></div><div><b style="color:var(--brand)">PT</b> &nbsp; 8-10 AM local = 8-10 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 4-6 PM PT &#9733;</span></div></div><div style="font-size:11px;color:var(--text-hint);margin-top:8px">&#9733; Late afternoon (4-6 PM local) is the best cold call window.</div></div>';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Call Schedule</span>';
   document.getElementById('content').innerHTML='<div class="panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div class="panel-title" style="margin-bottom:0">Time zone status now</div><div style="font-size:12px;color:var(--text-hint)">PT: '+ptNow+'</div></div>'+note+rows+ideal+'</div>';
   document.getElementById('back-btn').disabled=false;
