@@ -22,13 +22,13 @@ const TOPUP_THRESHOLD = 10;
 
 // start/end in [hour, minute] (24h), inclusive start, exclusive end
 const TZ_CONFIG = {
-  'America/New_York':    { states: ['CT','DC','DE','FL','GA','IN','MA','MD','ME','MI','NC','NH','NJ','NY','OH','PA','RI','SC','VA','VT','WV'], start: [8, 0], end: [18, 30] },
-  'America/Chicago':     { states: ['AL','AR','IA','IL','KS','KY','LA','MN','MO','MS','ND','NE','OK','SD','TN','TX','WI'], start: [8, 0], end: [18, 30] },
-  'America/Denver':      { states: ['CO','ID','MT','NM','UT','WY'], start: [8, 0], end: [18, 30] },
-  'America/Phoenix':     { states: ['AZ'], start: [8, 0], end: [18, 30] },
-  'America/Los_Angeles': { states: ['CA','NV','OR','WA'], start: [8, 0], end: [18, 30] },
-  'America/Anchorage':   { states: ['AK'], start: [8, 0], end: [18, 30] },
-  'America/Honolulu':    { states: ['HI'], start: [8, 0], end: [18, 30] },
+  'America/New_York':    { states: ['Connecticut','District of Columbia','Delaware','Florida','Georgia','Indiana','Massachusetts','Maryland','Maine','Michigan','North Carolina','New Hampshire','New Jersey','New York','Ohio','Pennsylvania','Rhode Island','South Carolina','Virginia','Vermont','West Virginia'], start: [8, 0], end: [18, 30] },
+  'America/Chicago':     { states: ['Alabama','Arkansas','Iowa','Illinois','Kansas','Kentucky','Louisiana','Minnesota','Missouri','Mississippi','North Dakota','Nebraska','Oklahoma','South Dakota','Tennessee','Texas','Wisconsin'], start: [8, 0], end: [18, 30] },
+  'America/Denver':      { states: ['Colorado','Idaho','Montana','New Mexico','Utah','Wyoming'], start: [8, 0], end: [18, 30] },
+  'America/Phoenix':     { states: ['Arizona'], start: [8, 0], end: [18, 30] },
+  'America/Los_Angeles': { states: ['California','Nevada','Oregon','Washington'], start: [8, 0], end: [18, 30] },
+  'America/Anchorage':   { states: ['Alaska'], start: [8, 0], end: [18, 30] },
+  'America/Honolulu':    { states: ['Hawaii'], start: [8, 0], end: [18, 30] },
 };
 
 function getCallableStates() {
@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
         AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (NOW() AT TIME ZONE 'America/Los_Angeles')::date
         AND status = 'assigned'
         AND deleted_at IS NULL
-        AND ($2::text[] IS NULL OR UPPER(state) = ANY($2::text[]))
+        AND ($2::text[] IS NULL OR LOWER(state) = ANY(SELECT LOWER(s) FROM UNNEST($2::text[]) s))
     `, [agent_id, callableStates.length ? callableStates : null]);
     const remaining = parseInt(remainingRes.rows[0].cnt, 10);
 
@@ -87,7 +87,7 @@ module.exports = async (req, res) => {
       FROM outreach_call_queue ocq
       WHERE ocq.status = 'pending'
         AND ocq.deleted_at IS NULL
-        AND UPPER(ocq.state) = ANY($2::text[])
+        AND LOWER(ocq.state) = ANY(SELECT LOWER(s) FROM UNNEST($2::text[]) s)
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
           WHERE s.patient_id = ocq.patient_id
