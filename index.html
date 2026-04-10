@@ -991,7 +991,7 @@ function showLogResult(){
     +'<button onclick="cancelLogOutcome()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
     +'</div></div>'
     +'</div>';
-  var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;
+  var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;window.scrollTo(0,0);
 }
 
 var pendingLogOutcome=null;
