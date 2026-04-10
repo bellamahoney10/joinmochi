@@ -55,8 +55,9 @@ module.exports = async (req, res) => {
 
   const callableStates = getCallableStates();
 
-  const client = await getPool().connect();
+  let client;
   try {
+    client = await getPool().connect();
     // Count remaining callable contacts for this agent today
     // "Callable" = assigned today, not yet contacted, in a state currently within 8 AM–9 PM local time
     const remainingRes = await client.query(`
@@ -131,6 +132,6 @@ module.exports = async (req, res) => {
     console.error(e);
     res.status(500).json({ error: e.message });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 };
