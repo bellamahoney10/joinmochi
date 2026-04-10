@@ -28,7 +28,7 @@ const TZ_CONFIG = {
   'America/Phoenix':     { states: ['Arizona'], start: [8, 0], end: [18, 30] },
   'America/Los_Angeles': { states: ['California','Nevada','Oregon','Washington'], start: [8, 0], end: [18, 30] },
   'America/Anchorage':   { states: ['Alaska'], start: [8, 0], end: [18, 30] },
-  'America/Honolulu':    { states: ['Hawaii'], start: [8, 0], end: [18, 30] },
+  'Pacific/Honolulu':    { states: ['Hawaii'], start: [8, 0], end: [18, 30] },
 };
 
 function getCallableStates() {
