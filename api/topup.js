@@ -105,8 +105,13 @@ module.exports = async (req, res) => {
       LIMIT $1
     `, [needed, callableStates]);
 
-    // Scrub active HEALTH members via analytics DB
-    const activeMemberIds = await getActiveMemberQueueIds(contactsRes.rows);
+    // Scrub active HEALTH members via analytics DB (best-effort; skip if unreachable)
+    let activeMemberIds = new Set();
+    try {
+      activeMemberIds = await getActiveMemberQueueIds(contactsRes.rows);
+    } catch (scrubErr) {
+      console.error('analytics scrub failed, skipping:', scrubErr.message);
+    }
     const toAssign = contactsRes.rows.filter(c => !activeMemberIds.has(c.id));
     if (!toAssign.length) return res.json({ topped_up: 0, remaining, message: 'No pending contacts after member scrub' });
 
