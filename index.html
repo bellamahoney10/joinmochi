@@ -831,14 +831,18 @@ function renderContactPanel(){
     document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>';
     return;
   }
-  var idx=getBestUncalledIdx();
-  if(idx===null){
-    // all uncalled contacts are skipped
-    var skippedCount=uncalled.filter(function(i){return skippedIds[contacts[i].id];}).length;
-    document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You have skipped '+skippedCount+' contact'+(skippedCount!==1?'s':'')+'. Clear skips to continue calling them.</div><button onclick="skippedIds={};renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>';
-    return;
+  var c=null;
+  if(lockedContactId!==null){c=findContactById(lockedContactId);}
+  if(!c){
+    var idx=getBestUncalledIdx();
+    if(idx===null){
+      // all uncalled contacts are skipped
+      var skippedCount=uncalled.filter(function(i){return skippedIds[contacts[i].id];}).length;
+      document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You have skipped '+skippedCount+' contact'+(skippedCount!==1?'s':'')+'. Clear skips to continue calling them.</div><button onclick="skippedIds={};renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>';
+      return;
+    }
+    c=contacts[idx];
   }
-  var c=contacts[idx];
   var tz=normTz(c['Time Zone']||'');
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
   var bc=tzColors[tz]||'#534AB7';
@@ -891,10 +895,12 @@ function renderContactPanel(){
 
 var pendingOutcome=null;
 var pendingContactId=null;
+var lockedContactId=null;
 
 function startCall(id){
   var c=findContactById(id);
   pendingContactId=id;
+  lockedContactId=id;
   activeContactName=c?c['Name']:'';
   activeContactPhone=c?c['Phone']:'';
   cur=mode==='inbound'?'inbound_open':'open';
@@ -954,7 +960,7 @@ function submitOutcome(){
   c['Notes']=notesVal;
   writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal);
   lastLoggedContactId=c.id;
-  pendingOutcome=null;pendingContactId=null;
+  pendingOutcome=null;pendingContactId=null;lockedContactId=null;
   activeContactName='';activeContactPhone='';
   renderContactPanel();
 }
@@ -1041,7 +1047,7 @@ function submitLogOutcome(){
     lastLoggedContactId=c.id;
   }
   var outcome=pendingLogOutcome;
-  pendingLogOutcome=null;pendingLogContactId=null;
+  pendingLogOutcome=null;pendingLogContactId=null;lockedContactId=null;
   activeContactName='';activeContactPhone='';
   cur='open';hist=[];
   render();
