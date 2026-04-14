@@ -49,9 +49,11 @@ module.exports = async (req, res) => {
     const pendingQuery = (interval) => client.query(`
       SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone
       FROM outreach_call_queue ocq
+      JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
+        AND ae.completed = true
+        AND ae.updated_at >= NOW() - INTERVAL '${interval}'
       WHERE ocq.status = 'pending'
         AND ocq.deleted_at IS NULL
-        AND ocq.added_to_queue_at >= NOW() - INTERVAL '${interval}'
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
           WHERE s.patient_id = ocq.patient_id
@@ -65,7 +67,7 @@ module.exports = async (req, res) => {
             AND ocq2.status = 'assigned'
             AND ocq2.deleted_at IS NULL
         )
-      ORDER BY ocq.phone, ocq.added_to_queue_at ASC
+      ORDER BY ocq.phone, ae.updated_at ASC
     `);
 
     let contactsRes = await pendingQuery('1 day');
