@@ -83,11 +83,13 @@ module.exports = async (req, res) => {
     const needed = MAX_PER_AGENT - remaining;
 
     // Get pending contacts in currently-callable states, not yet assigned, excluding active HEALTH subscribers
-    const contactsRes = await client.query(`
+    // Try last 1 day first, fall back to 2 days if empty
+    const pendingQuery = (interval) => client.query(`
       SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone
       FROM outreach_call_queue ocq
       WHERE ocq.status = 'pending'
         AND ocq.deleted_at IS NULL
+        AND ocq.added_to_queue_at >= NOW() - INTERVAL '${interval}'
         AND ocq.state = ANY($2::text[])
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
@@ -105,6 +107,11 @@ module.exports = async (req, res) => {
       ORDER BY ocq.phone, ocq.added_to_queue_at ASC
       LIMIT $1
     `, [needed, callableStates]);
+
+    let contactsRes = await pendingQuery('1 day');
+    if (!contactsRes.rows.length) {
+      contactsRes = await pendingQuery('2 days');
+    }
 
     // Scrub active HEALTH members via analytics DB (best-effort; skip if unreachable)
     let activeMemberIds = new Set();

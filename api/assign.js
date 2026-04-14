@@ -44,14 +44,14 @@ module.exports = async (req, res) => {
     const agents = agentsRes.rows;
     if (!agents.length) return res.json({ assigned: 0, message: 'No active agents' });
 
-    // Find pending contacts added in the last 24 hours
+    // Find pending contacts, trying last 1 day first, falling back to 2 days
     // excluding anyone who already has an active HEALTH subscription
-    const contactsRes = await client.query(`
+    const pendingQuery = (interval) => client.query(`
       SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone
       FROM outreach_call_queue ocq
       WHERE ocq.status = 'pending'
         AND ocq.deleted_at IS NULL
-        AND ocq.added_to_queue_at >= NOW() - INTERVAL '3 days'
+        AND ocq.added_to_queue_at >= NOW() - INTERVAL '${interval}'
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
           WHERE s.patient_id = ocq.patient_id
@@ -67,6 +67,11 @@ module.exports = async (req, res) => {
         )
       ORDER BY ocq.phone, ocq.added_to_queue_at ASC
     `);
+
+    let contactsRes = await pendingQuery('1 day');
+    if (!contactsRes.rows.length) {
+      contactsRes = await pendingQuery('2 days');
+    }
     const rawPending = contactsRes.rows;
     if (!rawPending.length) return res.json({ assigned: 0, message: 'No pending contacts' });
 
