@@ -109,9 +109,8 @@ module.exports = async (req, res) => {
     `, [needed, callableStates]);
 
     let contactsRes = await pendingQuery('1 day');
-    if (!contactsRes.rows.length) {
-      contactsRes = await pendingQuery('2 days');
-    }
+    if (!contactsRes.rows.length) contactsRes = await pendingQuery('2 days');
+    if (!contactsRes.rows.length) contactsRes = await pendingQuery('3 days');
 
     // Scrub active HEALTH members via analytics DB (best-effort; skip if unreachable)
     let activeMemberIds = new Set();

@@ -69,9 +69,8 @@ module.exports = async (req, res) => {
     `);
 
     let contactsRes = await pendingQuery('1 day');
-    if (!contactsRes.rows.length) {
-      contactsRes = await pendingQuery('2 days');
-    }
+    if (!contactsRes.rows.length) contactsRes = await pendingQuery('2 days');
+    if (!contactsRes.rows.length) contactsRes = await pendingQuery('3 days');
     const rawPending = contactsRes.rows;
     if (!rawPending.length) return res.json({ assigned: 0, message: 'No pending contacts' });
 
