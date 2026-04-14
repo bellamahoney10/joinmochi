@@ -67,7 +67,7 @@ module.exports = async (req, res) => {
             AND ocq2.status = 'assigned'
             AND ocq2.deleted_at IS NULL
         )
-      ORDER BY ocq.phone, ae.updated_at ASC
+      ORDER BY ocq.phone, ae.updated_at DESC
     `);
 
     let contactsRes = await pendingQuery('1 day');
