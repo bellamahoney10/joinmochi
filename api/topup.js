@@ -17,7 +17,7 @@ function getPool() {
   return pool;
 }
 
-const MAX_PER_AGENT = 375;
+const MAX_PER_AGENT = 300;
 const TOPUP_THRESHOLD = 10;
 
 // start/end in [hour, minute] (24h), inclusive start, exclusive end

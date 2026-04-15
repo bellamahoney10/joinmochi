@@ -18,7 +18,7 @@ function getPool() {
 }
 
 const CRON_SECRET = process.env.CRON_SECRET;
-const MAX_PER_AGENT = 375;
+const MAX_PER_AGENT = 300;
 
 module.exports = async (req, res) => {
   // Allow cron (GET with secret) or manual POST trigger
