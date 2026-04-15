@@ -267,7 +267,7 @@ function normTz(tz){
   var map={Eastern:'ET',Central:'CT',Mountain:'MT',Pacific:'PT'};
   return map[tz]||tz;
 }
-var OUTCOMES=['Voicemail Left','Call Answered','Inbox Full','Hung Up'];
+var OUTCOMES=['Voicemail Left','Call Answered','Inbox Full','Hung Up','Screened/Declined'];
 
 var CTA='<div class="cta-box"><div class="cta-lbl">Tell Them How To Get Back In</div><div class="cta-row"><span class="cta-num">1</span><span>Check <b>email inbox</b> for a Mochi Health message.</span></div><div class="cta-row"><span class="cta-num">2</span><span>Check <b>text messages</b> for a link we may have sent.</span></div><div class="cta-row"><span class="cta-num">3</span><span>Go to <b>joinmochi.com</b> and log in with the email used to sign up.</span></div></div>';
 var NEXT='<div class="steps-box"><div class="steps-lbl">What Happens Next</div><div class="step-row"><span class="step-num">1</span><span>Sign up and pick your membership plan.</span></div><div class="step-row"><span class="step-num">2</span><span>Schedule a video visit with a provider and dietitian within one week.</span></div><div class="step-row"><span class="step-num">3</span><span>Medication shipped to your door, or access brand-name through your pharmacy.</span></div><div class="step-row"><span class="step-num">4</span><span>Regular check-ins with your care team. Access the Mochi shop for more.</span></div></div>';
@@ -673,7 +673,7 @@ function writeOutcome(agentId,contactId,outcome,notes){
 }
 
 function getDashboardStats(){
-  var stats={total:0,'Voicemail Left':0,'Call Answered':0,'No Answer':0,'Inbox Full':0,'Hung Up':0,remaining:0};
+  var stats={total:0,'Voicemail Left':0,'Call Answered':0,'No Answer':0,'Inbox Full':0,'Hung Up':0,'Screened/Declined':0,remaining:0};
   for(var i=0;i<contacts.length;i++){
     stats.total++;
     var c=contacts[i]['Contacted']||'';
@@ -739,11 +739,12 @@ function renderDashboard(){
     +statCard(st.remaining,'Remaining','#0a0a74','remaining')
     +'</div>'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Call Results</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">'
+    +'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">'
     +statCard(st['Call Answered'],'Call Answered','#1D9E75','Call Answered')
     +statCard(st['Voicemail Left'],'Voicemail Left','#534AB7','Voicemail Left')
     +statCard(st['Inbox Full'],'Inbox Full','#8A8FA8','Inbox Full')
     +statCard(st['Hung Up'],'Hung Up','var(--amber-dark)','Hung Up')
+    +statCard(st['Screened/Declined'],'Screened/Declined','#B91C1C','Screened/Declined')
     +'</div></div>';
   var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;
 }
@@ -764,8 +765,8 @@ function showContactList(filter){
     document.getElementById('content').innerHTML='<div class="panel"><div style="font-size:13px;color:var(--text-secondary)">No contacts in this category.</div></div>';
     return;
   }
-  var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)',''  :'#8A8FA8'};
-  var outcomeBg={'Call Answered':'#E1F5EE','Voicemail Left':'#EEEDFE','Inbox Full':'#F2F3F7','Hung Up':'var(--amber-light)',''  :'#F2F3F7'};
+  var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)','Screened/Declined':'#B91C1C',''  :'#8A8FA8'};
+  var outcomeBg={'Call Answered':'#E1F5EE','Voicemail Left':'#EEEDFE','Inbox Full':'#F2F3F7','Hung Up':'var(--amber-light)','Screened/Declined':'#FEE2E2',''  :'#F2F3F7'};
   var html='<div class="panel">'
     +'<div style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:14px">'+title+' <span style="font-weight:400;color:var(--text-hint)">('+rows.length+')</span></div>';
   rows.forEach(function(c){
@@ -851,7 +852,8 @@ function renderContactPanel(){
     'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
     'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
     'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)'
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
+    'Screened/Declined':'border:1.5px solid #FCA5A5;background:#FEE2E2;color:#B91C1C'
   };
   var html='<div class="panel">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
@@ -975,7 +977,8 @@ function showLogResult(){
     'Voicemail Left':'border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489',
     'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
     'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)'
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
+    'Screened/Declined':'border:1.5px solid #EF4444;background:#FEE2E2;color:#B91C1C'
   };
   var contactInfo=c
     ?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>'
@@ -1078,7 +1081,8 @@ function showEditContactPanel(){
     'Voicemail Left':'border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489',
     'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
     'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)'
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
+    'Screened/Declined':'border:1.5px solid #EF4444;background:#FEE2E2;color:#B91C1C'
   };
   var html='<div class="panel">'
     +'<div class="panel-title" style="margin-bottom:12px">Edit Call Result</div>'
