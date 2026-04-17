@@ -715,14 +715,9 @@ function showDashboard(){
 }
 
 function checkAndTopup(callback){
-  var remaining=contacts.filter(function(c){return !c['Contacted']&&tzPriority(c['Time Zone'])<999;}).length;
-  if(remaining<=10){
-    fetch('/api/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
-      .then(function(){callback();})
-      .catch(function(){callback();});
-  } else {
-    callback();
-  }
+  fetch('/api/refresh',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
+    .then(function(){callback();})
+    .catch(function(){callback();});
 }
 
 function refreshAndDash(){

@@ -18,7 +18,7 @@ function getPool() {
 }
 
 const CRON_SECRET = process.env.CRON_SECRET;
-const MAX_PER_AGENT = 300;
+const MORNING_BATCH = 20;
 
 module.exports = async (req, res) => {
   // Allow cron (GET with secret) or manual POST trigger
@@ -44,35 +44,35 @@ module.exports = async (req, res) => {
     const agents = agentsRes.rows;
     if (!agents.length) return res.json({ assigned: 0, message: 'No active agents' });
 
-    // Find pending contacts, trying last 1 day first, falling back to 2 days
-    // excluding anyone who already has an active HEALTH subscription
-    const pendingQuery = (interval) => client.query(`
-      SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone
-      FROM outreach_call_queue ocq
-      JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
-        AND ae.completed = true
-        AND ae.updated_at >= NOW() - INTERVAL '${interval}'
-      WHERE ocq.status = 'pending'
-        AND ocq.deleted_at IS NULL
-        AND NOT EXISTS (
-          SELECT 1 FROM subscriptions s
-          WHERE s.patient_id = ocq.patient_id
-            AND s.active = true
-            AND s.descriptor = 'HEALTH'
-            AND s.deleted_at IS NULL
-        )
-        AND NOT EXISTS (
-          SELECT 1 FROM outreach_call_queue ocq2
-          WHERE ocq2.phone = ocq.phone
-            AND ocq2.status = 'assigned'
-            AND ocq2.deleted_at IS NULL
-        )
-      ORDER BY ocq.phone, ae.updated_at DESC
-    `);
-
-    let contactsRes = await pendingQuery('1 day');
-    if (!contactsRes.rows.length) contactsRes = await pendingQuery('2 days');
-    if (!contactsRes.rows.length) contactsRes = await pendingQuery('3 days');
+    // Find pending contacts from the last 28 hours by completed eligibility time,
+    // ordered freshest first, excluding active HEALTH subscribers
+    const contactsRes = await client.query(`
+      SELECT id, patient_id, phone FROM (
+        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at
+        FROM outreach_call_queue ocq
+        JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
+          AND ae.completed = true
+          AND ae.updated_at >= NOW() - INTERVAL '29 hours'
+        WHERE ocq.status = 'pending'
+          AND ocq.deleted_at IS NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM subscriptions s
+            WHERE s.patient_id = ocq.patient_id
+              AND s.active = true
+              AND s.descriptor = 'HEALTH'
+              AND s.deleted_at IS NULL
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM outreach_call_queue ocq2
+            WHERE ocq2.phone = ocq.phone
+              AND ocq2.status = 'assigned'
+              AND ocq2.deleted_at IS NULL
+          )
+        ORDER BY ocq.phone, ae.updated_at DESC
+      ) sub
+      ORDER BY sub.updated_at DESC
+      LIMIT $1
+    `, [MORNING_BATCH * agents.length]);
     const rawPending = contactsRes.rows;
     if (!rawPending.length) return res.json({ assigned: 0, message: 'No pending contacts' });
 
@@ -81,35 +81,13 @@ module.exports = async (req, res) => {
     const pending = rawPending.filter(c => !activeMemberIds.has(c.id));
     if (!pending.length) return res.json({ assigned: 0, message: 'No pending contacts after member scrub' });
 
-    // Split contacts equally across agents up to MAX_PER_AGENT each
+    // Assign up to MORNING_BATCH contacts to each agent
     const now = new Date();
     let totalAssigned = 0;
 
-    // Calculate how many each agent needs
-    const agentNeeds = [];
     for (let i = 0; i < agents.length; i++) {
-      const existingRes = await client.query(`
-        SELECT COUNT(*) as cnt
-        FROM outreach_call_queue
-        WHERE assigned_agent_id = $1
-          AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (NOW() AT TIME ZONE 'America/Los_Angeles')::date
-          AND status = 'assigned'
-          AND deleted_at IS NULL
-      `, [agents[i].id]);
-      const existing = parseInt(existingRes.rows[0].cnt, 10);
-      agentNeeds.push(Math.max(0, MAX_PER_AGENT - existing));
-    }
-
-    // Divide pool evenly across agents (capped at each agent's need)
-    const totalNeeded = agentNeeds.reduce((a, b) => a + b, 0);
-    const perAgent = Math.min(Math.floor(pending.length / agents.length), MAX_PER_AGENT);
-
-    for (let i = 0; i < agents.length; i++) {
-      const needed = Math.min(agentNeeds[i], perAgent);
-      if (!needed) continue;
-
-      const slice = pending.splice(0, needed);
-      if (!slice.length) continue;
+      const slice = pending.splice(0, MORNING_BATCH);
+      if (!slice.length) break;
 
       const ids = slice.map(r => r.id);
       await client.query(`
