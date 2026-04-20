@@ -60,11 +60,11 @@ module.exports = async (req, res) => {
 
     const needed = MORNING_BATCH * agents.length;
 
-    // Ideal window (before 7:30 AM PT): ET/CT are callable but PT isn't yet — tz priority trumps recency.
-    // Normal hours (7:30 AM PT and later): recency is primary, tz priority is secondary tiebreaker.
-    const nowPT = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hour12: false });
-    const [ptH, ptM] = nowPT.split(':').map(Number);
-    const idealWindow = ptH * 60 + ptM < 7 * 60 + 30;
+    // Ideal window: not all timezones are callable yet — tz priority trumps recency.
+    // PT opens last (8 AM PT); once PT is callable all TZs are open and recency takes over.
+    const ptStr = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hour12: false });
+    const [ptH, ptM] = ptStr.split(':').map(Number);
+    const idealWindow = ptH * 60 + ptM < 8 * 60;
 
     const fetchContacts = (interval) => client.query(`
       SELECT id, patient_id, phone FROM (

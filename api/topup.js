@@ -61,10 +61,10 @@ module.exports = async (req, res) => {
 
   const callableStates = getCallableStates();
 
-  // Ideal window: before 7:30 AM PT, ET/CT are open but PT isn't yet — tz priority trumps recency
-  const nowPT = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hour12: false });
-  const [ptH, ptM] = nowPT.split(':').map(Number);
-  const idealWindow = ptH * 60 + ptM < 7 * 60 + 30;
+  // Ideal window: not all timezones are callable yet — tz priority trumps recency.
+  // Once all TZs are open, contacts are sorted by recency instead.
+  const totalStateCount = Object.values(TZ_CONFIG).reduce((sum, { states }) => sum + states.length, 0);
+  const idealWindow = callableStates.length < totalStateCount;
 
   let client;
   try {
