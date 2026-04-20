@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 const { getActiveMemberQueueIds } = require('./lib/dataPool');
+const { TZ_CONFIG, getCallableStates, getTzPriorityExpr, isIdealWindow } = require('./lib/tzConfig');
 
 let pool;
 function getPool() {
@@ -20,35 +21,6 @@ function getPool() {
 const MAX_PER_AGENT = 300;
 const TOPUP_THRESHOLD = 10;
 
-// start/end in [hour, minute] (24h), inclusive start, exclusive end
-const TZ_CONFIG = {
-  'America/New_York':    { states: ['Connecticut','District of Columbia','Delaware','Florida','Georgia','Indiana','Massachusetts','Maryland','Maine','Michigan','North Carolina','New Hampshire','New Jersey','New York','Ohio','Pennsylvania','Rhode Island','South Carolina','Virginia','Vermont','West Virginia'], start: [8, 0], end: [18, 30] },
-  'America/Chicago':     { states: ['Alabama','Arkansas','Iowa','Illinois','Kansas','Kentucky','Louisiana','Minnesota','Missouri','Mississippi','North Dakota','Nebraska','Oklahoma','South Dakota','Tennessee','Texas','Wisconsin'], start: [8, 0], end: [18, 30] },
-  'America/Denver':      { states: ['Colorado','Idaho','Montana','New Mexico','Utah','Wyoming'], start: [8, 0], end: [18, 30] },
-  'America/Phoenix':     { states: ['Arizona'], start: [8, 0], end: [18, 30] },
-  'America/Los_Angeles': { states: ['California','Nevada','Oregon','Washington'], start: [8, 0], end: [18, 30] },
-  'America/Anchorage':   { states: ['Alaska'], start: [8, 0], end: [18, 30] },
-  'Pacific/Honolulu':    { states: ['Hawaii'], start: [8, 0], end: [18, 30] },
-};
-
-// ET/CT states are highest priority during the ideal calling window (early morning before PT opens)
-const ET_CT_STATES = [
-  ...TZ_CONFIG['America/New_York'].states,
-  ...TZ_CONFIG['America/Chicago'].states,
-];
-
-function getCallableStates() {
-  const now = new Date();
-  const callable = [];
-  for (const [tz, { states, start, end }] of Object.entries(TZ_CONFIG)) {
-    const parts = now.toLocaleString('en-US', { timeZone: tz, hour: 'numeric', minute: 'numeric', hour12: false }).split(':');
-    const h = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10);
-    const mins = h * 60 + m;
-    if (mins >= start[0] * 60 + start[1] && mins < end[0] * 60 + end[1]) callable.push(...states);
-  }
-  return callable;
-}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -61,10 +33,7 @@ module.exports = async (req, res) => {
 
   const callableStates = getCallableStates();
 
-  // Ideal window: not all timezones are callable yet — tz priority trumps recency.
-  // Once all TZs are open, contacts are sorted by recency instead.
-  const totalStateCount = Object.values(TZ_CONFIG).reduce((sum, { states }) => sum + states.length, 0);
-  const idealWindow = callableStates.length < totalStateCount;
+  const idealWindow = isIdealWindow(callableStates);
 
   let client;
   try {
@@ -95,10 +64,11 @@ module.exports = async (req, res) => {
 
     // Get pending contacts in currently-callable states, not yet assigned, excluding active HEALTH subscribers
     // Try last 1 day first, fall back to 2 then 3 days if empty
+    const tzPriorityExpr = getTzPriorityExpr();
     const pendingQuery = (interval) => client.query(`
       SELECT id, patient_id, phone FROM (
         SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
-          CASE WHEN ocq.state = ANY($3::text[]) THEN 0 ELSE 1 END AS tz_priority
+          ${tzPriorityExpr} AS tz_priority
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
@@ -122,11 +92,11 @@ module.exports = async (req, res) => {
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
       ORDER BY
-        (CASE WHEN $4 THEN sub.tz_priority ELSE 0 END) ASC,
+        (CASE WHEN $3 THEN sub.tz_priority ELSE 0 END) ASC,
         sub.updated_at DESC,
-        (CASE WHEN $4 THEN 0 ELSE sub.tz_priority END) ASC
+        (CASE WHEN $3 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
-    `, [needed, callableStates, ET_CT_STATES, idealWindow]);
+    `, [needed, callableStates, idealWindow]);
 
     let contactsRes = await pendingQuery('48 hours');
     if (!contactsRes.rows.length) contactsRes = await pendingQuery('3 days');

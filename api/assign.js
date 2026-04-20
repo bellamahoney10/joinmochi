@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 const { getActiveMemberQueueIds } = require('./lib/dataPool');
+const { getCallableStates, getTzPriorityExpr, isIdealWindow } = require('./lib/tzConfig');
 
 let pool;
 function getPool() {
@@ -19,20 +20,6 @@ function getPool() {
 
 const CRON_SECRET = process.env.CRON_SECRET;
 const MORNING_BATCH = 20;
-
-// ET and CT states are callable immediately when the 5 AM PT cron fires (8 AM ET / 7 AM CT)
-const ET_CT_STATES = [
-  // Eastern
-  'Connecticut', 'Delaware', 'District of Columbia', 'Florida', 'Georgia',
-  'Indiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-  'New Hampshire', 'New Jersey', 'New York', 'North Carolina', 'Ohio',
-  'Pennsylvania', 'Rhode Island', 'South Carolina', 'Virginia', 'Vermont',
-  'West Virginia',
-  // Central
-  'Alabama', 'Arkansas', 'Illinois', 'Iowa', 'Kansas', 'Kentucky',
-  'Louisiana', 'Minnesota', 'Mississippi', 'Missouri', 'Nebraska',
-  'North Dakota', 'Oklahoma', 'South Dakota', 'Tennessee', 'Texas', 'Wisconsin',
-];
 
 module.exports = async (req, res) => {
   // Allow cron (GET with secret) or manual POST trigger
@@ -60,16 +47,14 @@ module.exports = async (req, res) => {
 
     const needed = MORNING_BATCH * agents.length;
 
-    // Ideal window: not all timezones are callable yet — tz priority trumps recency.
-    // PT opens last (8 AM PT); once PT is callable all TZs are open and recency takes over.
-    const ptStr = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hour12: false });
-    const [ptH, ptM] = ptStr.split(':').map(Number);
-    const idealWindow = ptH * 60 + ptM < 8 * 60;
+    const callableStates = getCallableStates();
+    const idealWindow = isIdealWindow(callableStates);
+    const tzPriorityExpr = getTzPriorityExpr();
 
     const fetchContacts = (interval) => client.query(`
       SELECT id, patient_id, phone FROM (
         SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
-          CASE WHEN ocq.state = ANY($2::text[]) THEN 0 ELSE 1 END AS tz_priority
+          ${tzPriorityExpr} AS tz_priority
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
@@ -92,11 +77,11 @@ module.exports = async (req, res) => {
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
       ORDER BY
-        (CASE WHEN $3 THEN sub.tz_priority ELSE 0 END) ASC,
+        (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
         sub.updated_at DESC,
-        (CASE WHEN $3 THEN 0 ELSE sub.tz_priority END) ASC
+        (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
-    `, [needed, ET_CT_STATES, idealWindow]);
+    `, [needed, idealWindow]);
 
     const contactsRes = await fetchContacts('48 hours');
 
