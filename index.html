@@ -64,6 +64,8 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
 .qbtn{display:block;width:calc(100% - 28px);margin:0 14px 6px;padding:7px 12px;font-size:12px;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;text-align:left;transition:all .12s;font-family:var(--font);font-weight:500}
 .qbtn:hover{border-color:var(--red);color:var(--red-dark);background:var(--red-light)}
 .qbtn.n:hover,.qbtn.f:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-light)}
+.qbtn.obj{border-color:var(--amber-mid);background:var(--amber-light);color:var(--amber-dark);font-weight:600}
+.qbtn.obj:hover{border-color:var(--amber);color:var(--amber-dark);background:var(--amber-light)}
 .ref-sec{padding:0 14px 14px;margin-top:auto}
 .ref-card{background:var(--navy-faint);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:10px 12px}
 .ref-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:8px}
@@ -160,10 +162,13 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div class="pin-error" id="pin-err"></div>
     <div id="agent-sel" style="display:none;margin-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Which agent are you?</div>
-      <select id="agent-dropdown" onchange="selAgent(this.value,this.options[this.selectedIndex].text)" style="width:100%;padding:10px 12px;font-size:14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none">
-        <option value="" disabled selected>Agent Name</option>
-      </select>
-      <div id="agent-assign" style="margin-top:10px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="agent-btn" onclick="selAgent(1)">Agent 1</button>
+        <button class="agent-btn" onclick="selAgent(2)">Agent 2</button>
+        <button class="agent-btn" onclick="selAgent(3)">Agent 3</button>
+        <button class="agent-btn" onclick="selAgent(4)">Agent 4</button>
+      </div>
+      <div id="agent-assign" style="margin-top:12px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
       <button class="pin-btn" id="start-btn" style="display:none;margin-top:12px" onclick="startTool()">Start calling</button>
     </div>
     <button class="pin-btn" id="pin-btn" onclick="checkPin()">Enter</button>
@@ -215,6 +220,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <button class="qbtn f" onclick="goTo('faq_program')">FAQ — The Program</button>
     <button class="qbtn f" onclick="goTo('faq_hesitations')">FAQ — Hesitations</button>
     <button class="qbtn f" onclick="goTo('faq_logistics')">FAQ — Logistics</button>
+    <button class="qbtn obj" onclick="goTo('objections')">Objections</button>
     <hr class="sbdiv">
     <button class="qbtn" onclick="goTo('rude')">Hostile Caller</button>
     <button class="qbtn" onclick="goTo('optout')">Opt-Out Request</button>
@@ -222,26 +228,26 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <hr class="sbdiv">
     <div class="ref-sec">
       <div class="ref-card">
+        <div class="ref-title">Call Result Key</div>
+        <div class="ref-row"><span class="ref-l">Call Answered</span><span class="ref-v" style="color:#085041">Patient picked up, spoke with agent</span></div>
+        <div class="ref-row"><span class="ref-l">Voicemail Left</span><span class="ref-v" style="color:#3C3489">Agent left a message successfully</span></div>
+        <div class="ref-row"><span class="ref-l">Hung Up</span><span class="ref-v" style="color:var(--amber-dark)">Patient picked up, ended call</span></div>
+        <div class="ref-row"><span class="ref-l">Inbox Full</span><span class="ref-v" style="color:#555972">Mailbox full, no message left</span></div>
+        <div class="ref-row"><span class="ref-l">Screened/Declined</span><span class="ref-v" style="color:#7f1d1d">Heard opening via iOS, declined</span></div>
+        <div class="ref-row"><span class="ref-l">Phone Unavailable</span><span class="ref-v" style="color:#555">Number disconnected or unavailable</span></div>
+      </div>
+      <div class="ref-card">
         <div class="ref-title">Quick Reference</div>
-        <div class="ref-row" style="font-size:9px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Standard Plans</div>
-        <div class="ref-row"><span class="ref-l">1 Month</span><span class="ref-v">$79</span></div>
-        <div class="ref-row"><span class="ref-l">3 Month</span><span class="ref-v">$199</span></div>
-        <div class="ref-row"><span class="ref-l">6 Month</span><span class="ref-v">$399</span></div>
-        <div class="ref-row"><span class="ref-l">12 Month</span><span class="ref-v">$799</span></div>
-        <div class="ref-row" style="font-size:9px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-top:4px">50% Off First Month Promo</div>
-        <div class="ref-row"><span class="ref-l">1 Month</span><span class="ref-v">$39 → $79</span></div>
-        <div class="ref-row"><span class="ref-l">3 Month</span><span class="ref-v">$159</span></div>
-        <div class="ref-row"><span class="ref-l">6 Month</span><span class="ref-v">$359</span></div>
-        <div class="ref-row"><span class="ref-l">12 Month</span><span class="ref-v">$759</span></div>
-        <div class="ref-row" style="font-size:9px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-top:4px">Membership Add-Ons</div>
+        <div class="ref-row"><span class="ref-l">Health Sub (1mo)</span><span class="ref-v">$79/mo</span></div>
+        <div class="ref-row"><span class="ref-l">Health Sub (3mo)</span><span class="ref-v">~$66/mo</span></div>
+        <div class="ref-row"><span class="ref-l">Health Sub (6mo)</span><span class="ref-v">~$67/mo</span></div>
+        <div class="ref-row"><span class="ref-l">Health Sub (12mo)</span><span class="ref-v">~$66/mo</span></div>
         <div class="ref-row"><span class="ref-l">Wellness+ (1mo)</span><span class="ref-v">$69/mo</span></div>
         <div class="ref-row"><span class="ref-l">Semaglutide</span><span class="ref-v">+$99/mo</span></div>
         <div class="ref-row"><span class="ref-l">Tirzepatide</span><span class="ref-v">+$199/mo</span></div>
-        <div class="ref-row"><span class="ref-l">Brand-Name</span><span class="ref-v">Retail Pharmacy</span></div>
-        <div class="ref-row"><span class="ref-l">FSA / HSA</span><span class="ref-v">Sub: Yes; Meds: Ins. dependent</span></div>
-        <div class="ref-row"><span class="ref-l">Shipping</span><span class="ref-v">FedEx, Included</span></div>
-        <div class="ref-row"><span class="ref-l">Syringes</span><span class="ref-v">Included</span></div>
-        <div class="ref-row"><span class="ref-l">Delivery</span><span class="ref-v">72 hrs post-ship</span></div>
+        <div class="ref-row"><span class="ref-l">Brand-Name</span><span class="ref-v">Insurance Only</span></div>
+        <div class="ref-row"><span class="ref-l">FSA / HSA</span><span class="ref-v">Accepted</span></div>
+        <div class="ref-row"><span class="ref-l">Shipping</span><span class="ref-v">Included</span></div>
         <div class="ref-row"><span class="ref-l">First Visit</span><span class="ref-v">Within 1 Week</span></div>
         <div class="ref-row"><span class="ref-l">Voicemail Min</span><span class="ref-v">20 Sec</span></div>
         <div class="ref-row"><span class="ref-l">Call Min</span><span class="ref-v">40 Sec</span></div>
@@ -265,11 +271,11 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
 
 <script>
 var PIN='2026';
-var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz8l2y8IhW-bwmK1q6q0vSBx59zTJ-uXcKRWrKwCzhc04KeYdEtt0xm4q5Mwaen6IH7qQ/exec'; var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ'; var API_KEY='AIzaSyAuA4DWGlVrZX-NAh7Zhf8jvQKGd7HSKG4'; function sheetUrl(tab,range){   return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY; } var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ'; var API_KEY='AIzaSyAuA4DWGlVrZX-NAh7Zhf8jvQKGd7HSKG4'; function sheetUrl(tab,range){   return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY; }
-var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null, selectedAgentName='', agentsList=[];
+var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ';
+var API_KEY='AIzaSyCzUwI-DEdwx1eX34FWeFkicnWFd0AnQyQ';
+var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null;
 var contacts=[], contactIdx=0;
-var currentListFilter='all', currentListTitle='All Contacts';
-var STATE_TZ={Connecticut:'ET',Delaware:'ET','District of Columbia':'ET',Florida:'ET',Georgia:'ET',Indiana:'ET',Kentucky:'ET',Maine:'ET',Maryland:'ET',Massachusetts:'ET',Michigan:'ET','New Hampshire':'ET','New Jersey':'ET','New York':'ET','North Carolina':'ET',Ohio:'ET',Pennsylvania:'ET','Rhode Island':'ET','South Carolina':'ET',Vermont:'ET',Virginia:'ET','West Virginia':'ET',Alabama:'CT',Arkansas:'CT',Illinois:'CT',Iowa:'CT',Kansas:'CT',Louisiana:'CT',Minnesota:'CT',Mississippi:'CT',Missouri:'CT',Nebraska:'CT','North Dakota':'CT',Oklahoma:'CT','South Dakota':'CT',Tennessee:'CT',Texas:'CT',Wisconsin:'CT',Arizona:'MT',Colorado:'MT',Idaho:'MT',Montana:'MT','New Mexico':'MT',Utah:'MT',Wyoming:'MT',Alaska:'PT',California:'PT',Hawaii:'PT',Nevada:'PT',Oregon:'PT',Washington:'PT'};
+var agentTabs={1:'Agent 1',2:'Agent 2',3:'Agent 3',4:'Agent 4'};
 var OFFSETS={ET:3,CT:2,MT:1,PT:0,Eastern:3,Central:2,Mountain:1,Pacific:0};
 
 function normTz(tz){
@@ -277,6 +283,15 @@ function normTz(tz){
   return map[tz]||tz;
 }
 var OUTCOMES=['Voicemail Left','Call Answered','Hung Up','Inbox Full','Screened/Declined','Phone Unavailable'];
+var OUTCOME_STYLES={
+  'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+  'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
+  'No Answer':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+  'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+  'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
+  'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
+  'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
+};
 
 var CTA='<div class="cta-box"><div class="cta-lbl">Tell Them How To Get Back In</div><div class="cta-row"><span class="cta-num">1</span><span>Check <b>email inbox</b> for a Mochi Health message.</span></div><div class="cta-row"><span class="cta-num">2</span><span>Check <b>text messages</b> for a link we may have sent.</span></div><div class="cta-row"><span class="cta-num">3</span><span>Go to <b>joinmochi.com</b> and log in with the email used to sign up.</span></div></div>';
 var NEXT='<div class="steps-box"><div class="steps-lbl">What Happens Next</div><div class="step-row"><span class="step-num">1</span><span>Sign up and pick your membership plan.</span></div><div class="step-row"><span class="step-num">2</span><span>Schedule a video visit with a provider and dietitian within one week.</span></div><div class="step-row"><span class="step-num">3</span><span>Medication shipped to your door, or access brand-name through your pharmacy.</span></div><div class="step-row"><span class="step-num">4</span><span>Regular check-ins with your care team. Access the Mochi shop for more.</span></div></div>';
@@ -298,16 +313,16 @@ var S={
   discovery:{title:'Discovery',trail:['Outbound','Discovery'],type:'normal',
     script:'<i>Wonderful! I know there are a lot of options out there, so I would love to understand what brought you to Mochi specifically. <b>What are you looking for when it comes to your health goals?</b></i>',
     q:'What do they say?',
-    br:[{t:'Cost / affordability concerns',n:'price'},{t:'Frustrated with other programs',n:'tellmore'},{t:'Tried it before / skeptical',n:'tried_before'},{t:'Already has a doctor',n:'has_doctor'},{t:'Asking about specific medication',n:'safety'},{t:'Want to know how it works',n:'howitworks'},{t:'Not interested in weight loss',n:'beyond_wl'},{t:'General interest — What does Mochi offer?',n:'pitch'}]},
+    br:[{t:'Cost / affordability concerns',n:'price'},{t:'Frustrated with other programs',n:'tellmore'},{t:'Asking about specific medication',n:'safety'},{t:'Want to know how it works',n:'howitworks'},{t:'Not interested in weight loss',n:'beyond_wl'},{t:'General interest — What does Mochi offer?',n:'pitch'}]},
   pitch:{title:'Pitch',trail:['Outbound','Pitch'],type:'normal',
     script:'<i>For <b>$79 a month</b>, you are connected with a board-certified physician and a registered dietitian who provide truly personalized weight loss care. That includes <b>unlimited provider visits</b>, one-on-one nutrition coaching, and around-the-clock support. If GLP-1 medication is something you would like to explore, we have compounded options available starting at <b>$99 a month</b>. No insurance necessary, and everything is <b>shipped directly to you</b>. How does that sound?</i>',
     q:"What's their reaction?",
-    br:[{t:'Interested — tell me more',n:'tellmore'},{t:'How does it work?',n:'howitworks'},{t:'Too expensive',n:'price'},{t:'Question about insurance',n:'insurance'},{t:'Question about medication',n:'safety'},{t:'Injection vs. oral question',n:'faq_medication'},{t:'How is medication shipped?',n:'faq_compounded'},{t:'Already has a doctor',n:'has_doctor'},{t:'I need to think about it',n:'notready'}]},
+    br:[{t:'Interested — tell me more',n:'tellmore'},{t:'How does it work?',n:'howitworks'},{t:'Too expensive',n:'price'},{t:'Question about insurance',n:'insurance'},{t:'Question about medication',n:'safety'},{t:'I need to think about it',n:'notready'}]},
   tellmore:{title:'Tell Me More',trail:['Outbound','Pitch','Tell Me More'],type:'normal',
     script:'<div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Your Care Team</div><div style="margin-bottom:14px"><i>Unlike other telehealth platforms, you have <b>direct contact with your provider</b> — not just an app. Real human care for prescription approvals, dosage adjustments, and ongoing questions, plus a <b>registered nutritionist</b> who works with you 1:1.</i></div><div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Results</div><div style="margin-bottom:14px"><i>More than half of our members achieve <b>10% body weight loss within the first 6 months</b>. No dietary restrictions.</i></div><div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Beyond Weight Loss</div><div><i>Our shop gives access to medications for dermatology, hair loss, mental health, and more — <b>full price transparency, you choose the pharmacy.</b></i></div>',
     note:'If the patient seems engaged, share the benefits of compounded semaglutide below.',
     q:'How do they respond?',
-    br:[{t:'Ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Question about insurance',n:'insurance'},{t:'Question about medication',n:'safety'},{t:'Injection vs. oral question',n:'faq_medication'},{t:'How is medication shipped?',n:'faq_compounded'},{t:'Need to think about it',n:'notready'}]},
+    br:[{t:'Ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Question about insurance',n:'insurance'},{t:'Question about medication',n:'safety'},{t:'Need to think about it',n:'notready'}]},
   howitworks:{title:'How It Works',trail:['How It Works'],type:'normal',
     script:'<div style="margin-bottom:14px"><b>Step 1</b> — Sign up at joinmochi.com — about five minutes.</div><div style="margin-bottom:14px"><b>Step 2</b> — Matched with a board-certified provider, first video visit <b>within one week</b>.</div><div style="margin-bottom:14px"><b>Step 3</b> — Provider reviews your history, discusses goals, prescribes medication. <b>Ships directly to your door.</b></div><div style="margin-bottom:14px"><b>Step 4</b> — <b>Unlimited ongoing access</b> to your provider, dietitian, and care team.</div><div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:4px">Program Phases</div><div style="margin-bottom:8px"><b>Phase 1</b> — Meet your provider, discuss your goals, and start medication.</div><div style="margin-bottom:8px"><b>Phase 2</b> — Establish a health baseline with labs and create a progress tracker.</div><div style="margin-bottom:8px"><b>Phase 3</b> — Ongoing provider and dietitian visits with plan adjustments.</div><div><b>Phase 4</b> — Recheck your progress tracker and plan for long-term maintenance.</div>',
     q:'How do they respond?',
@@ -329,34 +344,34 @@ var S={
     q:'How do they respond?',
     br:[{t:'Interested — ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Not interested',n:'optout'}]},
   price:{title:'Price Objection',trail:['Price'],type:'warn',
-    script:'<i>The membership covers unlimited provider and dietitian visits, nutrition coaching, and 24/7 support. Plans start at <b>$79/month</b> — or lock in savings with a longer plan: <b>3 months for $199</b>, <b>6 months for $399</b>, or <b>12 months for $799</b>. If we are running the first-month promo, that brings it to <b>$39 to start</b>. Compounded semaglutide is <b>$99/month</b> with shipping — FSA and HSA accepted. No hidden fees.</i>',
+    script:'<i>The <b>$79/month</b> membership covers unlimited provider and dietitian visits, nutrition coaching, and 24/7 support. Compounded semaglutide is <b>$99/month</b> with shipping included — compared to up to $1,300/month for brand-name. The <b>3-month plan</b> brings membership down to about $66/month. FSA and HSA accepted. No hidden fees.</i>',
     q:'Do they have more questions?',
     br:[{t:"That makes sense — let's continue",n:'close'},{t:'Question about medication',n:'safety'},{t:'Question about insurance',n:'insurance'},{t:'Still not sure',n:'notready'}]},
   insurance:{title:'Insurance Question',trail:['Insurance'],type:'normal',
-    script:'<div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Compounded Medications</div><div style="margin-bottom:14px"><b>No insurance needed</b>. Cash-pay at <b>$99 or $199/month</b> with shipping. FSA and HSA accepted.</div><div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Wellness+ Upgrade</div><div style="margin-bottom:14px">Upgrade to <b>Wellness+</b> at <b>$69/month</b> after subscribing. <i>If you would like, I can look into whether your current insurance would qualify for Wellness+.</i><br><br>Not eligible: Medicare, Medicaid, Cigna (April 2025), any HMO plan (including Kaiser), or states without an in-network provider.</div><div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Brand-Name GLP-1s</div><div><b>Anyone can purchase</b> brand-name GLP-1s at their retail pharmacy. If using insurance, Mochi assists with <b>prior authorizations</b> — insurance has 30 days to respond, Mochi bridges the gap in the interim.</div>',
+    script:'<div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Compounded Medications</div><div style="margin-bottom:14px"><b>No insurance needed</b>. Cash-pay at <b>$99 or $199/month</b> with shipping. FSA and HSA accepted.</div><div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Wellness+ Upgrade</div><div style="margin-bottom:14px">Upgrade to <b>Wellness+</b> at <b>$69/month</b> after subscribing. <i>If you would like, I can look into whether your current insurance would qualify for Wellness+.</i><br><br>Not eligible: Medicare, Medicaid, Cigna (April 2025), any HMO plan (including Kaiser), or states without an in-network provider.</div><div style="font-size:10px;font-weight:700;color:#0a0a74;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Brand-Name GLP-1s</div><div>Mochi assists with <b>prior authorizations</b> for Ozempic, Wegovy, Mounjaro — insurance has 30 days to respond, Mochi bridges the gap in the interim.</div>',
     q:'What is their insurance situation?',
-    br:[{t:'Insurance eligible for Wellness+',n:'ins_yes'},{t:'Insurance not eligible for Wellness+',n:'ins_no'},{t:'Uninsured — wants compounded route',n:'close'},{t:'Wants brand-name GLP-1',n:'ins_pa'},{t:'Need to think about it',n:'notready'}]},
+    br:[{t:'Insurance eligible for Wellness+',n:'ins_yes'},{t:'Insurance not eligible for Wellness+',n:'ins_no'},{t:'Uninsured — wants compounded route',n:'close'},{t:'Has insurance — wants brand-name GLP-1',n:'ins_pa'},{t:'Need to think about it',n:'notready'}]},
   ins_yes:{title:'Insurance Eligible',trail:['Insurance','Eligible'],type:'normal',
     script:'<i>Great news! Your insurance should qualify you for <b>Wellness+</b> at <b>$69/month</b> — lower than our standard plan and includes additional preventative services, mental health screenings, and advanced nutrition therapy. <b>No surprise bills or copays guaranteed.</b></i>',
     q:'How do they respond?',
     br:[{t:'Ready to sign up',n:'close'},{t:'Question about Wellness+',n:'wellness'},{t:'Need to think about it',n:'notready'}]},
   ins_no:{title:'Insurance Not Eligible',trail:['Insurance','Not Eligible'],type:'warn',
-    script:'<i>No worries — brand-name GLP-1s can be purchased at your retail pharmacy with no insurance required. If you would like to submit for insurance coverage, Mochi handles the <b>prior authorization</b> on your behalf — insurance has up to 30 days to respond, and we bridge you with medication in the meantime.</i><br><br>For compounded medications, <b>no insurance needed</b> — cash-pay at $99 or $199/month with shipping.',
+    script:'<i>No worries — you can still submit your insurance information to determine coverage for brand-name GLP-1 medications. Mochi handles the <b>prior authorization</b> on your behalf — insurance has up to 30 days to respond, and Mochi will bridge the gap with medication in the interim.</i><br><br>For compounded medications, <b>no insurance needed</b> — cash-pay at $99 or $199/month with shipping.',
     q:'How do they respond?',
-    br:[{t:'Interested in brand-name GLP-1s',n:'ins_pa'},{t:'Happy with compounded — ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Need to think about it',n:'notready'}]},
+    br:[{t:'Interested in brand-name through insurance',n:'ins_pa'},{t:'Happy with compounded — ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Need to think about it',n:'notready'}]},
   ins_pa:{title:'Prior Authorization',trail:['Insurance','Prior Auth'],type:'normal',
-    script:"<i>Brand-name GLP-1s like Ozempic, Wegovy, Zepbound, and Mounjaro can be purchased at your retail pharmacy — no insurance required. If you would like to use insurance, Mochi's team handles the <b>prior authorization process</b> on your behalf. Once you are a member, our Medical Assistant team contacts your insurance. <b>Insurance has 30 days to respond</b> — Mochi provides medication coverage in the interim.</i>",
+    script:"<i>Mochi's team handles the <b>prior authorization process</b> for brand-name GLP-1s like Ozempic, Wegovy, Zepbound, and Mounjaro. Once you are a member, our Medical Assistant team contacts your insurance. <b>Insurance has 30 days to respond</b> — Mochi provides medication coverage in the interim.</i>",
     q:'How do they respond?',
     br:[{t:'Ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Need to think about it',n:'notready'}]},
   safety:{title:'Medication Question',trail:['Medication'],type:'normal',
-    script:'<i>Our compounded semaglutide and tirzepatide contain the <b>same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b> with added B12 and B6 for energy and metabolism. If you are switching from another program, <b>no need to restart at the lowest dose</b> — we continue you at the same dose with documentation.</i><br><br><i>On pricing — compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Both are injectable doses that last <b>28 days</b>, with shipping included. Flat rate regardless of your dose level.</i><br><br><i>And beyond GLP-1s, Mochi gives you access to <b>over 1,000 non-GLP-1 medications</b> across dermatology, hair loss, mental health, hormone therapy, longevity, sexual health, and more — all through your same provider.</i>',
+    script:'<i>Our compounded semaglutide and tirzepatide contain the <b>same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b> with added B12 and B6 for energy and metabolism. If you are switching from another program, <b>no need to restart at the lowest dose</b> — we continue you at the same dose with documentation.</i>',
     q:'Do they have more questions?',
     br:[{t:"That's reassuring — let's continue",n:'close'},{t:'Question about pricing',n:'price'},{t:'Question about insurance',n:'insurance'},{t:'Still have questions',n:'notready'}]},
   notready:{title:'Not Ready Yet',trail:['Not Ready'],type:'warn',
-    script:'<i>Absolutely, no pressure at all. Before I let you go — is there <b>one specific concern</b> I can address for you right now?</i><br><br><b>If they share a concern:</b> use the branches below to go there. If not:<br><br><i>Whenever you are ready, check your email for a message from Mochi Health, your texts, or go to <b>joinmochi.com</b> and log in with the email you used when you signed up.</i><br><br><b>Sign-off:</b> Thank you for your time, [First Name]. Have a great day!',
+    script:'<i>Absolutely, no pressure at all. Whenever you are ready, check your email for a message from Mochi Health, your texts, or go to <b>joinmochi.com</b> and log in with the email you used when you signed up.</i><br><br><b>Sign-off:</b> Thank you for your time, [First Name]. Have a great day!',
     cta:true,
     q:'How do they respond?',
-    br:[{t:'Concern about cost / pricing',n:'price'},{t:'Concern about medication or injections',n:'faq_medication'},{t:'Already has a doctor',n:'has_doctor'},{t:'Tried it before / skeptical',n:'tried_before'},{t:"OK, I'll look for it",n:'end'},{t:'Just not interested',n:'optout'}]},
+    br:[{t:"OK, I'll look for it",n:'end'},{t:'Just not interested',n:'optout'}]},
   callback:{title:'Callback',trail:['Callback'],type:'normal',
     script:'<i>Of course — <b>when would be a better time to reach you?</b></i>',
     q:'How do they respond?',
@@ -385,12 +400,11 @@ var S={
     br:[{t:'They found it / signing up now',n:'converted'},{t:'More questions',n:'faq_pricing'},{t:'Not interested',n:'optout'}]},
   faq_pricing:{title:'FAQ — Pricing',trail:['FAQ','Pricing'],type:'normal',faq:true,
     faqs:[
-      {q:'How much does it cost?',a:'<i>The membership covers unlimited provider and dietitian visits, nutrition coaching, and 24/7 support. Medication is billed separately — compounded semaglutide is <b>$99/month</b> and tirzepatide is <b>$199/month</b>, both with shipping included.</i><br><br><b>Standard plans:</b><br>• 1 month — <b>$79</b><br>• 3 months — <b>$199</b> <i>(save $38 vs. monthly)</i><br>• 6 months — <b>$399</b> <i>(save $75 vs. monthly)</i><br>• 12 months — <b>$799</b> <i>(save $149 vs. monthly)</i><br><br><b>With 50% off first month promo:</b><br>• 1 month — <b>$39</b> first month, then $79/mo<br>• 3 months — <b>$159</b> <i>(save $78 vs. monthly)</i><br>• 6 months — <b>$359</b> <i>(save $115 vs. monthly)</i><br>• 12 months — <b>$759</b> <i>(save $189 vs. monthly)</i><br><br>FSA and HSA accepted. No hidden fees.'},
+      {q:'How much does it cost?',a:'<i>The membership itself is <b>$79/month</b> — unlimited provider and dietitian visits, nutrition coaching, and 24/7 support. Medication is billed separately. Compounded semaglutide is <b>$99/month</b> and tirzepatide is <b>$199/month</b>, both with shipping included.</i><br><br>3, 6, and 12 month plans available at ~$66/month. FSA and HSA accepted.'},
       {q:'What is Wellness+?',a:'<i>If your insurance qualifies, you may be eligible for our Wellness+ plan at <b>$69/month</b> — less than our standard plan, plus preventative health screenings, mental health support, and advanced nutrition therapy. Mochi guarantees <b>no surprise bills or copays</b>.</i>'},
       {q:'Who qualifies for Wellness+?',a:'<i>Most standard commercial insurance plans qualify. Not eligible: Medicare, Medicaid, Cigna as of April 2025, any HMO plan including Kaiser, and states without an in-network provider. If you would like, I can look into whether your plan would qualify.</i>'},
       {q:'Are there hidden fees?',a:'<i>No hidden fees and no surprise bills — ever. Shipping is included in the medication price.</i>'},
-      {q:'Can I use FSA or HSA?',a:'<i>Yes — both can be used toward the <b>Mochi membership subscription</b>. Use toward medication depends on your insurance coverage.</i><br><br><b>FSA (Flexible Spending Account):</b> Money set aside from your employer pre-tax. Employer-owned, "use-it-or-lose-it" — funds typically do not roll over.<br><br><b>HSA (Health Savings Account):</b> Pre-tax money set aside through a <b>High-Deductible Health Plan (HDHP)</b>. Portable, rolls over annually, and can even be invested.<br><br>If your FSA or HSA card does not work at checkout, you can <b>download your superbill</b> from the Billing section and submit it to your HSA for reimbursement.'},
-      {q:'What if my FSA or HSA card is declined?',a:'<i>No problem — you can pay with any card at checkout and then <b>download your superbill</b> from the Billing section of your patient portal. Submit that superbill directly to your HSA for reimbursement.</i>'}
+      {q:'Can I use FSA or HSA?',a:'<i>Yes — FSA or HSA pre-tax dollars can be used toward the membership and medication.</i>'}
     ],
     q:'Do they have more questions?',
     br:[{t:'Question about medication',n:'faq_medication'},{t:'Question about compounded GLP-1s',n:'faq_compounded'},{t:'Question about insurance',n:'insurance'},{t:'Question about the program',n:'faq_program'},{t:'Ready to sign up',n:'close'}]},
@@ -398,17 +412,8 @@ var S={
     faqs:[
       {q:'What are semaglutide and tirzepatide?',a:'<i>Both are <b>GLP-1 medications</b> used for weight loss. Brand-name versions include Ozempic and Wegovy (semaglutide) and Mounjaro and Zepbound (tirzepatide). Mochi offers compounded versions of both as a more affordable alternative to brand-name options.</i>'},
       {q:"What's the key difference between the two?",a:'<i><b>Semaglutide</b> targets one receptor (GLP-1). <b>Tirzepatide</b> targets two — GLP-1 and GIP — making it more metabolically potent. This dual-action mechanism is why tirzepatide tends to produce stronger results in clinical trials.</i>'},
-      {q:'Which medication produces better weight loss results?',a:'<i><b>Tirzepatide wins on effectiveness.</b> Clinical trials showed participants lost up to <b>12.1 lbs more</b> than those on semaglutide, with better blood sugar control across all doses tested.</i>'},
-      {q:'Is compounded semaglutide or tirzepatide safe?',a:'<i>Our compounded medications contain the <b>exact same active ingredients</b> as Ozempic and Mounjaro — prepared by <b>FDA-inspected pharmacies</b>. They also include B12 and B6 to support energy and metabolism.</i>'},
-      {q:'How much does the medication cost?',a:'<i>Compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Both are injectable doses that last <b>28 days</b> — shipping and syringes included, flat rate regardless of your dose level. Compare that to $900–$1,300/month for brand-name.</i>'},
-      {q:'How does compounded compare to Ozempic or Wegovy?',a:'<i>Same active ingredient — semaglutide — just prepared differently. Brand-name can run $900 to $1,300 a month. Our compounded version is <b>$99/month</b> with shipping included.</i>'},
-      {q:'Does Mochi offer medications beyond GLP-1s?',a:'<i>Yes — Mochi gives access to <b>over 1,000 non-GLP-1 medications</b> across dermatology, hair loss, mental health, hormone therapy, longevity, sexual health, and more. All prescribed through your same Mochi provider.</i>'},
-      {q:'Do you offer oral GLP-1 options?',a:'<i>Yes — in addition to injectables, Mochi offers <b>oral GLP-1 medications</b> ranging from <b>$100–$250/month</b>, available through the medication shop. Your provider can help determine if an oral option is right for you.</i>'},
-      {q:'Is microdosing available?',a:'<i>Yes — Mochi offers microdosing as a treatment option at the <b>same price</b> as standard dosing. Your provider will determine if it is the right approach based on your health history and goals.</i>'},
-      {q:'Can I request an early refill?',a:'<i>Yes — with an active medication subscription, you can request an <b>early refill</b> through your patient portal. Your provider reviews and approves these on a case-by-case basis.</i>'},
-      {q:'What if I have side effects?',a:'<i>Common side effects like nausea or fatigue are normal early on and typically improve. Your provider monitors you throughout and can <b>adjust your dose, switch medications, or explore microdosing</b> if needed. You are never left to figure it out alone.</i>'},
-      {q:'Can I get brand-name GLP-1s through Mochi?',a:'<i>Yes — anyone can purchase brand-name GLP-1s like Wegovy, Ozempic, Zepbound, or Mounjaro at their retail pharmacy. If you would like to use insurance, our team handles the <b>prior authorization</b> on your behalf — insurance has up to 30 days to respond, and we bridge you with medication in the meantime.</i>'},
-      {q:'How is medication delivered?',a:'<i>Compounded medications ship directly to your door via <b>FedEx</b> — shipping and syringes included. You must first meet with your provider before the prescription is approved and sent out. Once shipped, it arrives within <b>72 hours</b>. Brand-name prescriptions are picked up at your local retail pharmacy.</i>'},
+      {q:'Can I get brand-name GLP-1s through Mochi?',a:'<i>Yes — our team handles the prior authorization on your behalf for Wegovy, Ozempic, Zepbound, or Mounjaro. Insurance has up to 30 days to respond, and we bridge you with medication in the meantime.</i>'},
+      {q:'How is medication delivered?',a:'<i>Compounded medications ship directly to your door — shipping included. Brand-name prescriptions can be picked up at your local retail pharmacy once the prior authorization is approved.</i>'},
       {q:'What is Wellness+ and do I qualify?',a:'<i>Wellness+ is an upgrade at <b>$69/month</b> with additional preventative health services and no surprise bills guaranteed. Most standard commercial insurance qualifies. I can walk you through whether your plan would be eligible.</i>'}
     ],
     q:'Do they have more questions?',
@@ -416,14 +421,11 @@ var S={
   faq_compounded:{title:'FAQ — Compounded GLP-1s',trail:['FAQ','Compounded GLP-1s'],type:'normal',faq:true,
     faqs:[
       {q:'What exactly is a compounded medication?',a:'<i>Compounded medications are custom-prepared by a licensed pharmacy — like a dosage strength not available commercially, or added nutrients. Made in <b>FDA-inspected, state-licensed facilities</b> held to strict safety and quality standards.</i>'},
-      {q:'How much do the compounded medications cost?',a:'<i>Compounded <b>semaglutide is $99/month</b> and <b>tirzepatide is $199/month</b>. Each is an injectable dose that covers <b>28 days</b> — shipping and syringes included. The price is flat regardless of your dose level, so it does not increase as your dose goes up.</i>'},
       {q:"What is in Mochi's compounded semaglutide or tirzepatide?",a:"<i>Same active ingredient as the brand-name versions, plus nutrient-based additives like <b>B12 for energy</b>, B6 for metabolism, and glycine for muscle recovery.</i>"},
       {q:'Is it the same as Ozempic or Mounjaro?',a:'<i>The active ingredient is the same — semaglutide matches Ozempic and Wegovy, tirzepatide matches Mounjaro and Zepbound. Compounded versions are made by <b>FDA-inspected pharmacies</b> rather than the original manufacturer.</i>'},
-      {q:'Is microdosing available?',a:'<i>Yes — Mochi offers microdosing at the <b>same price</b> as standard dosing. Semaglutide ranges from 0.22mg to 2.67mg weekly and tirzepatide from 2.2mg to 16.6mg weekly — your provider determines the right starting point.</i>'},
-      {q:'Can I get an early refill?',a:'<i>Yes — with an active medication subscription you can request an <b>early refill</b> through the patient portal. Your provider approves these on a case-by-case basis.</i>'},
-      {q:'What if there is a medication shortage?',a:'<i>Not a concern — Mochi works with <b>multiple pharmacy partners across all 50 states</b> to guarantee consistent access regardless of shortages.</i>'},
-      {q:'Will I need to restart at the lowest dose when switching?',a:'<i>Not at all — you can start Mochi on your <b>current or maintenance dose</b>. You will need <b>documentation of your current dose</b> for your provider to continue you at that level. Best practice is that patients are within the eligible BMI range for medication — <b>BMI of 23 or above</b>.</i>'},
-      {q:'How is it shipped?',a:'<i>Ships directly to your door via <b>FedEx</b> — shipping and syringes included. You must first meet with your provider before the prescription is approved and sent out. Once shipped, medication arrives within <b>72 hours</b>.</i>'}
+      {q:'Will I need to restart at the lowest dose when switching?',a:'<i>Not at all — with documentation of your current dose, your Mochi provider will <b>continue you at that same dose</b>.</i>'},
+      {q:'How is it shipped?',a:'<i>Ships directly to your door via FedEx — shipping and syringes are included in the cost of the medication. Typically arrives within a few business days after your provider approves the order.</i>'},
+      {q:'Are compounded GLP-1s injections? Is there an oral option?',a:'<i>Yes — compounded GLP-1s are <b>injectable</b>, self-administered once a week with a small subcutaneous needle. That said, Mochi also offers <b>oral semaglutide</b> — the same medication as Wegovy in pill form — for patients who prefer not to inject.</i>'}
     ],
     q:'Do they have more questions?',
     br:[{t:'Question about pricing',n:'faq_pricing'},{t:'Question about the program',n:'faq_program'},{t:'Question about insurance',n:'insurance'},{t:'Ready to sign up',n:'close'}]},
@@ -433,21 +435,19 @@ var S={
       {q:'What happens after I sign up?',a:'<i>Matched with a provider, first video visit usually within a week. Four-phase program:<br><br><b>Phase 1</b> — Meet your provider, discuss goals, start medication.<br><b>Phase 2</b> — Health baseline with labs and progress tracker.<br><b>Phase 3</b> — Ongoing provider and dietitian visits with plan adjustments.<br><b>Phase 4</b> — Recheck progress tracker, plan for long-term maintenance.</i><br><br>Unlimited provider and dietitian access throughout.'},
       {q:'How is Mochi different from other programs?',a:'<i>You have <b>direct access to your actual provider</b> — not just a chatbot. Message your provider directly for dosage questions or medication changes. Full pricing transparency — no surprise bills.</i>'},
       {q:'How much weight will I lose?',a:'<i>More than half of our members achieve <b>10% body weight loss within their first six months</b>. Your provider and dietitian work with you to set realistic goals.</i><br><br>Never guarantee specific results — always frame as averages.'},
-      {q:'Are there dietary restrictions?',a:'<i>None at all. Your registered dietitian makes small, <b>sustainable changes</b> that fit your lifestyle.</i>'},
-      {q:'Does Mochi include lab work?',a:'<i>Yes — labs are built into the program. In <b>Phase 2</b> your provider establishes a health baseline with labs and scans, and in <b>Phase 4</b> they recheck everything to track your progress and plan long-term maintenance.</i>'}
+      {q:'Are there dietary restrictions?',a:'<i>None at all. Your registered dietitian makes small, <b>sustainable changes</b> that fit your lifestyle.</i>'}
     ],
     q:'Do they have more questions?',
     br:[{t:'Question about pricing',n:'faq_pricing'},{t:'Question about medication',n:'faq_medication'},{t:'Hesitation about signing up',n:'faq_hesitations'},{t:'Ready to sign up',n:'close'}]},
   faq_hesitations:{title:'FAQ — Hesitations',trail:['FAQ','Hesitations'],type:'warn',faq:true,
     faqs:[
       {q:'Why did I have to give my credit card info?',a:'<i>Your credit card is required to pay for your <b>Health Subscription</b> — the membership plan you choose when signing up. Once you are a member and meet with your provider, you are only charged for anything additional you choose to add on — like a <b>compounded GLP-1 subscription</b> or other medications. Nothing beyond your chosen plan is charged without your decision.</i>'},
-      {q:'Can I cancel anytime?',a:'<i>Yes — cancel at any time, no questions asked and <b>no cancellation fees</b>.</i>'},
-      {q:'Can I pause my membership?',a:'<i>Yes — you can pause your membership through the patient portal. Reach out to your care team to arrange it. Note that pausing stops access to provider visits and support for the paused period.</i>'},
+      {q:'Can I cancel anytime?',a:'<i>Yes — cancel at any time, no questions asked and <b>no cancellation fees</b>.</i><br><br>Full refund within 24 hours. Prorated refunds within 72 hours depending on plan.'},
       {q:"What if the medication doesn't work for me?",a:"<i>Your provider is there for exactly that. Four phases of ongoing care — if something is not working, your provider adjusts your plan, changes your dose, or switches medications. <b>You are never left on your own.</b></i>"},
-      {q:'I am switching from another program — do I have to restart?',a:'<i>Not at all — you can start Mochi on your <b>current or maintenance dose</b>. You will need <b>documentation of your current dose</b> for your provider to continue you at that level. Best practice is that patients are within the eligible BMI range for medication — <b>BMI of 23 or above</b>.</i>'}
+      {q:'I am switching from another program — do I have to restart?',a:'<i>Not at all. With documentation of your current dose, your Mochi provider will <b>continue you at that same dose</b>.</i>'}
     ],
     q:'Do they have more questions?',
-    br:[{t:'Question about pricing',n:'faq_pricing'},{t:'Question about the program',n:'faq_program'},{t:'Already has a doctor',n:'has_doctor'},{t:'Tried it before / skeptical',n:'tried_before'},{t:'Injection vs. oral question',n:'faq_medication'},{t:'Ready to sign up',n:'close'},{t:'Still not sure',n:'notready'}]},
+    br:[{t:'Question about pricing',n:'faq_pricing'},{t:'Question about the program',n:'faq_program'},{t:'Ready to sign up',n:'close'},{t:'Still not sure',n:'notready'}]},
   faq_logistics:{title:'FAQ — Logistics',trail:['FAQ','Logistics'],type:'normal',faq:true,
     faqs:[
       {q:'How soon can I get started?',a:'<i>Sign up in about <b>five minutes</b> right now. First provider visit typically within <b>one week</b>.</i>'},
@@ -456,14 +456,39 @@ var S={
     ],
     q:'Do they have more questions?',
     br:[{t:'Question about pricing',n:'faq_pricing'},{t:'Question about the program',n:'faq_program'},{t:'Ready to sign up',n:'close'},{t:'Not interested',n:'optout'}]},
-  has_doctor:{title:'Already Has a Doctor',trail:['Hesitations','Already Has a Doctor'],type:'warn',
-    script:'<i>That is great — Mochi is not here to replace your current doctor. Think of us as an <b>addition to your care team</b>. Many of our patients continue seeing their primary care physician while working with a Mochi provider specifically for weight management. We handle the GLP-1 prescriptions, dosage adjustments, and dietitian support — all the pieces your current doctor may not have time for.</i>',
+  objections:{title:'Handling Objections',trail:['Objections'],type:'warn',
+    script:'Select the objection the patient raised:',
+    q:'What is their objection?',
+    br:[
+      {t:'Why do I have to pay a membership / Can I just get the medication?',n:'obj_membership'},
+      {t:'It\'s too expensive / out of my budget',n:'obj_price'},
+      {t:'I already signed up with another program',n:'obj_competitor'},
+      {t:'I got it through my doctor / insurance covers it',n:'obj_doctor'}
+    ]},
+  obj_membership:{title:'Membership Objection',trail:['Objections','Membership Fee'],type:'warn',
+    script:'<i>I completely understand — and I want to be honest about why it\'s set up this way. <b>Choosing to join Mochi is a life-changing decision in your health journey</b>, and having <b>continuous care alongside your medication is very important for your safety, your health, and the results you see.</b></i><br><br><i>GLP-1 medications work best with provider oversight — dosage adjustments, monitoring, and support as your body responds. At Mochi, we truly care, and we don\'t want to offer medication without the guidance and support behind it. That is the difference between a program and a prescription.</i><br><br><i>Some programs do ship medication with no guidance at all — that can be genuinely risky without someone monitoring how your body is responding. Others have low introductory prices that add up quickly — membership fees alone can jump to <b>$145–$149 a month</b> after the first month, and medication is still billed separately on top of that. With Mochi, <b>$79/month covers everything</b> — unlimited provider visits including real video visits, one-on-one dietitian coaching, and 24/7 support. No surprises.</i><br><br><div style="font-size:10px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:.07em;margin:10px 0 4px">🔒 Internal context — use naturally, do not read verbatim</div><div style="font-size:12px;color:var(--text-secondary);line-height:1.6">Ro and Hims &amp; Hers both charge $39 for month one, then $145–$149/month for membership alone going forward. Medication (GLP-1, Wegovy, etc.) is billed separately on top of that. Mochi\'s all-in $178/month (sema) or $278/month (tirz) is significantly cheaper once the intro offer ends.</div>',
     q:'How do they respond?',
-    br:[{t:'That makes sense — continue',n:'close'},{t:'Question about pricing',n:'faq_pricing'},{t:'Question about medication',n:'faq_medication'},{t:'Still not sure',n:'notready'}]},
-  tried_before:{title:'Tried Before / Skeptical',trail:['Hesitations','Tried Before'],type:'warn',
-    script:'<i>I completely understand — a lot of our patients have tried other programs or medications before and felt let down. The difference with Mochi is the <b>ongoing provider relationship</b>. You are not just handed a prescription and sent on your way — your provider monitors your progress, adjusts your dose, and switches medications if something is not working. Four phases of care, not a one-and-done prescription. More than half of our members achieve <b>10% body weight loss within six months</b>, and if something is not working, your provider changes the plan.</i>',
+    br:[{t:'That makes sense — tell me more',n:'pitch'},{t:'Still concerned about the price',n:'obj_price'},{t:'Ready to sign up',n:'close'},{t:'Still not interested',n:'optout'}]},
+  obj_price:{title:'Too Expensive',trail:['Objections','Too Expensive'],type:'warn',
+    script:'<i>I hear you. Here is how the numbers break down: <b>$79/month</b> for the membership, plus medication — compounded semaglutide at <b>$99/month</b> or tirzepatide at <b>$199/month</b>, shipping included. That is <b>$178 or $278 total</b>, compared to $1,000+ per month for brand-name. The price never changes regardless of dosage. A <b>3-month plan</b> brings membership down to about <b>$66/month</b>, and FSA and HSA are accepted.</i>',
     q:'How do they respond?',
-    br:[{t:'That sounds different — tell me more',n:'tellmore'},{t:'Question about medication',n:'faq_medication'},{t:'Question about pricing',n:'faq_pricing'},{t:'Still not sure',n:'notready'}]},
+    br:[{t:"That makes sense — let's continue",n:'close'},{t:'Question about insurance',n:'insurance'},{t:'Still not sure',n:'notready'},{t:'Not interested',n:'optout'}]},
+  obj_competitor:{title:'Went With a Competitor',trail:['Objections','Chose Competitor'],type:'warn',
+    script:'<i>I\'m glad you\'re taking this step — that\'s exciting. Before I let you go, do you mind if I ask <b>which program you went with</b>, and what made you choose them over Mochi?</i><br><br><b>Listen and note their answer.</b> Then:<br><br><i>That makes sense, thank you for sharing that. Just so you know, with Mochi you get <b>continuous, personalized care</b> alongside your medication — a board-certified physician, a registered dietitian, and real <b>video visits with your provider</b>, not just messaging. Direct access, dosage adjustments, 24/7 support, all included. We also have a full shop with <b>hundreds of other prescriptions</b> with full price transparency. If things don\'t go exactly as expected or you\'re ever looking for more comprehensive support, please don\'t hesitate to call us back or visit <b>joinmochi.com</b>.</i>',
+    q:'Which program did they name?',
+    br:[{t:'They mention Ro or Hims / Hers',n:'obj_ro'},{t:'They mention another program by name',n:'obj_comp_intel'},{t:'They want to hear more about Mochi',n:'pitch'},{t:'End call gracefully',n:'end'}]},
+  obj_ro:{title:'They Went With Ro',trail:['Objections','Chose Competitor','Ro'],type:'warn',
+    script:'<div style="font-size:10px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">🔒 Internal — Do Not Read Verbatim</div><i>Just so you have the full picture — Ro\'s intro offer is low, but the ongoing membership is <b>$145/month</b>, and <b>GLP-1 medication is billed separately on top of that</b>. Cash-pay medication starts at $149/month for lower doses and increases as doses go up.</i><br><br><i>With Mochi, everything is simpler — <b>$79/month</b> membership, compounded semaglutide at <b>$99/month</b> flat regardless of dosage. That\'s <b>$178 total</b> with shipping included. And with Mochi you get real <b>video visits with your provider</b> — not just messaging — plus a registered dietitian included.</i><br><br><i>I just want to make sure you have all the information. If you ever want to make a switch, we are always here at <b>joinmochi.com</b>.</i>',
+    q:'How do they respond?',
+    br:[{t:'Interested — tell me more',n:'pitch'},{t:'Ready to sign up',n:'close'},{t:'End call gracefully',n:'end'}]},
+  obj_comp_intel:{title:'Competitor Intel',trail:['Objections','Chose Competitor','Intel'],type:'danger',
+    script:'<div style="font-size:10px;font-weight:700;color:var(--red-dark);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">🔒 Internal Reference Only — Do Not Share Names or Specific Prices With Patient</div><div style="font-size:10px;font-weight:700;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">They mention Belle, TRAVA, or Yucca Health</div><div style="margin-bottom:12px;font-size:13px;line-height:1.6">These are cheaper on semaglutide month-to-month. <b>Do not compete on price — redirect to value:</b> Mochi\'s support model, real video visits with your provider, dietitian included, and ongoing care quality. Price alone doesn\'t tell the full story.</div><div style="font-size:10px;font-weight:700;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">They mention Goby or Coby</div><div style="margin-bottom:12px;font-size:13px;line-height:1.6">These are dose-tiered — prices get <b>2–3x more expensive</b> as patients titrate up. Emphasize <b>long-term cost</b>: Mochi\'s flat-rate model means no surprises as treatment progresses. Ask what dose they\'re starting at and walk through what they\'ll pay at maintenance.</div><div style="font-size:10px;font-weight:700;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">They mention Skinny Rx, Shed, TrimRx, or Synergy Rx</div><div style="margin-bottom:12px;font-size:13px;line-height:1.6">Mochi is <b>cheaper across the board</b> vs. all of these. Use this confidently. Lead with Mochi\'s all-in pricing and flat-rate model.</div><div style="font-size:10px;font-weight:700;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">They mention a low headline price from anywhere</div><div style="font-size:13px;line-height:1.6">Most low prices are <b>starter-dose only</b> or require large upfront commitments. As doses increase, so do costs — often dramatically. Ask what they saw and walk them through the true comparison.</div>',
+    q:'Use the points above naturally — then:',
+    br:[{t:'They want to hear more about Mochi',n:'pitch'},{t:'Ready to sign up',n:'close'},{t:'End call gracefully',n:'end'}]},
+  obj_doctor:{title:'Has Doctor / Insurance',trail:['Objections','Has Doctor / Insurance'],type:'warn',
+    script:'<i>That\'s wonderful — having a physician involved is such an important part of this journey. I just want to make sure you\'re aware of what else Mochi offers.</i><br><br><i>With Mochi, you get <b>unlimited provider access</b> alongside your medication — including real <b>video visits with your provider</b>, direct messaging, and dosage adjustments any time. Plus a <b>registered dietitian</b> for one-on-one coaching to help you get the most out of your medication. <b>Continuous care is what drives results and keeps you safe throughout.</b></i><br><br><i>We also have our full shop — <b>hundreds of other prescriptions</b> with full price transparency, you choose the pharmacy. If you ever find gaps in your current coverage or want a more complete care model, we\'re always here at <b>joinmochi.com</b>.</i>',
+    q:'How do they respond?',
+    br:[{t:'Interested — tell me more',n:'pitch'},{t:'Ready to sign up',n:'close'},{t:'End call gracefully',n:'end'}]},
   optout:{title:'Opt-Out',trail:['Opt-Out'],type:'danger',
     script:'<i>Absolutely, I completely understand. I will make sure you are <b>removed from our outreach list right away.</b> I am sorry for the interruption — have a great rest of your day.</i>',
     q:'',br:[{t:'End call',n:'end'}]},
@@ -487,43 +512,16 @@ function checkPin(){
     document.getElementById('pin-btn').style.display='none';
     document.getElementById('pin-err').textContent='';
     document.getElementById('pin-inp').disabled=true;
-    loadAgents();
   } else {
     document.getElementById('pin-err').textContent='Incorrect PIN. Try again.';
     document.getElementById('pin-inp').value='';
   }
 }
 
-function loadAgents(){
-  var dd=document.getElementById('agent-dropdown');
-  if(!dd)return;
-  dd.disabled=true;
-  fetch('/api/agents')
-    .then(function(r){return r.json();})
-    .then(function(agents){
-      agentsList=agents;
-      dd.innerHTML='<option value="" disabled selected>Agent Name</option>';
-      agents.forEach(function(a){
-        var opt=document.createElement('option');
-        opt.value=a.id;
-        opt.textContent=a.first_name+' '+a.last_name;
-        dd.appendChild(opt);
-      });
-      dd.disabled=false;
-    })
-    .catch(function(){
-      dd.innerHTML='<option value="" disabled selected>Failed to load — refresh page</option>';
-      dd.disabled=false;
-    });
-}
-function selAgent(agentId,agentName){
-  if(!agentId)return;
-  selectedAgent=agentId;
-  selectedAgentName=agentName.trim();
-  var agentIdx=0;
-  for(var i=0;i<agentsList.length;i++){if(agentsList[i].id===agentId){agentIdx=i;break;}}
-  var odd=getWk()%2===1,g1=agentIdx%2===0;
-  vmS1=g1?odd:!odd;
+function selAgent(n){
+  selectedAgent=n;
+  document.querySelectorAll('.agent-btn').forEach(function(b,i){b.classList.toggle('sel',i===n-1);});
+  vmS1=getScript(n)===1;
   document.getElementById('agent-assign').innerHTML='<strong>Week '+getWk()+' assignment:</strong> '+(vmS1?'Script 1 — Weight Loss':'Script 2 — Personalized Care');
   document.getElementById('start-btn').style.display='block';
 }
@@ -538,10 +536,10 @@ function startTool(){
   loadContacts(selectedAgent,function(result){
     contacts=result;
     contactIdx=0;
-    initSheetSession(contacts);
     var el=document.getElementById('load-msg');
     if(el)el.parentNode.removeChild(el);
     cur='open';hist=[];
+    render();
     showDashboard();
   });
 }
@@ -558,9 +556,9 @@ function tzStatus(tz){
   var ptD=getPtDecimal();
   var loc=ptD+(OFFSETS[tz]||0);
   if(loc<8||loc>=18.5)return{label:'Do Not Call',color:'#E24B4A'};
-  if((tz==='ET'&&ptD>=15)||(tz==='CT'&&ptD>=16))return{label:'Wind Down',color:'#EF9F27'};
-if((loc>=8&&loc<10)||(loc>=16&&loc<18))return{label:'Ideal Window',color:'#69F0AE'};
-return{label:'Call Now',color:'#90CAF9'};
+  if((tz==='ET'&&ptD>=14)||(tz==='CT'&&ptD>=15))return{label:'Wind Down',color:'#EF9F27'};
+  if((loc>=8&&loc<10)||(loc>=16&&loc<17))return{label:'Ideal Window',color:'#1D9E75'};
+  return{label:'Call Now',color:'#0a0a74'};
 }
 
 var ZONES=[{l:'ET',z:'America/New_York'},{l:'CT',z:'America/Chicago'},{l:'MT',z:'America/Denver'},{l:'PT',z:'America/Los_Angeles'}];
@@ -582,120 +580,89 @@ function updateClocks(){
 updateClocks();setInterval(updateClocks,1000);
 
 function getTodayStr(){
-  return new Date().toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric',year:'numeric'});
+  var d=new Date();
+  return (d.getMonth()+1)+'/'+(d.getDate())+'/'+d.getFullYear();
 }
 
-function getLoggedKey(){return 'mochi_logged_'+getTodayStr()+'_'+selectedAgent;}
-function getLoggedToday(){try{return JSON.parse(localStorage.getItem(getLoggedKey()))||{};}catch(e){return {};}}
-function saveLogged(contactId,outcome,notes){var d=getLoggedToday();d[contactId]={outcome:outcome,notes:notes||''};localStorage.setItem(getLoggedKey(),JSON.stringify(d));}
-function clearLogged(contactId){var d=getLoggedToday();delete d[contactId];localStorage.setItem(getLoggedKey(),JSON.stringify(d));}
-function cap(s){return(s||'').replace(/\b\w/g,function(c){return c.toUpperCase();});}
-function findContactById(id){for(var i=0;i<contacts.length;i++){if(contacts[i].id===id)return contacts[i];}return null;}
+function sheetUrl(tab,range){
+  return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY;
+}
 
-function loadContacts(agentId,callback){
-  if(!agentId){callback([]);return;}
-  fetch('/api/contacts?agent_id='+encodeURIComponent(agentId))
+function loadContacts(agentNum,callback){
+  var tab=agentTabs[agentNum];
+  if(!tab){callback([]);return;}
+  fetch(sheetUrl(tab,'A:L'))
     .then(function(r){return r.json();})
     .then(function(data){
-      var result=data.map(function(row){
-        var tz=STATE_TZ[row.state]||'ET';
-        var assignedDate=row.assigned_at?new Date(row.assigned_at):new Date();
-        var assignedStr=assignedDate.toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric',year:'numeric'});
-        return {
-          id:row.id,
-          'Name':(cap(row.first_name)+' '+cap(row.last_name)).trim(),
-          'First Name':cap(row.first_name),
-          'Last Name':cap(row.last_name),
-          'Phone':row.phone||'',
-          'State':row.state||'',
-          'Time Zone':tz,
-          'Date Assigned':assignedStr
-        };
+      var rows=data.values||[];
+      if(rows.length<2){callback([]);return;}
+      var headers=null;
+      var dataStart=0;
+      for(var h=0;h<Math.min(5,rows.length);h++){
+        if(rows[h][0]&&rows[h][0].toString().toLowerCase().indexOf('date')>=0){
+          headers=rows[h];dataStart=h+1;break;
+        }
+      }
+      if(!headers){callback([]);return;}
+      console.log('Headers found at row '+(dataStart)+':',headers);
+      var today=getTodayStr();
+      console.log('Today string:',today);
+      console.log('Total rows from sheet:',rows.length);
+      console.log('Headers:',headers);
+      var result=[];
+      for(var i=dataStart;i<rows.length;i++){
+        var row=rows[i];
+        var obj={rowIndex:i+1};
+        for(var j=0;j<headers.length;j++){
+          var hdr=(headers[j]||'').trim();
+          obj[hdr]=row[j]||'';
+        }
+        var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
+        var contacted=(obj['Contacted']||'').trim();
+        console.log('Row '+(i+1)+': date='+dateVal+' contacted=['+contacted+'] tz='+obj['Time Zone']);
+        if(dateVal===today&&(contacted===''||contacted==='-'||contacted==='Assigned')){result.push(obj);}
+      }
+      result.sort(function(a,b){
+        var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
+        return pa-pb;
       });
-      var merged=mergeWithSnapshot(result);
-      saveSnapshot(merged);
-      merged.sort(function(a,b){return tzPriority(a['Time Zone'])-tzPriority(b['Time Zone']);});
-      callback(merged);
+      callback(result);
     })
     .catch(function(){callback([]);});
-}
-
-var skippedIds={};
-var lastLoggedContactId=null;
-var editReturnFn=null;
-
-function getBestUncalledIdx(){
-  var best=null,bestP=Infinity;
-  for(var i=0;i<contacts.length;i++){
-    if(contacts[i]['Contacted'])continue;
-    if(skippedIds[contacts[i].id])continue;
-    var p=tzPriority(contacts[i]['Time Zone']);
-    if(p<bestP){bestP=p;best=i;}
-  }
-  return best;
-}
-
-function skipContact(id){
-  skippedIds[id]=true;
-  renderContactPanel();
 }
 
 function tzPriority(tz){
   var ptD=getPtDecimal();
   var loc=ptD+(OFFSETS[tz]||0);
   if(loc<8||loc>=18.5)return 999;
-  var ideal=(loc>=8&&loc<10)||(loc>=16&&loc<18);
+  var ideal=(loc>=8&&loc<10)||(loc>=16&&loc<17);
   if(ideal)return 0;
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
 
-function getSessionKey(){return 'mochi_session_'+getTodayStr()+'_'+selectedAgent;}
-function getSnapshotKey(){return 'mochi_snap_'+getTodayStr()+'_'+selectedAgent;}
-function loadSnapshot(){try{return JSON.parse(localStorage.getItem(getSnapshotKey()))||[];}catch(e){return [];}}
-function saveSnapshot(list){
-  var raw=list.map(function(c){return {id:c.id,'Name':c['Name'],'First Name':c['First Name'],'Last Name':c['Last Name'],'Phone':c['Phone'],'State':c['State'],'Time Zone':c['Time Zone'],'Date Assigned':c['Date Assigned']};});
-  localStorage.setItem(getSnapshotKey(),JSON.stringify(raw));
-}
-function mergeWithSnapshot(liveContacts){
-  var snap=loadSnapshot();
-  var ids={};
-  var merged=[];
-  snap.forEach(function(c){ids[c.id]=true;merged.push(c);});
-  liveContacts.forEach(function(c){if(!ids[c.id]){ids[c.id]=true;merged.push(c);}});
-  var logged=getLoggedToday();
-  return merged.map(function(c){
-    var entry=logged[c.id]||{};
-    return Object.assign({},c,{'Contacted':entry.outcome||'','Notes':entry.notes||''});
-  });
-}
-function sheetPost(payload){
-  fetch('/api/sheet',{
-    method:'POST',
+function writeOutcome(agentNum,rowIndex,outcome,notes){
+  var tab=agentTabs[agentNum];
+  if(!tab)return;
+  var url='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!J'+rowIndex+':K'+rowIndex)+'?valueInputOption=RAW&key='+API_KEY;
+  console.log('Writing to row '+rowIndex+': outcome='+outcome+' notes='+notes);
+  console.log('URL:',url);
+  fetch(url,{
+    method:'PUT',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  }).catch(function(e){console.error('Sheet error:',e);});
-}
-
-function initSheetSession(contacts){
-  if(!contacts.length)return;
-  if(localStorage.getItem(getSessionKey()))return;
-  localStorage.setItem(getSessionKey(),'1');
-  var rows=contacts.map(function(c){
-    return [c['Date Assigned'],selectedAgentName,c['Name'],c['Phone'],'',''];
-  });
-  sheetPost({action:'initSession',agent:selectedAgentName,rows:rows});
-}
-
-function writeOutcome(agentId,contactId,outcome,notes){
-  var c=null;
-  for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){c=contacts[i];break;}}
-  if(!c)return;
-  saveLogged(contactId,outcome,notes);
-  sheetPost({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,name:c['Name'],phone:c['Phone'],result:outcome,notes:notes});
+    body:JSON.stringify({values:[[outcome,notes||'']]})
+  })
+  .then(function(r){
+    console.log('Write response status:',r.status);
+    return r.json();
+  })
+  .then(function(d){
+    console.log('Write response:',JSON.stringify(d));
+  })
+  .catch(function(e){console.log('Write error:',e);});
 }
 
 function getDashboardStats(){
-  var stats={total:0,'Voicemail Left':0,'Call Answered':0,'Inbox Full':0,'Hung Up':0,'Screened/Declined':0,'Phone Unavailable':0,remaining:0};
+  var stats={total:0,'Voicemail Left':0,'Call Answered':0,'No Answer':0,'Inbox Full':0,'Hung Up':0,'Screened/Declined':0,'Phone Unavailable':0,remaining:0};
   for(var i=0;i<contacts.length;i++){
     stats.total++;
     var c=contacts[i]['Contacted']||'';
@@ -708,37 +675,30 @@ function getDashboardStats(){
 function showDashboard(){
   hist.push({id:cur});cur='_dash';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">My Dashboard</span>';
-  document.getElementById('tbr').innerHTML='<button onclick="refreshAndDash()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>'
-    +'<button onclick="openScript()" style="margin-left:6px;padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Navigate Tool</button>';
+  document.getElementById('tbr').innerHTML='<button onclick="refreshAndDash()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>'+'<button onclick="restartFlow()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Navigate Tool</button>';
   renderDashboard();
   document.getElementById('back-btn').disabled=false;
-}
-
-function checkAndTopup(callback){
-  fetch('/api/refresh',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
-    .then(function(){callback();})
-    .catch(function(){callback();});
+  scrollTop();
 }
 
 function refreshAndDash(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  checkAndTopup(function(){
-    loadContacts(selectedAgent,function(result){
-      contacts=result;contactIdx=0;
-      initSheetSession(contacts);
-      if(btn)btn.textContent='Refresh';
-      renderDashboard();
-    });
+  loadContacts(selectedAgent,function(result){
+    contacts=result;contactIdx=0;
+    if(btn)btn.textContent='Refresh';
+    renderDashboard();
   });
 }
 
 function renderDashboard(){
   var st=getDashboardStats();
-  var agentName=selectedAgentName||'Agent';
-  var dateStr=new Date().toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'long',day:'numeric',year:'numeric'});
+  var agentName=agentTabs[selectedAgent]||'Agent';
+  var now=new Date();
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dateStr=months[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
   function statCard(num,lbl,color,filter){
-    return '<div class="stat-card" onclick="showContactList(\''+filter+'\')" style="cursor:pointer" title="Navigate Tool">'
+    return '<div class="stat-card" onclick="showContactList(\''+filter+'\')" style="cursor:pointer" title="Click to view contacts">'
       +'<div class="stat-num" style="color:'+color+'">'+num+'</div>'
       +'<div class="stat-lbl">'+lbl+'</div>'
       +'</div>';
@@ -749,7 +709,7 @@ function renderDashboard(){
     +'<div style="font-size:13px;color:var(--text-secondary)">'+dateStr+'</div></div>'
     +'<button onclick="showContacts()" style="padding:8px 16px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Start Calling</button>'
     +'</div>'
-    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Overview <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint)">(click any card to navigate tool)</span></div>'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Overview <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint)">(click any card to view contacts)</span></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'
     +statCard(st.total,'Assigned Today','#0a0a74','all')
     +statCard((st.total-st.remaining),'Total Contacted','#0a0a74','contacted')
@@ -761,16 +721,15 @@ function renderDashboard(){
     +statCard(st['Voicemail Left'],'Voicemail Left','#534AB7','Voicemail Left')
     +statCard(st['Hung Up'],'Hung Up','var(--amber-dark)','Hung Up')
     +statCard(st['Inbox Full'],'Inbox Full','#8A8FA8','Inbox Full')
-    +statCard(st['Screened/Declined'],'Screened/Declined','#B91C1C','Screened/Declined')
+    +statCard(st['Screened/Declined'],'Screened/Declined','#7f1d1d','Screened/Declined')
     +statCard(st['Phone Unavailable'],'Phone Unavailable','#555','Phone Unavailable')
     +'</div></div>';
-  var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;
+  document.getElementById('content').innerHTML=html;
 }
 
 function showContactList(filter){
   hist.push({id:cur});cur='_clist';
   var title=filter==='all'?'All Contacts':filter==='contacted'?'Total Contacted':filter==='remaining'?'Remaining':filter;
-  currentListFilter=filter;currentListTitle=title;
   document.getElementById('crumb').innerHTML='<span class="crumb-a">'+title+'</span>';
   document.getElementById('tbr').innerHTML='';
   var rows=contacts.filter(function(c){
@@ -783,8 +742,8 @@ function showContactList(filter){
     document.getElementById('content').innerHTML='<div class="panel"><div style="font-size:13px;color:var(--text-secondary)">No contacts in this category.</div></div>';
     return;
   }
-  var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)','Screened/Declined':'#B91C1C','Phone Unavailable':'#555',''  :'#8A8FA8'};
-  var outcomeBg={'Call Answered':'#E1F5EE','Voicemail Left':'#EEEDFE','Inbox Full':'#F2F3F7','Hung Up':'var(--amber-light)','Screened/Declined':'#FEE2E2','Phone Unavailable':'#F0F0F5',''  :'#F2F3F7'};
+  var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)','Screened/Declined':'#7f1d1d','Phone Unavailable':'#555',''  :'#8A8FA8'};
+  var outcomeBg={'Call Answered':'#E1F5EE','Voicemail Left':'#EEEDFE','Inbox Full':'#F2F3F7','Hung Up':'var(--amber-light)','Screened/Declined':'#fee2e2','Phone Unavailable':'#f0f0f5',''  :'#F2F3F7'};
   var html='<div class="panel">'
     +'<div style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:14px">'+title+' <span style="font-weight:400;color:var(--text-hint)">('+rows.length+')</span></div>';
   rows.forEach(function(c){
@@ -805,39 +764,30 @@ function showContactList(filter){
       +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
       +(tz?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+tzBg+';color:#fff">'+tz+'</span>':'')
       +'<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;background:'+ob+';color:'+oc+'">'+outcome+'</span>'
-      +(c['Contacted']?'<button onclick="openEditContact(\''+c.id+'\')" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Edit</button>':'')
       +'</div>'
       +'</div>';
   });
   html+='</div>';
-  var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;
+  document.getElementById('content').innerHTML=html;
   document.getElementById('back-btn').disabled=false;
 }
 
 function showContacts(){
   hist.push({id:cur});cur='_contacts';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">My Contacts</span>';
-  document.getElementById('tbr').innerHTML='<button onclick="refreshContacts()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>'
-    +'<button onclick="openScript()" style="margin-left:6px;padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Navigate Tool</button>';
+  document.getElementById('tbr').innerHTML='<button onclick="refreshContacts()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>';
   renderContactPanel();
   document.getElementById('back-btn').disabled=false;
-}
-
-function openScript(){
-  pendingContactId=null;activeContactName='';activeContactPhone='';
-  cur=mode==='inbound'?'inbound_open':'open';hist=[];render();
+  scrollTop();
 }
 
 function refreshContacts(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  checkAndTopup(function(){
-    loadContacts(selectedAgent,function(result){
-      contacts=result;contactIdx=0;
-      initSheetSession(contacts);
-      if(btn)btn.textContent='Refresh';
-      renderContactPanel();
-    });
+  loadContacts(selectedAgent,function(result){
+    contacts=result;contactIdx=0;
+    if(btn)btn.textContent='Refresh';
+    renderContactPanel();
   });
 }
 
@@ -850,30 +800,12 @@ function renderContactPanel(){
     document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>';
     return;
   }
-  var c=null;
-  if(lockedContactId!==null){c=findContactById(lockedContactId);}
-  if(!c){
-    var idx=getBestUncalledIdx();
-    if(idx===null){
-      // all uncalled contacts are skipped
-      var skippedCount=uncalled.filter(function(i){return skippedIds[contacts[i].id];}).length;
-      document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You have skipped '+skippedCount+' contact'+(skippedCount!==1?'s':'')+'. Clear skips to continue calling them.</div><button onclick="skippedIds={};renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>';
-      return;
-    }
-    c=contacts[idx];
-  }
+  var idx=uncalled[0];
+  var c=contacts[idx];
   var tz=normTz(c['Time Zone']||'');
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
   var bc=tzColors[tz]||'#534AB7';
   var initials=(c['Name']||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-  var btStyles={
-    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
-    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Screened/Declined':'border:1.5px solid #FCA5A5;background:#FEE2E2;color:#B91C1C',
-    'Phone Unavailable':'border:1.5px solid var(--border);background:#F0F0F5;color:#555'
-  };
   var html='<div class="panel">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
     +'<div class="panel-title" style="margin-bottom:0">Next Contact</div>'
@@ -889,45 +821,36 @@ function renderContactPanel(){
     +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Phone Number</div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between">'
     +'<div style="font-size:20px;font-weight:700;color:var(--brand);letter-spacing:.05em">'+(c['Phone']||'')+'</div>'
-    +'<div style="display:flex;gap:8px">'
-    +'<button onclick="copyPhone(\''+(c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
-    +'<button onclick="startCall(\''+c.id+'\')" style="padding:4px 14px;font-size:11px;font-weight:700;border-radius:6px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Call</button>'
-    +'</div></div></div>'
-    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Result</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
+    +'<button onclick="copyPhone(\''+( c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
+    +'</div></div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Actions</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
+  var btStyles={
+    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
+    'No Answer':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
+    'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
+    'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
+  };
   OUTCOMES.forEach(function(o){
-    html+='<button onclick="selectOutcome(\''+c.id+'\',\''+o+'\')" id="oc-btn-'+o.replace(/\s/g,'-')+'" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
+    html+='<button onclick="selectOutcome('+idx+',\''+o+'\')" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
   });
   html+='</div>'
     +'<div id="notes-panel" style="display:none">'
-    +'<div id="cbr-row" style="display:none;margin-bottom:8px"><button id="cbr-btn" onclick="toggleCbr()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);text-align:left">+ Mark as Call Back Request</button></div>'
-    +'<textarea id="outcome-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:8px">'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
+    +'<textarea id="outcome-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
     +'<button onclick="submitOutcome()" id="submit-outcome-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
     +'<button onclick="cancelOutcome()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
     +'</div></div>'
-    +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light)">'
-    +'<button onclick="skipContact(\''+c.id+'\')" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Skip — Come Back Later</button>'
     +'</div>';
-  if(lastLoggedContactId){var lc=findContactById(lastLoggedContactId);if(lc&&lc['Contacted']){html+='<div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--navy-faint);border-radius:var(--radius-md)">'+'<div style="font-size:11px;color:var(--text-secondary)">Last logged: <b style="color:var(--brand)">'+lc['Name']+'</b> — '+lc['Contacted']+'</div>'+'<button onclick="editFromPanel(\''+lc.id+'\')" style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Edit</button>'+'</div>';}}
-  html+='</div>';
-  var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;
+  document.getElementById('content').innerHTML=html;
 }
 
 var pendingOutcome=null;
-var pendingContactId=null;
-var lockedContactId=null;
-
-function startCall(id){
-  var c=findContactById(id);
-  pendingContactId=id;
-  lockedContactId=id;
-  activeContactName=c?c['Name']:'';
-  activeContactPhone=c?c['Phone']:'';
-  cur=mode==='inbound'?'inbound_open':'open';
-  hist=[];
-  render();
-}
+var pendingIdx=null;
 
 function copyPhone(num){
   navigator.clipboard.writeText(num).then(function(){
@@ -939,56 +862,11 @@ function copyPhone(num){
   });
 }
 
-function selectOutcome(id,outcome){
-  pendingOutcome=outcome;
-  pendingContactId=id;
-  pendingCbr=false;
-  var np=document.getElementById('notes-panel');
-  if(np)np.style.display='block';
-  var cbrRow=document.getElementById('cbr-row');
-  var cbrBtn=document.getElementById('cbr-btn');
-  if(cbrRow)cbrRow.style.display=outcome==='Call Answered'?'block':'none';
-  if(cbrBtn){cbrBtn.textContent='+ Mark as Call Back Request';cbrBtn.style.background='#fff';cbrBtn.style.borderColor='var(--border)';cbrBtn.style.color='var(--text-secondary)';}
-  var ta=document.getElementById('outcome-notes');
-  if(ta)ta.placeholder='Add notes (optional)...';
-  var btn=document.getElementById('submit-outcome-btn');
-  if(btn)btn.textContent='Submit — '+outcome;
-}
-var pendingCbr=false;
-function toggleCbr(){
-  pendingCbr=!pendingCbr;
-  var btn=document.getElementById('cbr-btn');
-  if(btn){btn.textContent=pendingCbr?'✓ Call Back Request':'+ Mark as Call Back Request';btn.style.background=pendingCbr?'var(--brand-light)':'#fff';btn.style.borderColor=pendingCbr?'var(--brand)':'var(--border)';btn.style.color=pendingCbr?'var(--brand)':'var(--text-secondary)';}
-  var ta=document.getElementById('outcome-notes');
-  if(ta)ta.placeholder=pendingCbr?'Add callback time and any notes...':'Add notes (optional)...';
-}
-
-function cancelOutcome(){
-  pendingOutcome=null;pendingContactId=null;
-  var np=document.getElementById('notes-panel');
-  if(np)np.style.display='none';
-}
-
-function submitOutcome(){
-  if(pendingOutcome===null||pendingContactId===null)return;
-  var notes=document.getElementById('outcome-notes');
-  var notesVal=notes?notes.value:'';
-  if(pendingCbr)notesVal=notesVal?'Callback Request — '+notesVal:'Callback Request';
-  pendingCbr=false;
-  var c=findContactById(pendingContactId);
-  if(!c)return;
-  c['Contacted']=pendingOutcome;
-  c['Notes']=notesVal;
-  writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal);
-  lastLoggedContactId=c.id;
-  pendingOutcome=null;pendingContactId=null;lockedContactId=null;
-  activeContactName='';activeContactPhone='';
-  renderContactPanel();
-}
-
 function showLogResult(){
-  if(pendingContactId===null){showContacts();return;}
-  var c=findContactById(pendingContactId);
+  var uncalled=[];
+  for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
+  var idx=uncalled.length?uncalled[0]:null;
+  var c=idx!==null?contacts[idx]:null;
   hist.push({id:cur});cur='_log';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Log Call Result</span>';
   document.getElementById('tbr').innerHTML='';
@@ -997,91 +875,31 @@ function showLogResult(){
     'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
     'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
     'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Screened/Declined':'border:1.5px solid #EF4444;background:#FEE2E2;color:#B91C1C',
-    'Phone Unavailable':'border:1.5px solid var(--border);background:#F0F0F5;color:#555'
+    'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
+    'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
   };
-  var contactInfo=c
-    ?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>'
-    :'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved to sheet.</div>';
-  var html='<div class="panel">'
+  var contactInfo=c?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>':'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved to sheet.</div>';
+  var btns=Object.keys(btStyles).map(function(o){
+    return '<button onclick="logFromAnywhere(\''+o+'\','+idx+')" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
+  }).join('');
+  document.getElementById('content').innerHTML='<div class="panel">'
     +'<div class="panel-title" style="margin-bottom:12px">Log Result for Current Call</div>'
     +contactInfo
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Select Outcome</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
-  Object.keys(btStyles).forEach(function(o){
-    html+='<button onclick="selectLogOutcome(\''+o+'\',\''+pendingContactId+'\')" id="log-oc-btn-'+o.replace(/\s/g,'-')+'" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
-  });
-  html+='</div>'
-    +'<div id="log-notes-panel" style="display:none">'
-    +'<div id="log-cbr-row" style="display:none;margin-bottom:8px"><button id="log-cbr-btn" onclick="toggleLogCbr()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);text-align:left">+ Mark as Call Back Request</button></div>'
-    +'<textarea id="log-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:8px">'
-    +'<button onclick="submitLogOutcome()" id="submit-log-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
-    +'<button onclick="cancelLogOutcome()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
-    +'</div></div>'
-    +'<div style="margin-top:16px;border-top:1px solid var(--border-light);padding-top:14px">'
-    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Call Result Key</div>'
-    +'<div style="font-size:12px;display:flex;flex-direction:column;gap:6px">'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Call Answered</span><span style="color:#085041;font-weight:600">Patient picked up, spoke with agent</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Voicemail Left</span><span style="color:#3C3489;font-weight:600">Agent left a message successfully</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Hung Up</span><span style="color:var(--amber-dark);font-weight:600">Patient picked up, ended call</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Inbox Full</span><span style="color:var(--text);font-weight:600">Mailbox full, no message left</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Screened/Declined</span><span style="color:#B91C1C;font-weight:600">Heard opening via iOS, declined</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Phone Unavailable</span><span style="color:#555;font-weight:600">Number disconnected or unavailable</span></div>'
-    +'</div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+btns+'</div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
+    +'<textarea id="log-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
     +'</div>';
-  var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;window.scrollTo(0,0);
 }
 
-var pendingLogOutcome=null;
-var pendingLogContactId=null;
-
-function selectLogOutcome(outcome,id){
-  pendingLogOutcome=outcome;
-  pendingLogContactId=id;
-  pendingLogCbr=false;
-  var np=document.getElementById('log-notes-panel');
-  if(np)np.style.display='block';
-  var cbrRow=document.getElementById('log-cbr-row');
-  var cbrBtn=document.getElementById('log-cbr-btn');
-  if(cbrRow)cbrRow.style.display=outcome==='Call Answered'?'block':'none';
-  if(cbrBtn){cbrBtn.textContent='+ Mark as Call Back Request';cbrBtn.style.background='#fff';cbrBtn.style.borderColor='var(--border)';cbrBtn.style.color='var(--text-secondary)';}
-  var ta=document.getElementById('log-notes');
-  if(ta)ta.placeholder='Add notes (optional)...';
-  var btn=document.getElementById('submit-log-btn');
-  if(btn)btn.textContent='Submit — '+outcome;
-}
-var pendingLogCbr=false;
-function toggleLogCbr(){
-  pendingLogCbr=!pendingLogCbr;
-  var btn=document.getElementById('log-cbr-btn');
-  if(btn){btn.textContent=pendingLogCbr?'✓ Call Back Request':'+ Mark as Call Back Request';btn.style.background=pendingLogCbr?'var(--brand-light)':'#fff';btn.style.borderColor=pendingLogCbr?'var(--brand)':'var(--border)';btn.style.color=pendingLogCbr?'var(--brand)':'var(--text-secondary)';}
-  var ta=document.getElementById('log-notes');
-  if(ta)ta.placeholder=pendingLogCbr?'Add callback time and any notes...':'Add notes (optional)...';
-}
-
-function cancelLogOutcome(){
-  pendingLogOutcome=null;pendingLogContactId=null;
-  var np=document.getElementById('log-notes-panel');
-  if(np)np.style.display='none';
-}
-
-function submitLogOutcome(){
-  if(pendingLogOutcome===null||pendingLogContactId===null)return;
+function logFromAnywhere(outcome, idx){
   var notes=document.getElementById('log-notes');
   var notesVal=notes?notes.value.trim():'';
-  if(pendingLogCbr)notesVal=notesVal?'Callback Request — '+notesVal:'Callback Request';
-  pendingLogCbr=false;
-  var c=findContactById(pendingLogContactId);
-  if(c){
-    c['Contacted']=pendingLogOutcome;
-    c['Notes']=notesVal;
-    writeOutcome(selectedAgent,c.id,pendingLogOutcome,notesVal);
-    lastLoggedContactId=c.id;
+  if(idx!==null&&idx!==undefined&&contacts[idx]){
+    contacts[idx]['Contacted']=outcome;
+    contacts[idx]['Notes']=notesVal;
+    writeOutcome(selectedAgent,contacts[idx].rowIndex,outcome,notesVal);
   }
-  var outcome=pendingLogOutcome;
-  pendingLogOutcome=null;pendingLogContactId=null;lockedContactId=null;
-  activeContactName='';activeContactPhone='';
   cur='open';hist=[];
   render();
   var content=document.getElementById('content');
@@ -1092,116 +910,39 @@ function submitLogOutcome(){
   setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
 }
 
-var pendingEditContactId=null,pendingEditOutcome=null,pendingEditCbr=false;
-function openEditContact(contactId){
-  var c=findContactById(contactId);
+function quickVoicemail(idx){
+  var c=contacts[idx];
   if(!c)return;
-  pendingEditContactId=contactId;
-  pendingEditOutcome=c['Contacted']||null;
-  pendingEditCbr=false;
-  showEditContactPanel();
+  c['Contacted']='Voicemail Left';
+  writeOutcome(selectedAgent,c.rowIndex,'Voicemail Left','');
+  renderContactPanel();
 }
-function showEditContactPanel(){
-  var c=findContactById(pendingEditContactId);
-  var rawNotes=c['Notes']||'';
-  var isCbr=rawNotes.indexOf('Callback Request')===0;
-  pendingEditCbr=isCbr;
-  var notesVal=isCbr?rawNotes.replace(/^Callback Request(?: — )?/,''):rawNotes;
-  var btStyles={
-    'Voicemail Left':'border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489',
-    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
-    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Screened/Declined':'border:1.5px solid #EF4444;background:#FEE2E2;color:#B91C1C',
-    'Phone Unavailable':'border:1.5px solid var(--border);background:#F0F0F5;color:#555'
-  };
-  var html='<div class="panel">'
-    +'<div class="panel-title" style="margin-bottom:12px">Edit Call Result</div>'
-    +'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Editing result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>'
-    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Select New Outcome</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
-  OUTCOMES.forEach(function(o){
-    var sel=(o===pendingEditOutcome)?'outline:2px solid var(--brand);outline-offset:2px;':'';
-    html+='<button onclick="selectEditOutcome(\''+o+'\')" id="edit-oc-btn-'+o.replace(/\s/g,'-')+'" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';'+sel+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
-  });
-  html+='</div>'
-    +'<div id="edit-cbr-row" style="display:'+(pendingEditOutcome==='Call Answered'?'block':'none')+';margin-bottom:8px">'
-    +'<button id="edit-cbr-btn" onclick="toggleEditCbr()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid '+(isCbr?'var(--brand)':'var(--border)')+';background:'+(isCbr?'var(--brand-light)':'#fff')+';color:'+(isCbr?'var(--brand)':'var(--text-secondary)')+';cursor:pointer;font-family:var(--font);text-align:left">'+(isCbr?'✓ Call Back Request':'+ Mark as Call Back Request')+'</button></div>'
-    +'<textarea id="edit-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none">'+notesVal+'</textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:8px">'
-    +'<button onclick="submitEditOutcome()" id="submit-edit-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">'+(pendingEditOutcome?'Update — '+pendingEditOutcome:'Select an outcome')+'</button>'
-    +'<button onclick="cancelEdit()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
-    +'</div>'
-    +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light)">'
-    +'<button onclick="clearEditOutcome()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear Result — Mark as Not Called</button>'
-    +'</div>'
-    +'</div>';
-  document.getElementById('content').innerHTML=html;
-  document.getElementById('crumb').innerHTML='<span class="crumb-a">Edit Result</span>';
-  document.getElementById('tbr').innerHTML='';
+
+function selectOutcome(idx,outcome){
+  pendingOutcome=outcome;
+  pendingIdx=idx;
+  var np=document.getElementById('notes-panel');
+  if(np){np.style.display='block';}
+  var btn=document.getElementById('submit-outcome-btn');
+  if(btn)btn.textContent='Submit — '+outcome;
 }
-function selectEditOutcome(outcome){
-  pendingEditOutcome=outcome;
-  OUTCOMES.forEach(function(o){
-    var btn=document.getElementById('edit-oc-btn-'+o.replace(/\s/g,'-'));
-    if(btn)btn.style.outline=(o===outcome)?'2px solid var(--brand)':'';
-  });
-  var cbrRow=document.getElementById('edit-cbr-row');
-  if(cbrRow)cbrRow.style.display=outcome==='Call Answered'?'block':'none';
-  var btn=document.getElementById('submit-edit-btn');
-  if(btn)btn.textContent='Update — '+outcome;
+
+function cancelOutcome(){
+  pendingOutcome=null;pendingIdx=null;
+  var np=document.getElementById('notes-panel');
+  if(np)np.style.display='none';
 }
-function toggleEditCbr(){
-  pendingEditCbr=!pendingEditCbr;
-  var btn=document.getElementById('edit-cbr-btn');
-  if(btn){btn.textContent=pendingEditCbr?'✓ Call Back Request':'+ Mark as Call Back Request';btn.style.background=pendingEditCbr?'var(--brand-light)':'#fff';btn.style.borderColor=pendingEditCbr?'var(--brand)':'var(--border)';btn.style.color=pendingEditCbr?'var(--brand)':'var(--text-secondary)';}
-}
-function editFromPanel(contactId){
-  editReturnFn=showContacts;
-  currentListFilter='contacted';
-  openEditContact(contactId);
-}
-function cancelEdit(){
-  pendingEditContactId=null;pendingEditOutcome=null;pendingEditCbr=false;
-  var fn=editReturnFn;editReturnFn=null;
-  if(fn)fn();else showContactList(currentListFilter);
-}
-function clearEditOutcome(){
-  if(pendingEditContactId===null)return;
-  var c=findContactById(pendingEditContactId);
-  if(!c)return;
-  c['Contacted']='';c['Notes']='';
-  clearLogged(c.id);
-  sheetPost({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,name:c['Name'],phone:c['Phone'],result:'',notes:''});
-  pendingEditContactId=null;pendingEditOutcome=null;pendingEditCbr=false;
-  showContactList(currentListFilter);
-  var content=document.getElementById('content');
-  var banner=document.createElement('div');
-  banner.style.cssText='background:var(--amber-light);border:1.5px solid var(--amber-mid);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--amber-dark)';
-  banner.textContent='Result cleared — '+((c['Name']||'contact')+' marked as not called.');
-  content.insertBefore(banner,content.firstChild);
-  setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
-}
-function submitEditOutcome(){
-  if(!pendingEditOutcome||pendingEditContactId===null)return;
-  var ta=document.getElementById('edit-notes');
-  var notesVal=ta?ta.value:'';
-  if(pendingEditCbr)notesVal=notesVal?'Callback Request — '+notesVal:'Callback Request';
-  var c=findContactById(pendingEditContactId);
-  if(!c)return;
-  c['Contacted']=pendingEditOutcome;
+
+function submitOutcome(){
+  if(pendingOutcome===null||pendingIdx===null)return;
+  var notes=document.getElementById('outcome-notes');
+  var notesVal=notes?notes.value:'';
+  var c=contacts[pendingIdx];
+  c['Contacted']=pendingOutcome;
   c['Notes']=notesVal;
-  writeOutcome(selectedAgent,c.id,pendingEditOutcome,notesVal);
-  var outcome=pendingEditOutcome;
-  pendingEditContactId=null;pendingEditOutcome=null;pendingEditCbr=false;
-  var fn=editReturnFn;editReturnFn=null;
-  if(fn)fn();else showContactList(currentListFilter);
-  var content=document.getElementById('content');
-  var banner=document.createElement('div');
-  banner.style.cssText='background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#085041';
-  banner.textContent='Result updated to: '+outcome+(notesVal?' — "'+notesVal+'"':'')+'.'
-  content.insertBefore(banner,content.firstChild);
-  setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
+  writeOutcome(selectedAgent,c.rowIndex,pendingOutcome,notesVal);
+  pendingOutcome=null;pendingIdx=null;
+  renderContactPanel();
 }
 
 function vmText(){
@@ -1218,8 +959,9 @@ function setMode(m){
   render();
 }
 
-function goTo(id){hist.push({id:cur});cur=id;render();}
-function goBack(){if(!hist.length)return;cur=hist.pop().id;render();}
+function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;}
+function goTo(id){hist.push({id:cur});cur=id;render();scrollTop();}
+function goBack(){if(!hist.length)return;cur=hist.pop().id;render();scrollTop();}
 function restartFlow(){cur=mode==='inbound'?'inbound_open':'open';hist=[];render();}
 
 function doSearch(q){
@@ -1255,7 +997,7 @@ function render(){
     setTimeout(function(){var s=document.getElementById('vmsel');if(s){s.value=vmS1?'1':'2';s.onchange=function(){vmS1=s.value==='1';var el=document.getElementById('vm-txt');if(el)el.textContent=vmText();};}},0);
   } else {tbr.innerHTML='';}
   var ban=document.getElementById('mban');
-  ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>'+(activeContactName?'<span style="margin-left:10px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.9)">'+activeContactName+'</span>':'')+(activeContactPhone?'<span style="margin-left:8px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.7);letter-spacing:.04em">'+activeContactPhone+'</span>':'');
+  ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>';
   var navEl=document.getElementById('nav-stages');navEl.innerHTML='';
   document.getElementById('nav-lbl').textContent=mode==='inbound'?'Inbound Stages':'Call Stages';
   var navOrd=mode==='inbound'?IN_NAV:OUT_NAV;
@@ -1268,7 +1010,7 @@ function render(){
     nel.onclick=(function(i){return function(){hist.push({id:cur});cur=i;render();};})(nid);
     navEl.appendChild(nel);
   }
-  var content=document.getElementById('content');content.innerHTML='';content.scrollTop=0;
+  var content=document.getElementById('content');content.innerHTML='';
   if(t==='end'){
     content.innerHTML='<div class="done-wrap"><div class="done-title">Call Complete</div><div class="done-sub">Ready for your next dial.</div><button onclick="restartFlow()" style="margin-top:20px;padding:10px 28px;font-size:14px;font-weight:600;border-radius:24px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Start New Call</button></div>';
     document.getElementById('back-btn').disabled=!hist.length;
@@ -1306,7 +1048,7 @@ function render(){
     for(var bi=0;bi<st.br.length;bi++){
       var btn=document.createElement('button');btn.className='bbtn';
       btn.innerHTML='<span class="kpill">'+(bi+1)+'</span>'+st.br[bi].t;
-      btn.onclick=(function(branch){return function(){hist.push({id:cur});cur=branch.n;render();};})(st.br[bi]);
+      btn.onclick=(function(branch){return function(){hist.push({id:cur});cur=branch.n;render();scrollTop();};})(st.br[bi]);
       bl.appendChild(btn);
     }
     wrap.appendChild(bl);content.appendChild(wrap);
@@ -1333,7 +1075,7 @@ function showSchedule(){
     if(loc<8)return 'Ideal morning window opens in '+Math.round((8-loc)*60)+' min';
     if(loc>=8&&loc<10)return 'In ideal morning window now';
     if(loc>=10&&loc<16)return 'Ideal afternoon window in '+Math.round((16-loc)*60)+' min';
-    if(loc>=16&&loc<18)return 'In ideal afternoon window now';
+    if(loc>=16&&loc<17)return 'In ideal afternoon window now';
     return 'No more ideal windows today';
   }
   var ptNow=now.toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit',hour12:true});
@@ -1348,16 +1090,16 @@ function showSchedule(){
   }).join('');
   var note='';
   if(ptD>=6&&ptD<8)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Early shift: focus ET and CT first — MT and PT not yet at 8 AM local.</div>';
-  else if(ptD>=15&&ptD<16)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down ET — shift focus to CT, MT, and PT.</div>';
-  else if(ptD>=16&&ptD<17)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down CT — focus MT and PT only.</div>';
-  else if(ptD>=13&&ptD<15)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Ideal afternoon window — 4–6 PM ET and CT, 4–5 PM MT/PT.</div>';
-  else if(ptD>=17&&ptD<18)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Ideal afternoon window across MT and PT. ET and CT too late for cold calls.</div>';
+  else if(ptD>=14&&ptD<15)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down ET — shift focus to CT, MT, and PT.</div>';
+  else if(ptD>=15&&ptD<16)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down CT — focus MT and PT only.</div>';
+  else if(ptD>=16&&ptD<17)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Ideal afternoon window across MT and PT. ET and CT too late for cold calls.</div>';
   else if(ptD>=17)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FCEBEB;border-radius:8px;border-left:3px solid #E24B4A;font-size:12px;color:#791F1F;font-weight:600">Outside calling hours for all zones.</div>';
-  var ideal='<div style="margin-top:14px;padding:12px 14px;background:var(--navy-faint);border-radius:8px;border:1px solid var(--border-light)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:10px">Best cold call windows (local time to PT)</div><div style="font-size:12px;color:var(--text-secondary);line-height:2"><div><b style="color:var(--brand)">ET</b> &nbsp; 8-10 AM local = 5-7 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 1-3 PM PT &#9733;</span></div><div><b style="color:var(--brand)">CT</b> &nbsp; 8-10 AM local = 6-8 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 2-4 PM PT &#9733;</span></div><div><b style="color:var(--brand)">MT</b> &nbsp; 8-10 AM local = 7-9 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 3-5 PM PT &#9733;</span></div><div><b style="color:var(--brand)">PT</b> &nbsp; 8-10 AM local = 8-10 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 4-6 PM PT &#9733;</span></div></div><div style="font-size:11px;color:var(--text-hint);margin-top:8px">&#9733; Late afternoon (4-6 PM local) is the best cold call window.</div></div>';
+  var ideal='<div style="margin-top:14px;padding:12px 14px;background:var(--navy-faint);border-radius:8px;border:1px solid var(--border-light)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:10px">Best cold call windows (local time to PT)</div><div style="font-size:12px;color:var(--text-secondary);line-height:2"><div><b style="color:var(--brand)">ET</b> &nbsp; 8-10 AM local = 5-7 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-5 PM local = 1-2 PM PT &#9733;</span></div><div><b style="color:var(--brand)">CT</b> &nbsp; 8-10 AM local = 6-8 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-5 PM local = 2-3 PM PT &#9733;</span></div><div><b style="color:var(--brand)">MT</b> &nbsp; 8-10 AM local = 7-9 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-5 PM local = 3-4 PM PT &#9733;</span></div><div><b style="color:var(--brand)">PT</b> &nbsp; 8-10 AM local = 8-10 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-5 PM local = 4-5 PM PT &#9733;</span></div></div><div style="font-size:11px;color:var(--text-hint);margin-top:8px">&#9733; Late afternoon (4-5 PM local) is the single best cold call window.</div></div>';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Call Schedule</span>';
   document.getElementById('content').innerHTML='<div class="panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div class="panel-title" style="margin-bottom:0">Time zone status now</div><div style="font-size:12px;color:var(--text-hint)">PT: '+ptNow+'</div></div>'+note+rows+ideal+'</div>';
   document.getElementById('back-btn').disabled=false;
   document.getElementById('tbr').innerHTML='';
+  scrollTop();
 }
 
 function showCompliance(){
@@ -1366,6 +1108,7 @@ function showCompliance(){
   document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">Compliance Rules</div><div class="rule-item"><span>&#128683;</span><span>Never make medical claims or guarantee results.</span></div><div class="rule-item"><span>&#128683;</span><span>Never reference a patient eligibility status or personal health information on the call.</span></div><div class="rule-item"><span>&#128683;</span><span>Never pressure a patient after they say no. Honor opt-outs immediately.</span></div><div class="rule-item"><span>&#128683;</span><span>Never remain on a call where you are being verbally abused. Disengage politely and log the incident.</span></div><div class="rule-item"><span>&#9989;</span><span>Always introduce yourself by name and identify Mochi Health at the start of every call.</span></div><div class="rule-item"><span>&#9989;</span><span>Always leave a voicemail when outbound calls go unanswered — target ~20 seconds.</span></div><div class="rule-item"><span>&#9989;</span><span>Check your voicemail script assignment at the start of every shift. Do not switch mid-shift.</span></div><div class="rule-item"><span>&#9989;</span><span>Log all abusive calls with Bella Mahoney or Madeleine Dailey via Slack or email immediately.</span></div><div class="rule-item"><span>&#9989;</span><span>For inbound calls, listen fully before responding.</span></div></div>';
   document.getElementById('back-btn').disabled=false;
   document.getElementById('tbr').innerHTML='';
+  scrollTop();
 }
 
 document.addEventListener('keydown',function(e){
