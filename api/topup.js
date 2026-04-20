@@ -31,6 +31,12 @@ const TZ_CONFIG = {
   'Pacific/Honolulu':    { states: ['Hawaii'], start: [8, 0], end: [18, 30] },
 };
 
+// ET/CT states are highest priority during the ideal calling window (early morning before PT opens)
+const ET_CT_STATES = [
+  ...TZ_CONFIG['America/New_York'].states,
+  ...TZ_CONFIG['America/Chicago'].states,
+];
+
 function getCallableStates() {
   const now = new Date();
   const callable = [];
@@ -54,6 +60,11 @@ module.exports = async (req, res) => {
   if (!agent_id) return res.status(400).json({ error: 'agent_id required' });
 
   const callableStates = getCallableStates();
+
+  // Ideal window: before 7:30 AM PT, ET/CT are open but PT isn't yet — tz priority trumps recency
+  const nowPT = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hour12: false });
+  const [ptH, ptM] = nowPT.split(':').map(Number);
+  const idealWindow = ptH * 60 + ptM < 7 * 60 + 30;
 
   let client;
   try {
@@ -86,7 +97,8 @@ module.exports = async (req, res) => {
     // Try last 1 day first, fall back to 2 then 3 days if empty
     const pendingQuery = (interval) => client.query(`
       SELECT id, patient_id, phone FROM (
-        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at
+        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
+          CASE WHEN ocq.state = ANY($3::text[]) THEN 0 ELSE 1 END AS tz_priority
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
@@ -109,9 +121,12 @@ module.exports = async (req, res) => {
           )
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
-      ORDER BY sub.updated_at DESC
+      ORDER BY
+        (CASE WHEN $4 THEN sub.tz_priority ELSE 0 END) ASC,
+        sub.updated_at DESC,
+        (CASE WHEN $4 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
-    `, [needed, callableStates]);
+    `, [needed, callableStates, ET_CT_STATES, idealWindow]);
 
     let contactsRes = await pendingQuery('48 hours');
     if (!contactsRes.rows.length) contactsRes = await pendingQuery('3 days');
