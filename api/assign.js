@@ -60,16 +60,16 @@ module.exports = async (req, res) => {
 
     const needed = MORNING_BATCH * agents.length;
 
-    // Before 7:30 AM PT: ET/CT contacts first (already callable), then freshest.
-    // 7:30 AM PT and later: freshness only — enough timezones are open.
+    // Ideal window (before 7:30 AM PT): ET/CT are callable but PT isn't yet — tz priority trumps recency.
+    // Normal hours (7:30 AM PT and later): recency is primary, tz priority is secondary tiebreaker.
     const nowPT = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hour12: false });
     const [ptH, ptM] = nowPT.split(':').map(Number);
-    const useTzPriority = ptH * 60 + ptM < 7 * 60 + 30;
+    const idealWindow = ptH * 60 + ptM < 7 * 60 + 30;
 
     const fetchContacts = (interval) => client.query(`
       SELECT id, patient_id, phone FROM (
         SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
-          CASE WHEN $3 AND ocq.state = ANY($2::text[]) THEN 0 ELSE 1 END AS tz_priority
+          CASE WHEN ocq.state = ANY($2::text[]) THEN 0 ELSE 1 END AS tz_priority
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
@@ -91,14 +91,14 @@ module.exports = async (req, res) => {
           )
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
-      ORDER BY sub.tz_priority ASC, sub.updated_at DESC
+      ORDER BY
+        (CASE WHEN $3 THEN sub.tz_priority ELSE 0 END) ASC,
+        sub.updated_at DESC,
+        (CASE WHEN $3 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
-    `, [needed, ET_CT_STATES, useTzPriority]);
+    `, [needed, ET_CT_STATES, idealWindow]);
 
-    let contactsRes = await fetchContacts('29 hours');
-    if (contactsRes.rows.length < needed) {
-      contactsRes = await fetchContacts('2 days');
-    }
+    const contactsRes = await fetchContacts('48 hours');
 
     const rawPending = contactsRes.rows;
     if (!rawPending.length) return res.json({ assigned: 0, message: 'No pending contacts' });
