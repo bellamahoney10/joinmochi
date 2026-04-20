@@ -20,6 +20,20 @@ function getPool() {
 const CRON_SECRET = process.env.CRON_SECRET;
 const MORNING_BATCH = 20;
 
+// ET and CT states are callable immediately when the 5 AM PT cron fires (8 AM ET / 7 AM CT)
+const ET_CT_STATES = [
+  // Eastern
+  'Connecticut', 'Delaware', 'District of Columbia', 'Florida', 'Georgia',
+  'Indiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+  'New Hampshire', 'New Jersey', 'New York', 'North Carolina', 'Ohio',
+  'Pennsylvania', 'Rhode Island', 'South Carolina', 'Virginia', 'Vermont',
+  'West Virginia',
+  // Central
+  'Alabama', 'Arkansas', 'Illinois', 'Iowa', 'Kansas', 'Kentucky',
+  'Louisiana', 'Minnesota', 'Mississippi', 'Missouri', 'Nebraska',
+  'North Dakota', 'Oklahoma', 'South Dakota', 'Tennessee', 'Texas', 'Wisconsin',
+];
+
 module.exports = async (req, res) => {
   // Allow cron (GET with secret) or manual POST trigger
   if (req.method === 'GET') {
@@ -44,15 +58,22 @@ module.exports = async (req, res) => {
     const agents = agentsRes.rows;
     if (!agents.length) return res.json({ assigned: 0, message: 'No active agents' });
 
-    // Find pending contacts from the last 28 hours by completed eligibility time,
-    // ordered freshest first, excluding active HEALTH subscribers
-    const contactsRes = await client.query(`
+    const needed = MORNING_BATCH * agents.length;
+
+    // Before 7:30 AM PT: ET/CT contacts first (already callable), then freshest.
+    // 7:30 AM PT and later: freshness only — enough timezones are open.
+    const nowPT = new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hour12: false });
+    const [ptH, ptM] = nowPT.split(':').map(Number);
+    const useTzPriority = ptH * 60 + ptM < 7 * 60 + 30;
+
+    const fetchContacts = (interval) => client.query(`
       SELECT id, patient_id, phone FROM (
-        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at
+        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
+          CASE WHEN $3 AND ocq.state = ANY($2::text[]) THEN 0 ELSE 1 END AS tz_priority
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
-          AND ae.updated_at >= NOW() - INTERVAL '29 hours'
+          AND ae.updated_at >= NOW() - INTERVAL '${interval}'
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
           AND NOT EXISTS (
@@ -70,9 +91,15 @@ module.exports = async (req, res) => {
           )
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
-      ORDER BY sub.updated_at DESC
+      ORDER BY sub.tz_priority ASC, sub.updated_at DESC
       LIMIT $1
-    `, [MORNING_BATCH * agents.length]);
+    `, [needed, ET_CT_STATES, useTzPriority]);
+
+    let contactsRes = await fetchContacts('29 hours');
+    if (contactsRes.rows.length < needed) {
+      contactsRes = await fetchContacts('2 days');
+    }
+
     const rawPending = contactsRes.rows;
     if (!rawPending.length) return res.json({ assigned: 0, message: 'No pending contacts' });
 

@@ -85,28 +85,31 @@ module.exports = async (req, res) => {
     // Get pending contacts in currently-callable states, not yet assigned, excluding active HEALTH subscribers
     // Try last 1 day first, fall back to 2 then 3 days if empty
     const pendingQuery = (interval) => client.query(`
-      SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone
-      FROM outreach_call_queue ocq
-      JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
-        AND ae.completed = true
-        AND ae.updated_at >= NOW() - INTERVAL '${interval}'
-      WHERE ocq.status = 'pending'
-        AND ocq.deleted_at IS NULL
-        AND ocq.state = ANY($2::text[])
-        AND NOT EXISTS (
-          SELECT 1 FROM subscriptions s
-          WHERE s.patient_id = ocq.patient_id
-            AND s.active = true
-            AND s.descriptor = 'HEALTH'
-            AND s.deleted_at IS NULL
-        )
-        AND NOT EXISTS (
-          SELECT 1 FROM outreach_call_queue ocq2
-          WHERE ocq2.phone = ocq.phone
-            AND ocq2.status = 'assigned'
-            AND ocq2.deleted_at IS NULL
-        )
-      ORDER BY ocq.phone, ae.updated_at DESC
+      SELECT id, patient_id, phone FROM (
+        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at
+        FROM outreach_call_queue ocq
+        JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
+          AND ae.completed = true
+          AND ae.updated_at >= NOW() - INTERVAL '${interval}'
+        WHERE ocq.status = 'pending'
+          AND ocq.deleted_at IS NULL
+          AND ocq.state = ANY($2::text[])
+          AND NOT EXISTS (
+            SELECT 1 FROM subscriptions s
+            WHERE s.patient_id = ocq.patient_id
+              AND s.active = true
+              AND s.descriptor = 'HEALTH'
+              AND s.deleted_at IS NULL
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM outreach_call_queue ocq2
+            WHERE ocq2.phone = ocq.phone
+              AND ocq2.status = 'assigned'
+              AND ocq2.deleted_at IS NULL
+          )
+        ORDER BY ocq.phone, ae.updated_at DESC
+      ) sub
+      ORDER BY sub.updated_at DESC
       LIMIT $1
     `, [needed, callableStates]);
 
