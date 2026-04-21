@@ -18,7 +18,7 @@ function getPool() {
   return pool;
 }
 
-const REFRESH_BATCH = 50;
+const REFRESH_BATCH = 25;
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
