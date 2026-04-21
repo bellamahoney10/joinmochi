@@ -245,7 +245,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     </div>
   </nav>
   <div class="main">
-    <div class="mban" id="mban"><span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">Outbound Call</span><span id="active-call-bar" style="display:none;margin-left:auto;display:none;flex-direction:column;align-items:flex-end;line-height:1.2"><span id="active-call-name" style="font-size:13px;font-weight:700;color:#fff"></span><span id="active-call-phone" style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:0.04em"></span></span></div>
+    <div class="mban" id="mban"><span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">Outbound Call</span><span id="active-call-bar" style="display:none"></span></div>
     <div class="topbar"><div class="crumb" id="crumb"></div><div class="tbr" id="tbr"></div></div>
     <div class="content" id="content"></div>
     <div class="footer">
@@ -1275,7 +1275,7 @@ function render(){
     setTimeout(function(){var s=document.getElementById('vmsel');if(s){s.value=vmS1?'1':'2';s.onchange=function(){vmS1=s.value==='1';var el=document.getElementById('vm-txt');if(el)el.textContent=vmText();};}},0);
   } else {tbr.innerHTML='';}
   var ban=document.getElementById('mban');
-  ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span><span id="active-call-bar" style="'+(activeContactName?'display:flex':'display:none')+';margin-left:auto;flex-direction:column;align-items:flex-end;line-height:1.2"><span id="active-call-name" style="font-size:13px;font-weight:700;color:#fff">'+activeContactName+'</span><span id="active-call-phone" style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:0.04em">'+activeContactPhone+'</span></span>';
+  ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>'+(activeContactName?'<span id="active-call-bar" style="display:flex;align-items:center;gap:10px;margin-left:10px"><span id="active-call-name" style="font-size:13px;font-weight:700;color:#fff">'+activeContactName+'</span><span style="color:rgba(255,255,255,0.35)">·</span><span id="active-call-phone" style="font-size:13px;color:rgba(255,255,255,0.7);letter-spacing:0.04em">'+activeContactPhone+'</span></span>':'<span id="active-call-bar" style="display:none"></span>');
   var navEl=document.getElementById('nav-stages');navEl.innerHTML='';
   document.getElementById('nav-lbl').textContent=mode==='inbound'?'Inbound Stages':'Call Stages';
   var navOrd=mode==='inbound'?IN_NAV:OUT_NAV;
