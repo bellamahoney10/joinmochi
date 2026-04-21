@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 const { getActiveMemberQueueIds } = require('./lib/dataPool');
+const { getCallableStates, getTzPriorityExpr, isIdealWindow } = require('./lib/tzConfig');
 
 let pool;
 function getPool() {
@@ -17,7 +18,7 @@ function getPool() {
   return pool;
 }
 
-const REFRESH_BATCH = 25;
+const REFRESH_BATCH = 50;
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,21 +29,29 @@ module.exports = async (req, res) => {
   const { agent_id } = req.body || {};
   if (!agent_id) return res.status(400).json({ error: 'agent_id required' });
 
+  const callableStates = getCallableStates();
+  if (!callableStates.length) {
+    return res.json({ assigned: 0, message: 'Outside calling hours for all timezones' });
+  }
+
+  const idealWindow = isIdealWindow(callableStates);
+  const tzPriorityExpr = getTzPriorityExpr();
+
   let client;
   try {
     client = await getPool().connect();
 
-    // Get the most recently queued pending contacts from the last 28 hours,
-    // deduped by phone, excluding active HEALTH subscribers and already-assigned phones
     const contactsRes = await client.query(`
       SELECT id, patient_id, phone FROM (
-        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ocq.added_to_queue_at
+        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ocq.added_to_queue_at,
+          ${tzPriorityExpr} AS tz_priority
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
-          AND ae.updated_at >= NOW() - INTERVAL '29 hours'
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
+          AND ocq.added_to_queue_at >= NOW() - INTERVAL '7 days'
+          AND ocq.state = ANY($2::text[])
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
             WHERE s.patient_id = ocq.patient_id
@@ -58,9 +67,12 @@ module.exports = async (req, res) => {
           )
         ORDER BY ocq.phone, ocq.added_to_queue_at DESC
       ) sub
-      ORDER BY sub.added_to_queue_at DESC
+      ORDER BY
+        (CASE WHEN $3 THEN sub.tz_priority ELSE 0 END) ASC,
+        sub.added_to_queue_at DESC,
+        (CASE WHEN $3 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
-    `, [REFRESH_BATCH]);
+    `, [REFRESH_BATCH, callableStates, idealWindow]);
 
     if (!contactsRes.rows.length) {
       return res.json({ assigned: 0, message: 'No pending contacts' });
