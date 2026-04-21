@@ -75,7 +75,6 @@ module.exports = async (req, res) => {
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
           AND ocq.added_to_queue_at >= NOW() - INTERVAL '${interval}'
-          AND ocq.state = ANY($2::text[])
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
             WHERE s.patient_id = ocq.patient_id
@@ -92,11 +91,11 @@ module.exports = async (req, res) => {
         ORDER BY ocq.phone, ocq.added_to_queue_at DESC
       ) sub
       ORDER BY
-        (CASE WHEN $3 THEN sub.tz_priority ELSE 0 END) ASC,
+        (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
         sub.added_to_queue_at DESC,
-        (CASE WHEN $3 THEN 0 ELSE sub.tz_priority END) ASC
+        (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
-    `, [needed, callableStates, idealWindow]);
+    `, [needed, idealWindow]);
 
     const contactsRes = await pendingQuery('7 days');
 

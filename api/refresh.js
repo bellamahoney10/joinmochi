@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 const { getActiveMemberQueueIds } = require('./lib/dataPool');
-const { getCallableStates, getTzPriorityExpr, isIdealWindow } = require('./lib/tzConfig');
+const { getTzPriorityExpr, isIdealWindow, getCallableStates } = require('./lib/tzConfig');
 
 let pool;
 function getPool() {
@@ -51,7 +51,6 @@ module.exports = async (req, res) => {
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
           AND ocq.added_to_queue_at >= NOW() - INTERVAL '7 days'
-          AND ocq.state = ANY($2::text[])
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
             WHERE s.patient_id = ocq.patient_id
@@ -68,11 +67,11 @@ module.exports = async (req, res) => {
         ORDER BY ocq.phone, ocq.added_to_queue_at DESC
       ) sub
       ORDER BY
-        (CASE WHEN $3 THEN sub.tz_priority ELSE 0 END) ASC,
+        (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
         sub.added_to_queue_at DESC,
-        (CASE WHEN $3 THEN 0 ELSE sub.tz_priority END) ASC
+        (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
-    `, [REFRESH_BATCH, callableStates, idealWindow]);
+    `, [REFRESH_BATCH, idealWindow]);
 
     if (!contactsRes.rows.length) {
       return res.json({ assigned: 0, message: 'No pending contacts' });
