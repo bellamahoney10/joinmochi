@@ -177,6 +177,10 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <span class="logo-word">mochi</span>
     <span class="logo-sub">health · pcs</span>
   </div>
+  <div id="active-call-bar" style="display:none;flex-direction:column;align-items:center;line-height:1.25">
+    <span id="active-call-name" style="font-size:15px;font-weight:700;color:#fff"></span>
+    <span id="active-call-phone" style="font-size:12px;color:rgba(255,255,255,0.65);letter-spacing:0.04em"></span>
+  </div>
   <div class="clocks" id="clocks"></div>
 </header>
 
@@ -934,6 +938,7 @@ function renderContactPanel(){
 var pendingOutcome=null;
 var pendingContactId=null;
 var lockedContactId=null;
+function clearActiveCallBar(){var bar=document.getElementById('active-call-bar');if(bar)bar.style.display='none';}
 
 function startCall(id){
   var c=findContactById(id);
@@ -941,6 +946,12 @@ function startCall(id){
   lockedContactId=id;
   activeContactName=c?c['Name']:'';
   activeContactPhone=c?c['Phone']:'';
+  var bar=document.getElementById('active-call-bar');
+  if(bar){
+    document.getElementById('active-call-name').textContent=activeContactName;
+    document.getElementById('active-call-phone').textContent=activeContactPhone;
+    bar.style.display='flex';
+  }
   cur=mode==='inbound'?'inbound_open':'open';
   hist=[];
   render();
@@ -999,7 +1010,7 @@ function submitOutcome(){
   writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal);
   lastLoggedContactId=c.id;
   pendingOutcome=null;pendingContactId=null;lockedContactId=null;
-  activeContactName='';activeContactPhone='';
+  activeContactName='';activeContactPhone='';clearActiveCallBar();
   renderContactPanel();
 }
 
@@ -1098,7 +1109,7 @@ function submitLogOutcome(){
   }
   var outcome=pendingLogOutcome;
   pendingLogOutcome=null;pendingLogContactId=null;lockedContactId=null;
-  activeContactName='';activeContactPhone='';
+  activeContactName='';activeContactPhone='';clearActiveCallBar();
   cur='open';hist=[];
   render();
   var content=document.getElementById('content');
