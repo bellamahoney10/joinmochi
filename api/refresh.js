@@ -43,14 +43,14 @@ module.exports = async (req, res) => {
 
     const contactsRes = await client.query(`
       SELECT id, patient_id, phone FROM (
-        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ocq.added_to_queue_at,
+        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
           ${tzPriorityExpr} AS tz_priority
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
+          AND ae.updated_at >= NOW() - INTERVAL '5 days'
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
-          AND ocq.added_to_queue_at >= NOW() - INTERVAL '7 days'
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
             WHERE s.patient_id = ocq.patient_id
@@ -64,11 +64,11 @@ module.exports = async (req, res) => {
               AND ocq2.status = 'assigned'
               AND ocq2.deleted_at IS NULL
           )
-        ORDER BY ocq.phone, ocq.added_to_queue_at DESC
+        ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
       ORDER BY
         (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
-        sub.added_to_queue_at DESC,
+        sub.updated_at DESC,
         (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
     `, [REFRESH_BATCH, idealWindow]);
