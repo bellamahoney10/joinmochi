@@ -1247,7 +1247,7 @@ function setMode(m){
   render();
 }
 
-function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;}
+function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;window.scrollTo(0,0);}
 function goTo(id){hist.push({id:cur});cur=id;render();scrollTop();}
 function goBack(){if(!hist.length)return;cur=hist.pop().id;render();scrollTop();}
 function restartFlow(){cur=mode==='inbound'?'inbound_open':'open';hist=[];render();}
