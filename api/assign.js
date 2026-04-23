@@ -33,6 +33,17 @@ module.exports = async (req, res) => {
 
   const client = await getPool().connect();
   try {
+    // Check if outreach_sms_contact_queue table exists (migration may not have run yet)
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'outreach_sms_contact_queue'
+      ) AS ready
+    `);
+    if (!tableCheck.rows[0].ready) {
+      return res.status(503).json({ error: 'outreach_sms_contact_queue table not yet created — run migration first' });
+    }
+
     // Get active outreach agents ordered by first name (AJ, Marien → consistent split)
     const agentsRes = await client.query(`
       SELECT a.id, a.first_name, a.last_name

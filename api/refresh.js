@@ -41,6 +41,17 @@ module.exports = async (req, res) => {
   try {
     client = await getPool().connect();
 
+    // Check if outreach_sms_contact_queue table exists (migration may not have run yet)
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'outreach_sms_contact_queue'
+      ) AS ready
+    `);
+    if (!tableCheck.rows[0].ready) {
+      return res.json({ assigned: 0, message: 'outreach_sms_contact_queue not yet created — skipping' });
+    }
+
     // Source contacts from outreach_sms_schedule not yet assigned
     const contactsRes = await client.query(`
       SELECT id, patient_id, phone, state, timezone, eligible_at FROM (
