@@ -49,69 +49,84 @@ module.exports = async (req, res) => {
 
     const callableStates = getCallableStates();
     const idealWindow = isIdealWindow(callableStates);
-    const tzPriorityExpr = getTzPriorityExpr();
+    const tzPriorityExpr = getTzPriorityExpr('oss');
 
-    const fetchContacts = (interval) => client.query(`
-      SELECT id, patient_id, phone FROM (
-        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
+    // Source contacts from outreach_sms_schedule (populates ~4h after eligibility)
+    // Exclude contacts already assigned (row exists in outreach_sms_contact_queue)
+    // or already active HEALTH members
+    const contactsRes = await client.query(`
+      SELECT id, patient_id, phone, state, timezone, eligible_at FROM (
+        SELECT DISTINCT ON (oss.phone)
+          oss.id, oss.patient_id, oss.phone, oss.state, oss.timezone, oss.eligible_at,
           ${tzPriorityExpr} AS tz_priority
-        FROM outreach_call_queue ocq
-        JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
-          AND ae.completed = true
-          AND ae.updated_at >= NOW() - INTERVAL '${interval}'
-        WHERE ocq.status = 'pending'
-          AND ocq.deleted_at IS NULL
+        FROM outreach_sms_schedule oss
+        WHERE oss.deleted_at IS NULL
+          AND oss.eligible_at >= NOW() - INTERVAL '30 days'
+          AND NOT EXISTS (
+            SELECT 1 FROM outreach_sms_contact_queue q
+            WHERE q.outreach_sms_id = oss.id
+              AND q.deleted_at IS NULL
+          )
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
-            WHERE s.patient_id = ocq.patient_id
+            WHERE s.patient_id = oss.patient_id
               AND s.active = true
               AND s.descriptor = 'HEALTH'
               AND s.deleted_at IS NULL
           )
           AND NOT EXISTS (
-            SELECT 1 FROM outreach_call_queue ocq2
-            WHERE ocq2.phone = ocq.phone
-              AND ocq2.status = 'assigned'
-              AND ocq2.deleted_at IS NULL
+            SELECT 1 FROM outreach_sms_contact_queue q2
+            WHERE q2.phone = oss.phone
+              AND q2.status = 'assigned'
+              AND q2.deleted_at IS NULL
           )
-        ORDER BY ocq.phone, ae.updated_at DESC
+        ORDER BY oss.phone, oss.eligible_at DESC
       ) sub
       ORDER BY
+        -- Fresh contacts (< 24h since eligibility) always first
+        CASE WHEN sub.eligible_at >= NOW() - INTERVAL '24 hours' THEN 0 ELSE 1 END ASC,
         (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
-        sub.updated_at DESC,
+        sub.eligible_at DESC,
         (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
     `, [needed, idealWindow]);
-
-    const contactsRes = await fetchContacts('48 hours');
 
     const rawPending = contactsRes.rows;
     if (!rawPending.length) return res.json({ assigned: 0, message: 'No pending contacts' });
 
     // Scrub active HEALTH members via analytics DB
     const activeMemberIds = await getActiveMemberQueueIds(rawPending);
-    const pending = rawPending.filter(c => !activeMemberIds.has(c.id));
+    const pending = rawPending.filter(r => !activeMemberIds.has(r.id));
     if (!pending.length) return res.json({ assigned: 0, message: 'No pending contacts after member scrub' });
 
     // Assign up to MORNING_BATCH contacts to each agent
-    const now = new Date();
     let totalAssigned = 0;
 
     for (let i = 0; i < agents.length; i++) {
       const slice = pending.splice(0, MORNING_BATCH);
       if (!slice.length) break;
 
-      const ids = slice.map(r => r.id);
+      // INSERT into outreach_sms_contact_queue — one record per contact
+      // ON CONFLICT DO NOTHING handles any race with concurrent requests
+      const values = slice.map((r, j) => {
+        const base = j * 7;
+        return `($${base+1}, $${base+2}, $${base+3}, $${base+4}, $${base+5}, $${base+6}, $${base+7})`;
+      }).join(', ');
+      const params = [];
+      for (const r of slice) {
+        params.push(r.id, r.patient_id, r.phone, r.state, r.timezone, r.eligible_at, agents[i].id);
+      }
       await client.query(`
-        UPDATE outreach_call_queue
-        SET status = 'assigned',
-            assigned_agent_id = $1,
-            assigned_at = $2,
-            updated_at = $2
-        WHERE id = ANY($3::uuid[])
-      `, [agents[i].id, now, ids]);
+        INSERT INTO outreach_sms_contact_queue
+          (outreach_sms_id, patient_id, phone, state, timezone, eligible_at, assigned_agent_id,
+           status, assigned_at)
+        SELECT v.outreach_sms_id, v.patient_id, v.phone, v.state, v.timezone, v.eligible_at,
+               v.assigned_agent_id, 'assigned', NOW()
+        FROM (VALUES ${values}) AS v(outreach_sms_id, patient_id, phone, state, timezone, eligible_at, assigned_agent_id)
+        ON CONFLICT (outreach_sms_id) DO NOTHING
+      `, params);
 
-      totalAssigned += ids.length;
+      totalAssigned += slice.length;
     }
 
     res.json({ assigned: totalAssigned, agents: agents.map(a => a.first_name) });

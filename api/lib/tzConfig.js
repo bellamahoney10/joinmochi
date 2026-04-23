@@ -24,7 +24,8 @@ function getCallableStates() {
 // Returns a SQL CASE expression that resolves to minutes since that state's TZ opened.
 // 99999 = not currently in calling hours (lowest priority).
 // Contacts in TZs that most recently opened (lowest value) get highest priority.
-function getTzPriorityExpr() {
+// tableAlias: the table alias whose .state column to use (default 'ocq')
+function getTzPriorityExpr(tableAlias = 'ocq') {
   const now = new Date();
   const parts = [];
   for (const [tz, { states, start }] of Object.entries(TZ_CONFIG)) {
@@ -37,7 +38,7 @@ function getTzPriorityExpr() {
       parts.push(`WHEN '${state}' THEN ${minsOpen}`);
     }
   }
-  return `CASE ocq.state ${parts.join(' ')} ELSE 99999 END`;
+  return `CASE ${tableAlias}.state ${parts.join(' ')} ELSE 99999 END`;
 }
 
 // True when not all TZs are callable — tz priority is meaningful
