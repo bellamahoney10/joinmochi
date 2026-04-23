@@ -35,24 +35,83 @@ module.exports = async (req, res) => {
   }
 
   const idealWindow = isIdealWindow(callableStates);
-  const tzPriorityExpr = getTzPriorityExpr('oss');
 
   let client;
   try {
     client = await getPool().connect();
 
-    // Check if outreach_sms_contact_queue table exists (migration may not have run yet)
+    // Check if new table exists — fall back to outreach_call_queue if not
     const tableCheck = await client.query(`
       SELECT EXISTS (
         SELECT 1 FROM information_schema.tables
         WHERE table_name = 'outreach_sms_contact_queue'
       ) AS ready
     `);
+
     if (!tableCheck.rows[0].ready) {
-      return res.json({ assigned: 0, message: 'outreach_sms_contact_queue not yet created — skipping' });
+      // Fallback: assign from outreach_call_queue
+      const tzPriorityExpr = getTzPriorityExpr('ocq');
+      const contactsRes = await client.query(`
+        SELECT id, patient_id, phone FROM (
+          SELECT DISTINCT ON (ocq.phone)
+            ocq.id, ocq.patient_id, ocq.phone,
+            COALESCE(oss.eligible_at, ae.updated_at) AS eligible_at,
+            ${tzPriorityExpr} AS tz_priority
+          FROM outreach_call_queue ocq
+          LEFT JOIN outreach_sms_schedule oss ON oss.patient_id = ocq.patient_id
+            AND oss.deleted_at IS NULL
+          JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
+            AND ae.completed = true
+          WHERE ocq.status = 'pending'
+            AND ocq.deleted_at IS NULL
+            AND COALESCE(oss.eligible_at, ae.updated_at) >= NOW() - INTERVAL '30 days'
+            AND NOT EXISTS (
+              SELECT 1 FROM subscriptions s
+              WHERE s.patient_id = ocq.patient_id
+                AND s.active = true AND s.descriptor = 'HEALTH' AND s.deleted_at IS NULL
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM outreach_call_queue ocq2
+              WHERE ocq2.phone = ocq.phone AND ocq2.status = 'assigned' AND ocq2.deleted_at IS NULL
+            )
+          ORDER BY ocq.phone, COALESCE(oss.eligible_at, ae.updated_at) DESC
+        ) sub
+        ORDER BY
+          CASE WHEN sub.eligible_at >= NOW() - INTERVAL '24 hours' THEN 0 ELSE 1 END ASC,
+          (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
+          sub.eligible_at DESC,
+          (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
+        LIMIT $1
+      `, [REFRESH_BATCH, idealWindow]);
+
+      if (!contactsRes.rows.length) {
+        return res.json({ assigned: 0, message: 'No pending contacts' });
+      }
+
+      let activeMemberIds = new Set();
+      try {
+        activeMemberIds = await getActiveMemberQueueIds(contactsRes.rows);
+      } catch (scrubErr) {
+        console.error('analytics scrub failed, skipping:', scrubErr.message);
+      }
+      const toAssign = contactsRes.rows.filter(c => !activeMemberIds.has(c.id));
+      if (!toAssign.length) {
+        return res.json({ assigned: 0, message: 'No pending contacts after member scrub' });
+      }
+
+      const now = new Date();
+      const ids = toAssign.map(r => r.id);
+      await client.query(`
+        UPDATE outreach_call_queue
+        SET status = 'assigned', assigned_agent_id = $1, assigned_at = $2, updated_at = $2
+        WHERE id = ANY($3::uuid[])
+      `, [agent_id, now, ids]);
+
+      return res.json({ assigned: ids.length, source: 'call_queue' });
     }
 
-    // Source contacts from outreach_sms_schedule not yet assigned
+    // New path: source from outreach_sms_schedule
+    const tzPriorityExpr = getTzPriorityExpr('oss');
     const contactsRes = await client.query(`
       SELECT id, patient_id, phone, state, timezone, eligible_at FROM (
         SELECT DISTINCT ON (oss.phone)
@@ -63,26 +122,20 @@ module.exports = async (req, res) => {
           AND oss.eligible_at >= NOW() - INTERVAL '30 days'
           AND NOT EXISTS (
             SELECT 1 FROM outreach_sms_contact_queue q
-            WHERE q.outreach_sms_id = oss.id
-              AND q.deleted_at IS NULL
+            WHERE q.outreach_sms_id = oss.id AND q.deleted_at IS NULL
           )
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
             WHERE s.patient_id = oss.patient_id
-              AND s.active = true
-              AND s.descriptor = 'HEALTH'
-              AND s.deleted_at IS NULL
+              AND s.active = true AND s.descriptor = 'HEALTH' AND s.deleted_at IS NULL
           )
           AND NOT EXISTS (
             SELECT 1 FROM outreach_sms_contact_queue q2
-            WHERE q2.phone = oss.phone
-              AND q2.status = 'assigned'
-              AND q2.deleted_at IS NULL
+            WHERE q2.phone = oss.phone AND q2.status = 'assigned' AND q2.deleted_at IS NULL
           )
         ORDER BY oss.phone, oss.eligible_at DESC
       ) sub
       ORDER BY
-        -- Fresh contacts (< 24h since eligibility) always first
         CASE WHEN sub.eligible_at >= NOW() - INTERVAL '24 hours' THEN 0 ELSE 1 END ASC,
         (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
         sub.eligible_at DESC,
@@ -94,7 +147,6 @@ module.exports = async (req, res) => {
       return res.json({ assigned: 0, message: 'No pending contacts' });
     }
 
-    // Scrub active HEALTH members via analytics DB (best-effort)
     let activeMemberIds = new Set();
     try {
       activeMemberIds = await getActiveMemberQueueIds(contactsRes.rows);
@@ -106,7 +158,6 @@ module.exports = async (req, res) => {
       return res.json({ assigned: 0, message: 'No pending contacts after member scrub' });
     }
 
-    // INSERT into outreach_sms_contact_queue
     const values = toAssign.map((r, j) => {
       const base = j * 7;
       return `($${base+1}, $${base+2}, $${base+3}, $${base+4}, $${base+5}, $${base+6}, $${base+7})`;
@@ -125,7 +176,7 @@ module.exports = async (req, res) => {
       ON CONFLICT (outreach_sms_id) DO NOTHING
     `, params);
 
-    res.json({ assigned: toAssign.length });
+    res.json({ assigned: toAssign.length, source: 'sms_schedule' });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: e.message });
