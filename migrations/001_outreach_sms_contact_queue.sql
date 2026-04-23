@@ -26,6 +26,20 @@ CREATE TABLE outreach_sms_contact_queue (
   queue_record_id       uuid,
   propagated_at         timestamptz,
 
+  -- comms preferences (snapshotted from patient_comms_preferences at assign time)
+  care_sms              boolean,
+  marketing_sms         boolean,
+
+  -- experiment arm (assigned by Customer.io — null until CIO sync is built)
+  -- arms: 'email_only' | 'sms_only' | 'sms_wait_call'
+  -- null = not SMS-eligible or experiment not yet active
+  experiment_arm        varchar,
+  sms_sent_at           timestamptz,  -- when Customer.io sent the SMS
+  cio_message_id        varchar,      -- Customer.io message ID for linking
+
+  -- arm 3 escalation: set when sms_wait_call contact is added to agent call queue
+  escalated_at          timestamptz,
+
   created_at            timestamptz NOT NULL DEFAULT NOW(),
   updated_at            timestamptz NOT NULL DEFAULT NOW(),
   deleted_at            timestamptz
@@ -36,3 +50,5 @@ CREATE INDEX ON outreach_sms_contact_queue (patient_id);
 CREATE INDEX ON outreach_sms_contact_queue (status) WHERE deleted_at IS NULL;
 CREATE INDEX ON outreach_sms_contact_queue (phone) WHERE deleted_at IS NULL;
 CREATE INDEX ON outreach_sms_contact_queue (assigned_agent_id, assigned_at) WHERE deleted_at IS NULL;
+CREATE INDEX ON outreach_sms_contact_queue (experiment_arm) WHERE deleted_at IS NULL AND experiment_arm IS NOT NULL;
+CREATE INDEX ON outreach_sms_contact_queue (sms_sent_at) WHERE deleted_at IS NULL AND escalated_at IS NULL AND experiment_arm = 'sms_wait_call';

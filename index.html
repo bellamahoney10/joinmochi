@@ -162,10 +162,13 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div class="pin-error" id="pin-err"></div>
     <div id="agent-sel" style="display:none;margin-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Which agent are you?</div>
-      <select id="agent-dropdown" onchange="selAgent(this.value,this.options[this.selectedIndex].text)" style="width:100%;padding:10px 12px;font-size:14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none">
-        <option value="" disabled selected>Agent Name</option>
-      </select>
-      <div id="agent-assign" style="margin-top:10px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="agent-btn" onclick="selAgent(1)">Agent 1</button>
+        <button class="agent-btn" onclick="selAgent(2)">Agent 2</button>
+        <button class="agent-btn" onclick="selAgent(3)">Agent 3</button>
+        <button class="agent-btn" onclick="selAgent(4)">Agent 4</button>
+      </div>
+      <div id="agent-assign" style="margin-top:12px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
       <button class="pin-btn" id="start-btn" style="display:none;margin-top:12px" onclick="startTool()">Start calling</button>
     </div>
     <button class="pin-btn" id="pin-btn" onclick="checkPin()">Enter</button>
@@ -200,6 +203,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div style="padding:0 14px 6px">
       <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showDashboard()">&#128200; My Dashboard</button>
       <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContacts()">&#128222; My Contacts</button>
+      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showCallbacks()">&#128337; Callbacks <span id="cb-badge" style="display:none;margin-left:4px;background:#E24B4A;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;vertical-align:middle"></span></button>
       <button class="qbtn n" style="margin:0;width:100%" onclick="showSchedule()">Call Schedule</button>
     </div>
     <hr class="sbdiv">
@@ -209,21 +213,30 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     </div>
     <hr class="sbdiv">
     <div class="sb-lbl" style="padding:0 14px;margin-bottom:6px">Quick Jump</div>
-    <button class="qbtn f" onclick="goTo('wellness');scrollTop()">Wellness+</button>
-    <button class="qbtn f" onclick="goTo('howitworks');scrollTop()">How It Works</button>
-    <button class="qbtn f" onclick="goTo('faq_pricing');scrollTop()">FAQ — Pricing</button>
-    <button class="qbtn f" onclick="goTo('faq_medication');scrollTop()">FAQ — Medication</button>
-    <button class="qbtn f" onclick="goTo('faq_compounded');scrollTop()">FAQ — Compounded GLP-1s</button>
-    <button class="qbtn f" onclick="goTo('faq_program');scrollTop()">FAQ — The Program</button>
-    <button class="qbtn f" onclick="goTo('faq_hesitations');scrollTop()">FAQ — Hesitations</button>
-    <button class="qbtn f" onclick="goTo('faq_logistics');scrollTop()">FAQ — Logistics</button>
-    <button class="qbtn obj" onclick="goTo('objections');scrollTop()">Objections</button>
+    <button class="qbtn f" onclick="goTo('wellness')">Wellness+</button>
+    <button class="qbtn f" onclick="goTo('howitworks')">How It Works</button>
+    <button class="qbtn f" onclick="goTo('faq_pricing')">FAQ — Pricing</button>
+    <button class="qbtn f" onclick="goTo('faq_medication')">FAQ — Medication</button>
+    <button class="qbtn f" onclick="goTo('faq_compounded')">FAQ — Compounded GLP-1s</button>
+    <button class="qbtn f" onclick="goTo('faq_program')">FAQ — The Program</button>
+    <button class="qbtn f" onclick="goTo('faq_hesitations')">FAQ — Hesitations</button>
+    <button class="qbtn f" onclick="goTo('faq_logistics')">FAQ — Logistics</button>
+    <button class="qbtn obj" onclick="goTo('objections')">Objections</button>
     <hr class="sbdiv">
-    <button class="qbtn" onclick="goTo('rude');scrollTop()">Hostile Caller</button>
-    <button class="qbtn" onclick="goTo('optout');scrollTop()">Opt-Out Request</button>
+    <button class="qbtn" onclick="goTo('rude')">Hostile Caller</button>
+    <button class="qbtn" onclick="goTo('optout')">Opt-Out Request</button>
     <button class="qbtn n" onclick="showCompliance()">Compliance Rules</button>
     <hr class="sbdiv">
     <div class="ref-sec">
+      <div class="ref-card">
+        <div class="ref-title">Call Result Key</div>
+        <div class="ref-row"><span class="ref-l">Call Answered</span><span class="ref-v" style="color:#085041">Patient picked up, spoke with agent</span></div>
+        <div class="ref-row"><span class="ref-l">Voicemail Left</span><span class="ref-v" style="color:#3C3489">Agent left a message successfully</span></div>
+        <div class="ref-row"><span class="ref-l">Hung Up</span><span class="ref-v" style="color:var(--amber-dark)">Patient picked up, ended call</span></div>
+        <div class="ref-row"><span class="ref-l">Inbox Full</span><span class="ref-v" style="color:#555972">Mailbox full, no message left</span></div>
+        <div class="ref-row"><span class="ref-l">Screened/Declined</span><span class="ref-v" style="color:#7f1d1d">Heard opening via iOS, declined</span></div>
+        <div class="ref-row"><span class="ref-l">Phone Unavailable</span><span class="ref-v" style="color:#555">Number disconnected or unavailable</span></div>
+      </div>
       <div class="ref-card">
         <div class="ref-title">Quick Reference</div>
         <div class="ref-row"><span class="ref-l">Health Sub (1mo)</span><span class="ref-v">$79/mo</span></div>
@@ -245,7 +258,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     </div>
   </nav>
   <div class="main">
-    <div class="mban" id="mban"><span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">Outbound Call</span><span id="active-call-bar" style="display:none"></span></div>
+    <div class="mban" id="mban"><span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">Outbound Call</span></div>
     <div class="topbar"><div class="crumb" id="crumb"></div><div class="tbr" id="tbr"></div></div>
     <div class="content" id="content"></div>
     <div class="footer">
@@ -259,11 +272,11 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
 
 <script>
 var PIN='2026';
-var APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbz8l2y8IhW-bwmK1q6q0vSBx59zTJ-uXcKRWrKwCzhc04KeYdEtt0xm4q5Mwaen6IH7qQ/exec';
-var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null, selectedAgentName='', agentsList=[], activeContactName='', activeContactPhone='';
-var contacts=[], contactIdx=0;
-var currentListFilter='all', currentListTitle='All Contacts';
-var STATE_TZ={Connecticut:'ET',Delaware:'ET','District of Columbia':'ET',Florida:'ET',Georgia:'ET',Indiana:'ET',Kentucky:'ET',Maine:'ET',Maryland:'ET',Massachusetts:'ET',Michigan:'ET','New Hampshire':'ET','New Jersey':'ET','New York':'ET','North Carolina':'ET',Ohio:'ET',Pennsylvania:'ET','Rhode Island':'ET','South Carolina':'ET',Vermont:'ET',Virginia:'ET','West Virginia':'ET',Alabama:'CT',Arkansas:'CT',Illinois:'CT',Iowa:'CT',Kansas:'CT',Louisiana:'CT',Minnesota:'CT',Mississippi:'CT',Missouri:'CT',Nebraska:'CT','North Dakota':'CT',Oklahoma:'CT','South Dakota':'CT',Tennessee:'CT',Texas:'CT',Wisconsin:'CT',Arizona:'MT',Colorado:'MT',Idaho:'MT',Montana:'MT','New Mexico':'MT',Utah:'MT',Wyoming:'MT',Alaska:'PT',California:'PT',Hawaii:'PT',Nevada:'PT',Oregon:'PT',Washington:'PT'};
+var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ';
+var API_KEY='AIzaSyCzUwI-DEdwx1eX34FWeFkicnWFd0AnQyQ';
+var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null;
+var contacts=[], contactIdx=0, activeCallContact=null;
+var agentTabs={1:'Agent 1',2:'Agent 2',3:'Agent 3',4:'Agent 4'};
 var OFFSETS={ET:3,CT:2,MT:1,PT:0,Eastern:3,Central:2,Mountain:1,Pacific:0};
 
 function normTz(tz){
@@ -295,7 +308,7 @@ var S={
     q:'What did you find?',
     br:[{t:'Active member — they have questions',n:'faq_pricing'},{t:'Active member — no questions, wrapping up',n:'end'},{t:'No active subscription — continue pitch',n:'pitch'}]},
   quick_pitch:{title:'Quick Pitch',trail:['Outbound','Quick Pitch'],type:'normal',
-    script:'<i>No problem — I will keep it quick. I am just calling to let you know that Mochi Health connects you with a <b>board-certified physician and dietitian</b> for personalized weight loss care, including access to <b>GLP-1 medication</b>. The membership starts at <b>$79/month</b> and covers unlimited provider visits, nutrition coaching, and 24/7 support — medication is an add-on starting at <b>$99/month</b>, shipped to your door, no insurance needed. You have already completed eligibility so you are ready to go — it takes about <b>five minutes to sign up</b> at joinmochi.com. I can also send you a direct link right now if that is easier, or answer any questions you might have.</i>',
+    script:'<i>No problem — I will keep it quick. I am just calling to let you know that Mochi Health connects you with a <b>board-certified physician and dietitian</b> for personalized weight loss care, including access to <b>GLP-1 medication</b>. The membership starts at <b>$79/month</b> and covers unlimited provider visits, nutrition coaching, and 24/7 customer support — medication is an add-on starting at <b>$99/month</b>, shipped to your door, no insurance needed. You have already completed eligibility so you are ready to go — it takes about <b>five minutes to sign up</b> at joinmochi.com. I can also send you a direct link right now if that is easier, or answer any questions you might have.</i>',
     q:'How do they respond?',
     br:[{t:'Interested — send the link',n:'close'},{t:'Tell me a bit more',n:'pitch'},{t:'Too expensive',n:'price'},{t:'Question about medication',n:'safety'},{t:'Not interested',n:'optout'}]},
   discovery:{title:'Discovery',trail:['Outbound','Discovery'],type:'normal',
@@ -303,7 +316,8 @@ var S={
     q:'What do they say?',
     br:[{t:'Cost / affordability concerns',n:'price'},{t:'Frustrated with other programs',n:'tellmore'},{t:'Asking about specific medication',n:'safety'},{t:'Want to know how it works',n:'howitworks'},{t:'Not interested in weight loss',n:'beyond_wl'},{t:'General interest — What does Mochi offer?',n:'pitch'}]},
   pitch:{title:'Pitch',trail:['Outbound','Pitch'],type:'normal',
-    script:'<i>For <b>$79 a month</b>, you are connected with a board-certified physician and a registered dietitian who provide truly personalized weight loss care. That includes <b>unlimited provider visits</b>, one-on-one nutrition coaching, and around-the-clock support. If GLP-1 medication is something you would like to explore, we have compounded options available starting at <b>$99 a month</b>. No insurance necessary, and everything is <b>shipped directly to you</b>. How does that sound?</i>',
+    script:'<i>For <b>$79 a month</b>, you\'re connected with a board-certified physician and a registered dietitian who provide truly personalized weight loss care — that includes <b>unlimited provider visits</b>, one-on-one nutrition coaching, and around-the-clock support. If GLP-1 medication is something you\'d like to explore, we have compounded options available: <b>semaglutide at $99 a month</b> and <b>tirzepatide at $199 a month</b>. And those are flat rates — no matter what dose you\'re on, even the highest, the price stays the same. Everything is <b>shipped directly to you</b>, no insurance needed. How does that sound?</i>',
+    note:'When promo is active: "And just so you know, right now we\'re offering 50% off your first month — so instead of $79, you\'d only pay $39 to get started."',
     q:"What's their reaction?",
     br:[{t:'Interested — tell me more',n:'tellmore'},{t:'How does it work?',n:'howitworks'},{t:'Too expensive',n:'price'},{t:'Question about insurance',n:'insurance'},{t:'Question about medication',n:'safety'},{t:'I need to think about it',n:'notready'}]},
   tellmore:{title:'Tell Me More',trail:['Outbound','Pitch','Tell Me More'],type:'normal',
@@ -320,7 +334,7 @@ var S={
     q:'How do they respond?',
     br:[{t:'Interested — ready to sign up',n:'close'},{t:'Insurance not eligible for Wellness+',n:'wellness_no'},{t:'Question about pricing',n:'price'},{t:'Not interested',n:'optout'}]},
   wellness_no:{title:'Wellness+ Not Eligible',trail:['Wellness+','Not Eligible'],type:'warn',
-    script:'<i>No worries at all — even without Wellness+, the <b>standard Health Subscription</b> gives you everything you need. For <b>$79/month</b> you get unlimited provider visits, nutrition coaching, 24/7 support, and access to compounded GLP-1 medication starting at <b>$99/month</b> — <b>no insurance needed</b>.</i>',
+    script:'<i>No worries at all — even without Wellness+, the <b>standard Health Subscription</b> gives you everything you need. For <b>$79/month</b> you get unlimited provider visits, nutrition coaching, 24/7 customer support, and access to compounded GLP-1 medication starting at <b>$99/month</b> — <b>no insurance needed</b>.</i>',
     q:'How do they respond?',
     br:[{t:'That works — ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Need to think about it',n:'notready'},{t:'Not interested',n:'optout'}]},
   beyond_wl:{title:'Beyond Weight Loss',trail:['Outbound','Discovery','Beyond Weight Loss'],type:'normal',
@@ -332,7 +346,7 @@ var S={
     q:'How do they respond?',
     br:[{t:'Interested — ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Not interested',n:'optout'}]},
   price:{title:'Price Objection',trail:['Price'],type:'warn',
-    script:'<i>The <b>$79/month</b> membership covers unlimited provider and dietitian visits, nutrition coaching, and 24/7 support. Compounded semaglutide is <b>$99/month</b> with shipping included — compared to up to $1,300/month for brand-name. The <b>3-month plan</b> brings membership down to about $66/month. FSA and HSA accepted. No hidden fees.</i>',
+    script:'<i>The <b>$79/month</b> membership covers unlimited provider and dietitian visits, nutrition coaching, and 24/7 customer support. Compounded semaglutide is <b>$99/month</b> with shipping included — compared to up to $1,300/month for brand-name. The <b>3-month plan</b> brings membership down to about $66/month. FSA and HSA accepted. No hidden fees.</i>',
     q:'Do they have more questions?',
     br:[{t:"That makes sense — let's continue",n:'close'},{t:'Question about medication',n:'safety'},{t:'Question about insurance',n:'insurance'},{t:'Still not sure',n:'notready'}]},
   insurance:{title:'Insurance Question',trail:['Insurance'],type:'normal',
@@ -363,7 +377,8 @@ var S={
   callback:{title:'Callback',trail:['Callback'],type:'normal',
     script:'<i>Of course — <b>when would be a better time to reach you?</b></i>',
     q:'How do they respond?',
-    br:[{t:'They give a time — noted',n:'end'},{t:"Just don't call again",n:'optout'}]},
+    br:[{t:'They give a time — schedule callback',n:'callback_capture'},{t:"Just don't call again",n:'optout'}]},
+  callback_capture:{title:'Schedule Callback',trail:['Callback','Schedule'],type:'callback_capture',script:'',q:'',br:[]},
   transparency:{title:'Number Transparency',trail:['Transparency'],type:'warn',
     script:'<i>You provided this number when you expressed interest in our program online. If you would prefer not to be contacted, I can <b>remove you from outreach right now</b>.</i>',
     q:'How do they respond?',
@@ -388,7 +403,7 @@ var S={
     br:[{t:'They found it / signing up now',n:'converted'},{t:'More questions',n:'faq_pricing'},{t:'Not interested',n:'optout'}]},
   faq_pricing:{title:'FAQ — Pricing',trail:['FAQ','Pricing'],type:'normal',faq:true,
     faqs:[
-      {q:'How much does it cost?',a:'<i>The membership itself is <b>$79/month</b> — unlimited provider and dietitian visits, nutrition coaching, and 24/7 support. Medication is billed separately. Compounded semaglutide is <b>$99/month</b> and tirzepatide is <b>$199/month</b>, both with shipping included.</i><br><br>3, 6, and 12 month plans available at ~$66/month. FSA and HSA accepted.'},
+      {q:'How much does it cost?',a:'<i>The membership is billed separately from medication. Compounded semaglutide is <b>$99/month</b> and tirzepatide is <b>$199/month</b>, both with shipping included. Membership plans:</i><br><br><b>1 month</b> — $79<br><b>3 months</b> — $199<br><b>6 months</b> — $399<br><b>12 months</b> — $799<br><br><i>When promo is active (50% off first month):</i><br><b>1 month</b> — $39<br><b>3 months</b> — $159<br><b>6 months</b> — $359<br><b>12 months</b> — $759<br><br>FSA and HSA accepted.'},
       {q:'What is Wellness+?',a:'<i>If your insurance qualifies, you may be eligible for our Wellness+ plan at <b>$69/month</b> — less than our standard plan, plus preventative health screenings, mental health support, and advanced nutrition therapy. Mochi guarantees <b>no surprise bills or copays</b>.</i>'},
       {q:'Who qualifies for Wellness+?',a:'<i>Most standard commercial insurance plans qualify. Not eligible: Medicare, Medicaid, Cigna as of April 2025, any HMO plan including Kaiser, and states without an in-network provider. If you would like, I can look into whether your plan would qualify.</i>'},
       {q:'Are there hidden fees?',a:'<i>No hidden fees and no surprise bills — ever. Shipping is included in the medication price.</i>'},
@@ -430,7 +445,7 @@ var S={
   faq_hesitations:{title:'FAQ — Hesitations',trail:['FAQ','Hesitations'],type:'warn',faq:true,
     faqs:[
       {q:'Why did I have to give my credit card info?',a:'<i>Your credit card is required to pay for your <b>Health Subscription</b> — the membership plan you choose when signing up. Once you are a member and meet with your provider, you are only charged for anything additional you choose to add on — like a <b>compounded GLP-1 subscription</b> or other medications. Nothing beyond your chosen plan is charged without your decision.</i>'},
-      {q:'Can I cancel anytime?',a:'<i>Yes — cancel at any time, no questions asked and <b>no cancellation fees</b>.</i><br><br>No refunds unless you are deemed medically ineligible after joining Mochi.'},
+      {q:'Can I cancel anytime?',a:'<i>Yes — cancel at any time, no questions asked and <b>no cancellation fees</b>.</i><br><br>If you are found to be medically ineligible after joining, you are eligible for a refund.'},
       {q:"What if the medication doesn't work for me?",a:"<i>Your provider is there for exactly that. Four phases of ongoing care — if something is not working, your provider adjusts your plan, changes your dose, or switches medications. <b>You are never left on your own.</b></i>"},
       {q:'I am switching from another program — do I have to restart?',a:'<i>Not at all. With documentation of your current dose, your Mochi provider will <b>continue you at that same dose</b>.</i>'}
     ],
@@ -439,7 +454,7 @@ var S={
   faq_logistics:{title:'FAQ — Logistics',trail:['FAQ','Logistics'],type:'normal',faq:true,
     faqs:[
       {q:'How soon can I get started?',a:'<i>Sign up in about <b>five minutes</b> right now. First provider visit typically within <b>one week</b>.</i>'},
-      {q:'How do I reach someone?',a:'<i><b>24/7 support</b> through the platform — message your care team through the patient portal anytime.</i>'},
+      {q:'How do I reach someone?',a:'<i><b>24/7 customer support</b> through the platform — message your care team through the patient portal anytime.</i>'},
       {q:'Do you serve my state?',a:'<i>Yes — Mochi is available in <b>all 50 states</b>.</i>'}
     ],
     q:'Do they have more questions?',
@@ -454,7 +469,7 @@ var S={
       {t:'I got it through my doctor / insurance covers it',n:'obj_doctor'}
     ]},
   obj_membership:{title:'Membership Objection',trail:['Objections','Membership Fee'],type:'warn',
-    script:'<i>I completely understand — and I want to be honest about why it\'s set up this way. <b>Choosing to join Mochi is a life-changing decision in your health journey</b>, and having <b>continuous care alongside your medication is very important for your safety, your health, and the results you see.</b></i><br><br><i>GLP-1 medications work best with provider oversight — dosage adjustments, monitoring, and support as your body responds. At Mochi, we truly care, and we don\'t want to offer medication without the guidance and support behind it. That is the difference between a program and a prescription.</i><br><br><i>Some programs do ship medication with no guidance at all — that can be genuinely risky without someone monitoring how your body is responding. Others have low introductory prices that add up quickly — membership fees alone can jump to <b>$145–$149 a month</b> after the first month, and medication is still billed separately on top of that. With Mochi, <b>$79/month covers everything</b> — unlimited provider visits including real video visits, one-on-one dietitian coaching, and 24/7 support. No surprises.</i><br><br><div style="font-size:10px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:.07em;margin:10px 0 4px">🔒 Internal context — use naturally, do not read verbatim</div><div style="font-size:12px;color:var(--text-secondary);line-height:1.6">Ro and Hims &amp; Hers both charge $39 for month one, then $145–$149/month for membership alone going forward. Medication (GLP-1, Wegovy, etc.) is billed separately on top of that. Mochi\'s all-in $178/month (sema) or $278/month (tirz) is significantly cheaper once the intro offer ends.</div>',
+    script:'<i>I completely understand — and I want to be honest about why it\'s set up this way. <b>Choosing to join Mochi is a life-changing decision in your health journey</b>, and having <b>continuous care alongside your medication is very important for your safety, your health, and the results you see.</b></i><br><br><i>GLP-1 medications work best with provider oversight — dosage adjustments, monitoring, and support as your body responds. At Mochi, we truly care, and we don\'t want to offer medication without the guidance and support behind it. That is the difference between a program and a prescription.</i><br><br><i>Some programs do ship medication with no guidance at all — that can be genuinely risky without someone monitoring how your body is responding. Others have low introductory prices that add up quickly — membership fees alone can jump to <b>$145–$149 a month</b> after the first month, and medication is still billed separately on top of that. With Mochi, <b>$79/month covers everything</b> — unlimited provider visits including real video visits, one-on-one dietitian coaching, and 24/7 customer support. No surprises.</i><br><br><div style="font-size:10px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:.07em;margin:10px 0 4px">🔒 Internal context — use naturally, do not read verbatim</div><div style="font-size:12px;color:var(--text-secondary);line-height:1.6">Ro and Hims &amp; Hers both charge $39 for month one, then $145–$149/month for membership alone going forward. Medication (GLP-1, Wegovy, etc.) is billed separately on top of that. Mochi\'s all-in $178/month (sema) or $278/month (tirz) is significantly cheaper once the intro offer ends.</div>',
     q:'How do they respond?',
     br:[{t:'That makes sense — tell me more',n:'pitch'},{t:'Still concerned about the price',n:'obj_price'},{t:'Ready to sign up',n:'close'},{t:'Still not interested',n:'optout'}]},
   obj_price:{title:'Too Expensive',trail:['Objections','Too Expensive'],type:'warn',
@@ -462,7 +477,7 @@ var S={
     q:'How do they respond?',
     br:[{t:"That makes sense — let's continue",n:'close'},{t:'Question about insurance',n:'insurance'},{t:'Still not sure',n:'notready'},{t:'Not interested',n:'optout'}]},
   obj_competitor:{title:'Went With a Competitor',trail:['Objections','Chose Competitor'],type:'warn',
-    script:'<i>I\'m glad you\'re taking this step — that\'s exciting. Before I let you go, do you mind if I ask <b>which program you went with</b>, and what made you choose them over Mochi?</i><br><br><b>Listen and note their answer.</b> Then:<br><br><i>That makes sense, thank you for sharing that. Just so you know, with Mochi you get <b>continuous, personalized care</b> alongside your medication — a board-certified physician, a registered dietitian, and real <b>video visits with your provider</b>, not just messaging. Direct access, dosage adjustments, 24/7 support, all included. We also have a full shop with <b>hundreds of other prescriptions</b> with full price transparency. If things don\'t go exactly as expected or you\'re ever looking for more comprehensive support, please don\'t hesitate to call us back or visit <b>joinmochi.com</b>.</i>',
+    script:'<i>I\'m glad you\'re taking this step — that\'s exciting. Before I let you go, do you mind if I ask <b>which program you went with</b>, and what made you choose them over Mochi?</i><br><br><b>Listen and note their answer.</b> Then:<br><br><i>That makes sense, thank you for sharing that. Just so you know, with Mochi you get <b>continuous, personalized care</b> alongside your medication — a board-certified physician, a registered dietitian, and real <b>video visits with your provider</b>, not just messaging. Direct access, dosage adjustments, 24/7 customer support, all included. We also have a full shop with <b>hundreds of other prescriptions</b> with full price transparency. If things don\'t go exactly as expected or you\'re ever looking for more comprehensive support, please don\'t hesitate to call us back or visit <b>joinmochi.com</b>.</i>',
     q:'Which program did they name?',
     br:[{t:'They mention Ro or Hims / Hers',n:'obj_ro'},{t:'They mention another program by name',n:'obj_comp_intel'},{t:'They want to hear more about Mochi',n:'pitch'},{t:'End call gracefully',n:'end'}]},
   obj_ro:{title:'They Went With Ro',trail:['Objections','Chose Competitor','Ro'],type:'warn',
@@ -500,44 +515,16 @@ function checkPin(){
     document.getElementById('pin-btn').style.display='none';
     document.getElementById('pin-err').textContent='';
     document.getElementById('pin-inp').disabled=true;
-    loadAgents();
   } else {
     document.getElementById('pin-err').textContent='Incorrect PIN. Try again.';
     document.getElementById('pin-inp').value='';
   }
 }
 
-function loadAgents(){
-  var dd=document.getElementById('agent-dropdown');
-  if(!dd)return;
-  dd.disabled=true;
-  fetch('/api/agents')
-    .then(function(r){return r.json();})
-    .then(function(agents){
-      agentsList=agents;
-      dd.innerHTML='<option value="" disabled selected>Agent Name</option>';
-      agents.forEach(function(a){
-        var opt=document.createElement('option');
-        opt.value=a.id;
-        opt.textContent=a.first_name+' '+a.last_name;
-        dd.appendChild(opt);
-      });
-      dd.disabled=false;
-    })
-    .catch(function(){
-      dd.innerHTML='<option value="" disabled selected>Failed to load — refresh page</option>';
-      dd.disabled=false;
-    });
-}
-
-function selAgent(agentId,agentName){
-  if(!agentId)return;
-  selectedAgent=agentId;
-  selectedAgentName=agentName.trim();
-  var agentIdx=0;
-  for(var i=0;i<agentsList.length;i++){if(agentsList[i].id===agentId){agentIdx=i;break;}}
-  var odd=getWk()%2===1,g1=agentIdx%2===0;
-  vmS1=g1?odd:!odd;
+function selAgent(n){
+  selectedAgent=n;
+  document.querySelectorAll('.agent-btn').forEach(function(b,i){b.classList.toggle('sel',i===n-1);});
+  vmS1=getScript(n)===1;
   document.getElementById('agent-assign').innerHTML='<strong>Week '+getWk()+' assignment:</strong> '+(vmS1?'Script 1 — Weight Loss':'Script 2 — Personalized Care');
   document.getElementById('start-btn').style.display='block';
 }
@@ -552,7 +539,6 @@ function startTool(){
   loadContacts(selectedAgent,function(result){
     contacts=result;
     contactIdx=0;
-    initSheetSession(contacts);
     var el=document.getElementById('load-msg');
     if(el)el.parentNode.removeChild(el);
     cur='open';hist=[];
@@ -574,8 +560,8 @@ function tzStatus(tz){
   var loc=ptD+(OFFSETS[tz]||0);
   if(loc<8||loc>=18.5)return{label:'Do Not Call',color:'#E24B4A'};
   if((tz==='ET'&&ptD>=14)||(tz==='CT'&&ptD>=15))return{label:'Wind Down',color:'#EF9F27'};
-  if((loc>=8&&loc<10)||(loc>=16&&loc<18))return{label:'Ideal Window',color:'#1D9E75'};
-  return{label:'Call Now',color:'#6B8CFF'};
+  if((loc>=8&&loc<10)||(loc>=16&&loc<17))return{label:'Ideal Window',color:'#1D9E75'};
+  return{label:'Call Now',color:'#0a0a74'};
 }
 
 var ZONES=[{l:'ET',z:'America/New_York'},{l:'CT',z:'America/Chicago'},{l:'MT',z:'America/Denver'},{l:'PT',z:'America/Los_Angeles'}];
@@ -595,62 +581,56 @@ function updateClocks(){
   }).join('');
 }
 updateClocks();setInterval(updateClocks,1000);
+setTimeout(updateCbBadge,100);
 
 function getTodayStr(){
-  return new Date().toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric',year:'numeric'});
+  var d=new Date();
+  return (d.getMonth()+1)+'/'+(d.getDate())+'/'+d.getFullYear();
 }
 
-function getLoggedKey(){return 'mochi_logged_'+getTodayStr()+'_'+selectedAgent;}
-function getLoggedToday(){try{return JSON.parse(localStorage.getItem(getLoggedKey()))||{};}catch(e){return {};}}
-function saveLogged(contactId,outcome,notes){var d=getLoggedToday();d[contactId]={outcome:outcome,notes:notes||''};localStorage.setItem(getLoggedKey(),JSON.stringify(d));}
-function clearLogged(contactId){var d=getLoggedToday();delete d[contactId];localStorage.setItem(getLoggedKey(),JSON.stringify(d));}
-function cap(s){return(s||'').replace(/\b\w/g,function(c){return c.toUpperCase();});}
-function findContactById(id){for(var i=0;i<contacts.length;i++){if(contacts[i].id===id)return contacts[i];}return null;}
-
-function getSessionKey(){return 'mochi_session_'+getTodayStr()+'_'+selectedAgent;}
-function getSnapshotKey(){return 'mochi_snap_'+getTodayStr()+'_'+selectedAgent;}
-function loadSnapshot(){try{return JSON.parse(localStorage.getItem(getSnapshotKey()))||[];}catch(e){return [];}}
-function saveSnapshot(list){
-  var raw=list.map(function(c){return {id:c.id,'Name':c['Name'],'First Name':c['First Name'],'Last Name':c['Last Name'],'Phone':c['Phone'],'State':c['State'],'Time Zone':c['Time Zone'],'Date Assigned':c['Date Assigned']};});
-  localStorage.setItem(getSnapshotKey(),JSON.stringify(raw));
-}
-function mergeWithSnapshot(liveContacts){
-  var snap=loadSnapshot();
-  var ids={};
-  var merged=[];
-  snap.forEach(function(c){ids[c.id]=true;merged.push(c);});
-  liveContacts.forEach(function(c){if(!ids[c.id]){ids[c.id]=true;merged.push(c);}});
-  var logged=getLoggedToday();
-  return merged.map(function(c){
-    var entry=logged[c.id]||{};
-    return Object.assign({},c,{'Contacted':entry.outcome||'','Notes':entry.notes||''});
-  });
+function sheetUrl(tab,range){
+  return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY;
 }
 
-function loadContacts(agentId,callback){
-  if(!agentId){callback([]);return;}
-  fetch('/api/contacts?agent_id='+encodeURIComponent(agentId))
+function loadContacts(agentNum,callback){
+  var tab=agentTabs[agentNum];
+  if(!tab){callback([]);return;}
+  fetch(sheetUrl(tab,'A:L'))
     .then(function(r){return r.json();})
     .then(function(data){
-      var result=data.map(function(row){
-        var tz=STATE_TZ[row.state]||'ET';
-        var assignedDate=row.assigned_at?new Date(row.assigned_at):new Date();
-        var assignedStr=assignedDate.toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'numeric',day:'numeric',year:'numeric'});
-        return {
-          id:row.id,
-          'Name':(cap(row.first_name)+' '+cap(row.last_name)).trim(),
-          'First Name':cap(row.first_name),
-          'Last Name':cap(row.last_name),
-          'Phone':row.phone||'',
-          'State':row.state||'',
-          'Time Zone':tz,
-          'Date Assigned':assignedStr
-        };
+      var rows=data.values||[];
+      if(rows.length<2){callback([]);return;}
+      var headers=null;
+      var dataStart=0;
+      for(var h=0;h<Math.min(5,rows.length);h++){
+        if(rows[h][0]&&rows[h][0].toString().toLowerCase().indexOf('date')>=0){
+          headers=rows[h];dataStart=h+1;break;
+        }
+      }
+      if(!headers){callback([]);return;}
+      console.log('Headers found at row '+(dataStart)+':',headers);
+      var today=getTodayStr();
+      console.log('Today string:',today);
+      console.log('Total rows from sheet:',rows.length);
+      console.log('Headers:',headers);
+      var result=[];
+      for(var i=dataStart;i<rows.length;i++){
+        var row=rows[i];
+        var obj={rowIndex:i+1};
+        for(var j=0;j<headers.length;j++){
+          var hdr=(headers[j]||'').trim();
+          obj[hdr]=row[j]||'';
+        }
+        var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
+        var contacted=(obj['Contacted']||'').trim();
+        console.log('Row '+(i+1)+': date='+dateVal+' contacted=['+contacted+'] tz='+obj['Time Zone']);
+        if(dateVal===today&&(contacted===''||contacted==='-'||contacted==='Assigned')){result.push(obj);}
+      }
+      result.sort(function(a,b){
+        var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
+        return pa-pb;
       });
-      var merged=mergeWithSnapshot(result);
-      saveSnapshot(merged);
-      merged.sort(function(a,b){return tzPriority(a['Time Zone'])-tzPriority(b['Time Zone']);});
-      callback(merged);
+      callback(result);
     })
     .catch(function(){callback([]);});
 }
@@ -659,35 +639,30 @@ function tzPriority(tz){
   var ptD=getPtDecimal();
   var loc=ptD+(OFFSETS[tz]||0);
   if(loc<8||loc>=18.5)return 999;
-  var ideal=(loc>=8&&loc<10)||(loc>=16&&loc<18);
+  var ideal=(loc>=8&&loc<10)||(loc>=16&&loc<17);
   if(ideal)return 0;
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
 
-function sheetPost(payload){
-  fetch('/api/sheet',{
-    method:'POST',
+function writeOutcome(agentNum,rowIndex,outcome,notes){
+  var tab=agentTabs[agentNum];
+  if(!tab)return;
+  var url='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!J'+rowIndex+':K'+rowIndex)+'?valueInputOption=RAW&key='+API_KEY;
+  console.log('Writing to row '+rowIndex+': outcome='+outcome+' notes='+notes);
+  console.log('URL:',url);
+  fetch(url,{
+    method:'PUT',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  }).catch(function(e){console.error('Sheet error:',e);});
-}
-
-function initSheetSession(contacts){
-  if(!contacts.length)return;
-  if(localStorage.getItem(getSessionKey()))return;
-  localStorage.setItem(getSessionKey(),'1');
-  var rows=contacts.map(function(c){
-    return [c['Date Assigned'],selectedAgentName,c['Name'],c['Phone'],'',''];
-  });
-  sheetPost({action:'initSession',agent:selectedAgentName,rows:rows});
-}
-
-function writeOutcome(agentId,contactId,outcome,notes){
-  var c=null;
-  for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){c=contacts[i];break;}}
-  if(!c)return;
-  saveLogged(contactId,outcome,notes);
-  sheetPost({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,name:c['Name'],phone:c['Phone'],result:outcome,notes:notes});
+    body:JSON.stringify({values:[[outcome,notes||'']]})
+  })
+  .then(function(r){
+    console.log('Write response status:',r.status);
+    return r.json();
+  })
+  .then(function(d){
+    console.log('Write response:',JSON.stringify(d));
+  })
+  .catch(function(e){console.log('Write error:',e);});
 }
 
 function getDashboardStats(){
@@ -710,28 +685,19 @@ function showDashboard(){
   scrollTop();
 }
 
-function checkAndTopup(callback){
-  fetch('/api/refresh',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
-    .then(function(){callback();})
-    .catch(function(){callback();});
-}
-
 function refreshAndDash(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  checkAndTopup(function(){
-    loadContacts(selectedAgent,function(result){
-      contacts=result;contactIdx=0;
-      initSheetSession(contacts);
-      if(btn)btn.textContent='Refresh';
-      renderDashboard();
-    });
+  loadContacts(selectedAgent,function(result){
+    contacts=result;contactIdx=0;
+    if(btn)btn.textContent='Refresh';
+    renderDashboard();
   });
 }
 
 function renderDashboard(){
   var st=getDashboardStats();
-  var agentName=selectedAgentName||'Agent';
+  var agentName=agentTabs[selectedAgent]||'Agent';
   var now=new Date();
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var dateStr=months[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
@@ -810,51 +776,22 @@ function showContactList(filter){
   document.getElementById('back-btn').disabled=false;
 }
 
-var skippedIds={};
-var lastLoggedContactId=null;
-var editReturnFn=null;
-
-function getBestUncalledIdx(){
-  var best=null,bestP=Infinity;
-  for(var i=0;i<contacts.length;i++){
-    if(contacts[i]['Contacted'])continue;
-    if(skippedIds[contacts[i].id])continue;
-    var p=tzPriority(contacts[i]['Time Zone']);
-    if(p<bestP){bestP=p;best=i;}
-  }
-  return best;
-}
-
-function skipContact(id){
-  skippedIds[id]=true;
-  renderContactPanel();
-}
-
-
 function showContacts(){
   hist.push({id:cur});cur='_contacts';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">My Contacts</span>';
-  document.getElementById('tbr').innerHTML='<button onclick="refreshContacts()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>'
-    +'<button onclick="openScript()" style="margin-left:6px;padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Navigate Tool</button>';
+  document.getElementById('tbr').innerHTML='<button onclick="refreshContacts()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>';
   renderContactPanel();
   document.getElementById('back-btn').disabled=false;
-}
-
-function openScript(){
-  pendingContactId=null;activeContactName='';activeContactPhone='';
-  cur=mode==='inbound'?'inbound_open':'open';hist=[];render();
+  scrollTop();
 }
 
 function refreshContacts(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  checkAndTopup(function(){
-    loadContacts(selectedAgent,function(result){
-      contacts=result;contactIdx=0;
-      initSheetSession(contacts);
-      if(btn)btn.textContent='Refresh';
-      renderContactPanel();
-    });
+  loadContacts(selectedAgent,function(result){
+    contacts=result;contactIdx=0;
+    if(btn)btn.textContent='Refresh';
+    renderContactPanel();
   });
 }
 
@@ -867,30 +804,12 @@ function renderContactPanel(){
     document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>';
     return;
   }
-  var c=null;
-  if(lockedContactId!==null){c=findContactById(lockedContactId);}
-  if(!c){
-    var idx=getBestUncalledIdx();
-    if(idx===null){
-      // all uncalled contacts are skipped
-      var skippedCount=uncalled.filter(function(i){return skippedIds[contacts[i].id];}).length;
-      document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You have skipped '+skippedCount+' contact'+(skippedCount!==1?'s':'')+'. Clear skips to continue calling them.</div><button onclick="skippedIds={};renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>';
-      return;
-    }
-    c=contacts[idx];
-  }
+  var idx=uncalled[0];
+  var c=contacts[idx];
   var tz=normTz(c['Time Zone']||'');
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
   var bc=tzColors[tz]||'#534AB7';
   var initials=(c['Name']||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-  var btStyles={
-    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
-    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Screened/Declined':'border:1.5px solid #FCA5A5;background:#FEE2E2;color:#B91C1C',
-    'Phone Unavailable':'border:1.5px solid var(--border);background:#F0F0F5;color:#555'
-  };
   var html='<div class="panel">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
     +'<div class="panel-title" style="margin-bottom:0">Next Contact</div>'
@@ -906,45 +825,145 @@ function renderContactPanel(){
     +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Phone Number</div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between">'
     +'<div style="font-size:20px;font-weight:700;color:var(--brand);letter-spacing:.05em">'+(c['Phone']||'')+'</div>'
-    +'<div style="display:flex;gap:8px">'
-    +'<button onclick="copyPhone(\''+(c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
-    +'<button onclick="startCall(\''+c.id+'\')" style="padding:4px 14px;font-size:11px;font-weight:700;border-radius:6px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Call</button>'
-    +'</div></div></div>'
+    +'<button onclick="copyPhone(\''+( c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
+    +'</div></div>'
+    +'<button onclick="startCallFromContacts('+idx+')" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:16px">Call '+(c['Name']||'this person')+'</button>'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Result</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
+  var btStyles={
+    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
+    'No Answer':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
+    'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
+    'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
+  };
   OUTCOMES.forEach(function(o){
-    html+='<button onclick="selectOutcome(\''+c.id+'\',\''+o+'\')" id="oc-btn-'+o.replace(/\s/g,'-')+'" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
+    html+='<button onclick="selectOutcome('+idx+',\''+o+'\')" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
   });
   html+='</div>'
     +'<div id="notes-panel" style="display:none">'
-    +'<div id="cbr-row" style="display:none;margin-bottom:8px"><button id="cbr-btn" onclick="toggleCbr()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);text-align:left">+ Mark as Call Back Request</button></div>'
-    +'<textarea id="outcome-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:8px">'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
+    +'<textarea id="outcome-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
     +'<button onclick="submitOutcome()" id="submit-outcome-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
     +'<button onclick="cancelOutcome()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
     +'</div></div>'
-    +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light)">'
-    +'<button onclick="skipContact(\''+c.id+'\')" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Skip — Come Back Later</button>'
     +'</div>';
-  if(lastLoggedContactId){var lc=findContactById(lastLoggedContactId);if(lc&&lc['Contacted']){html+='<div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--navy-faint);border-radius:var(--radius-md)">'+'<div style="font-size:11px;color:var(--text-secondary)">Last logged: <b style="color:var(--brand)">'+lc['Name']+'</b> — '+lc['Contacted']+'</div>'+'<button onclick="editFromPanel(\''+lc.id+'\')" style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Edit</button>'+'</div>';}}
-  html+='</div>';
-  var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;
+  document.getElementById('content').innerHTML=html;
+}
+
+function startCallFromContacts(idx){
+  activeCallContact=contacts[idx]||null;
+  cur=mode==='inbound'?'inbound_open':'open';hist=[];render();scrollTop();
 }
 
 var pendingOutcome=null;
-var pendingContactId=null;
-var lockedContactId=null;
-function clearActiveCallBar(){activeContactName='';activeContactPhone='';var bar=document.getElementById('active-call-bar');if(bar)bar.style.display='none';}
+var pendingIdx=null;
 
-function startCall(id){
-  var c=findContactById(id);
-  pendingContactId=id;
-  lockedContactId=id;
-  activeContactName=c?c['Name']:'';
-  activeContactPhone=c?c['Phone']:'';
-  cur=mode==='inbound'?'inbound_open':'open';
-  hist=[];
-  render();
+var callbacks=JSON.parse(localStorage.getItem('mochi_callbacks')||'[]');
+function saveCallbacks(){localStorage.setItem('mochi_callbacks',JSON.stringify(callbacks));}
+function updateCbBadge(){
+  var pending=callbacks.filter(function(c){return !c.called;}).length;
+  var b=document.getElementById('cb-badge');
+  if(b){if(pending>0){b.textContent=pending;b.style.display='inline';}else{b.style.display='none';}}
+}
+
+function showCallbacks(){
+  hist.push({id:cur});cur='_callbacks';
+  document.getElementById('crumb').innerHTML='<span class="crumb-a">My Callbacks</span>';
+  document.getElementById('tbr').innerHTML='<select id="cb-sort" onchange="renderCallbacks()" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)"><option value="datetime">Sort: Date &amp; Time</option><option value="tz">Sort: Timezone</option></select>';
+  renderCallbacks();
+  document.getElementById('back-btn').disabled=false;
+  scrollTop();
+}
+
+function renderCallbacks(){
+  var sort=(document.getElementById('cb-sort')||{}).value||'datetime';
+  var items=callbacks.slice();
+  items.sort(function(a,b){
+    if(sort==='datetime'){
+      var da=(a.date||'9999')+'-'+(a.time||'00:00'),db=(b.date||'9999')+'-'+(b.time||'00:00');
+      return da<db?-1:da>db?1:0;
+    }
+    var to={ET:0,CT:1,MT:2,PT:3};
+    return (to[a.timezone]||0)-(to[b.timezone]||0);
+  });
+  var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if(!items.length){
+    document.getElementById('content').innerHTML='<div class="panel"><div style="font-size:13px;color:var(--text-secondary)">No callbacks scheduled yet. When a patient asks to be called back, use the "Schedule Callback" option to capture the details here.</div></div>';
+    return;
+  }
+  var groups={};
+  items.forEach(function(cb){var key=cb.date||'No Date';if(!groups[key])groups[key]=[];groups[key].push(cb);});
+  var html='';
+  Object.keys(groups).sort().forEach(function(date){
+    var label=date;
+    try{var d=new Date(date+'T12:00:00');label=months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}catch(e){}
+    html+='<div class="panel" style="margin-bottom:10px">';
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:10px">'+label+'</div>';
+    groups[date].forEach(function(cb){
+      var bc=tzColors[cb.timezone]||'#534AB7';
+      var timeStr=cb.time||'—';
+      try{if(cb.time){var tp=cb.time.split(':');var h=parseInt(tp[0]);var m=tp[1];var ampm=h>=12?'PM':'AM';h=h%12||12;timeStr=h+':'+m+' '+ampm;}}catch(e){}
+      var realIdx=callbacks.indexOf(cb);
+      var faded=cb.called?'opacity:.4;':'';
+      html+='<div style="'+faded+'display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light);gap:10px;flex-wrap:wrap">'
+        +'<div style="display:flex;align-items:center;gap:10px;min-width:0">'
+        +'<div style="width:34px;height:34px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brand);flex-shrink:0">'+(cb.name||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase()+'</div>'
+        +'<div style="min-width:0">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(cb.name||'Unknown')+(cb.called?' <span style="font-size:10px;color:#1D9E75;font-weight:700">&#10003; Called</span>':'')+'</div>'
+        +'<div style="font-size:11px;color:var(--text-secondary)">'+(cb.phone||'')+(cb.notes?' &nbsp;&middot;&nbsp; <i>'+cb.notes+'</i>':'')+'</div>'
+        +'</div></div>'
+        +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
+        +'<span style="font-size:13px;font-weight:700;color:var(--brand)">'+timeStr+'</span>'
+        +(cb.timezone?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+bc+';color:#fff">'+cb.timezone+'</span>':'')
+        +(!cb.called?'<button onclick="markCallbackCalled('+realIdx+')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041;cursor:pointer;font-family:var(--font)">Mark Called</button>':'')
+        +'</div>'
+        +'</div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('content').innerHTML=html;
+}
+
+function markCallbackCalled(idx){
+  if(callbacks[idx])callbacks[idx].called=true;
+  saveCallbacks();
+  updateCbBadge();
+  renderCallbacks();
+}
+
+function saveCallbackRequest(){
+  var _cc=activeCallContact||(contacts.filter(function(c){return !c['Contacted'];})[0]||null);
+  var date=document.getElementById('cb-date').value;
+  var time=document.getElementById('cb-time').value;
+  var tz=document.getElementById('cb-tz').value;
+  var notes=document.getElementById('cb-notes').value.trim();
+  callbacks.push({
+    id:Date.now(),
+    name:_cc?(_cc['Name']||''):'',
+    phone:_cc?(_cc['Phone']||''):'',
+    timezone:tz,
+    date:date,
+    time:time,
+    notes:notes,
+    called:false,
+    savedAt:new Date().toISOString()
+  });
+  saveCallbacks();
+  updateCbBadge();
+  cur='end';hist=[];render();
+  var content=document.getElementById('content');
+  var banner=document.createElement('div');
+  banner.style.cssText='background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#085041';
+  var timeStr=time||'—';
+  try{if(time){var tp=time.split(':');var h=parseInt(tp[0]);var m=tp[1];var ampm=h>=12?'PM':'AM';h=h%12||12;timeStr=h+':'+m+' '+ampm;}}catch(e){}
+  banner.textContent='Callback saved for '+(_cc?_cc['Name']:'patient')+' \u2014 '+date+' at '+timeStr+' '+tz+'.';
+  content.insertBefore(banner,content.firstChild);
+  setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},5000);
 }
 
 function copyPhone(num){
@@ -957,56 +976,11 @@ function copyPhone(num){
   });
 }
 
-function selectOutcome(id,outcome){
-  pendingOutcome=outcome;
-  pendingContactId=id;
-  pendingCbr=false;
-  var np=document.getElementById('notes-panel');
-  if(np)np.style.display='block';
-  var cbrRow=document.getElementById('cbr-row');
-  var cbrBtn=document.getElementById('cbr-btn');
-  if(cbrRow)cbrRow.style.display=outcome==='Call Answered'?'block':'none';
-  if(cbrBtn){cbrBtn.textContent='+ Mark as Call Back Request';cbrBtn.style.background='#fff';cbrBtn.style.borderColor='var(--border)';cbrBtn.style.color='var(--text-secondary)';}
-  var ta=document.getElementById('outcome-notes');
-  if(ta)ta.placeholder='Add notes (optional)...';
-  var btn=document.getElementById('submit-outcome-btn');
-  if(btn)btn.textContent='Submit — '+outcome;
-}
-var pendingCbr=false;
-function toggleCbr(){
-  pendingCbr=!pendingCbr;
-  var btn=document.getElementById('cbr-btn');
-  if(btn){btn.textContent=pendingCbr?'✓ Call Back Request':'+ Mark as Call Back Request';btn.style.background=pendingCbr?'var(--brand-light)':'#fff';btn.style.borderColor=pendingCbr?'var(--brand)':'var(--border)';btn.style.color=pendingCbr?'var(--brand)':'var(--text-secondary)';}
-  var ta=document.getElementById('outcome-notes');
-  if(ta)ta.placeholder=pendingCbr?'Add callback time and any notes...':'Add notes (optional)...';
-}
-
-function cancelOutcome(){
-  pendingOutcome=null;pendingContactId=null;
-  var np=document.getElementById('notes-panel');
-  if(np)np.style.display='none';
-}
-
-function submitOutcome(){
-  if(pendingOutcome===null||pendingContactId===null)return;
-  var notes=document.getElementById('outcome-notes');
-  var notesVal=notes?notes.value:'';
-  if(pendingCbr)notesVal=notesVal?'Callback Request — '+notesVal:'Callback Request';
-  pendingCbr=false;
-  var c=findContactById(pendingContactId);
-  if(!c)return;
-  c['Contacted']=pendingOutcome;
-  c['Notes']=notesVal;
-  writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal);
-  lastLoggedContactId=c.id;
-  pendingOutcome=null;pendingContactId=null;lockedContactId=null;
-  clearActiveCallBar();
-  renderContactPanel();
-}
-
 function showLogResult(){
-  if(pendingContactId===null){showContacts();return;}
-  var c=findContactById(pendingContactId);
+  var uncalled=[];
+  for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
+  var idx=uncalled.length?uncalled[0]:null;
+  var c=idx!==null?contacts[idx]:null;
   hist.push({id:cur});cur='_log';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Log Call Result</span>';
   document.getElementById('tbr').innerHTML='';
@@ -1015,91 +989,31 @@ function showLogResult(){
     'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
     'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
     'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Screened/Declined':'border:1.5px solid #EF4444;background:#FEE2E2;color:#B91C1C',
-    'Phone Unavailable':'border:1.5px solid var(--border);background:#F0F0F5;color:#555'
+    'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
+    'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
   };
-  var contactInfo=c
-    ?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>'
-    :'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved to sheet.</div>';
-  var html='<div class="panel">'
+  var contactInfo=c?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>':'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved to sheet.</div>';
+  var btns=Object.keys(btStyles).map(function(o){
+    return '<button onclick="logFromAnywhere(\''+o+'\','+idx+')" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
+  }).join('');
+  document.getElementById('content').innerHTML='<div class="panel">'
     +'<div class="panel-title" style="margin-bottom:12px">Log Result for Current Call</div>'
     +contactInfo
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Select Outcome</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
-  Object.keys(btStyles).forEach(function(o){
-    html+='<button onclick="selectLogOutcome(\''+o+'\',\''+pendingContactId+'\')" id="log-oc-btn-'+o.replace(/\s/g,'-')+'" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
-  });
-  html+='</div>'
-    +'<div id="log-notes-panel" style="display:none">'
-    +'<div id="log-cbr-row" style="display:none;margin-bottom:8px"><button id="log-cbr-btn" onclick="toggleLogCbr()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);text-align:left">+ Mark as Call Back Request</button></div>'
-    +'<textarea id="log-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:8px">'
-    +'<button onclick="submitLogOutcome()" id="submit-log-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
-    +'<button onclick="cancelLogOutcome()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
-    +'</div></div>'
-    +'<div style="margin-top:16px;border-top:1px solid var(--border-light);padding-top:14px">'
-    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Call Result Key</div>'
-    +'<div style="font-size:12px;display:flex;flex-direction:column;gap:6px">'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Call Answered</span><span style="color:#085041;font-weight:600">Patient picked up, spoke with agent</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Voicemail Left</span><span style="color:#3C3489;font-weight:600">Agent left a message successfully</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Hung Up</span><span style="color:var(--amber-dark);font-weight:600">Patient picked up, ended call</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Inbox Full</span><span style="color:var(--text);font-weight:600">Mailbox full, no message left</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Screened/Declined</span><span style="color:#B91C1C;font-weight:600">Heard opening via iOS, declined</span></div>'
-    +'<div style="display:flex;gap:8px"><span style="width:110px;flex-shrink:0;color:var(--text-secondary)">Phone Unavailable</span><span style="color:#555;font-weight:600">Number disconnected or unavailable</span></div>'
-    +'</div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+btns+'</div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
+    +'<textarea id="log-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
     +'</div>';
-  var cel=document.getElementById('content');cel.innerHTML=html;cel.scrollTop=0;window.scrollTo(0,0);
 }
 
-var pendingLogOutcome=null;
-var pendingLogContactId=null;
-
-function selectLogOutcome(outcome,id){
-  pendingLogOutcome=outcome;
-  pendingLogContactId=id;
-  pendingLogCbr=false;
-  var np=document.getElementById('log-notes-panel');
-  if(np)np.style.display='block';
-  var cbrRow=document.getElementById('log-cbr-row');
-  var cbrBtn=document.getElementById('log-cbr-btn');
-  if(cbrRow)cbrRow.style.display=outcome==='Call Answered'?'block':'none';
-  if(cbrBtn){cbrBtn.textContent='+ Mark as Call Back Request';cbrBtn.style.background='#fff';cbrBtn.style.borderColor='var(--border)';cbrBtn.style.color='var(--text-secondary)';}
-  var ta=document.getElementById('log-notes');
-  if(ta)ta.placeholder='Add notes (optional)...';
-  var btn=document.getElementById('submit-log-btn');
-  if(btn)btn.textContent='Submit — '+outcome;
-}
-var pendingLogCbr=false;
-function toggleLogCbr(){
-  pendingLogCbr=!pendingLogCbr;
-  var btn=document.getElementById('log-cbr-btn');
-  if(btn){btn.textContent=pendingLogCbr?'✓ Call Back Request':'+ Mark as Call Back Request';btn.style.background=pendingLogCbr?'var(--brand-light)':'#fff';btn.style.borderColor=pendingLogCbr?'var(--brand)':'var(--border)';btn.style.color=pendingLogCbr?'var(--brand)':'var(--text-secondary)';}
-  var ta=document.getElementById('log-notes');
-  if(ta)ta.placeholder=pendingLogCbr?'Add callback time and any notes...':'Add notes (optional)...';
-}
-
-function cancelLogOutcome(){
-  pendingLogOutcome=null;pendingLogContactId=null;
-  var np=document.getElementById('log-notes-panel');
-  if(np)np.style.display='none';
-}
-
-function submitLogOutcome(){
-  if(pendingLogOutcome===null||pendingLogContactId===null)return;
+function logFromAnywhere(outcome, idx){
   var notes=document.getElementById('log-notes');
   var notesVal=notes?notes.value.trim():'';
-  if(pendingLogCbr)notesVal=notesVal?'Callback Request — '+notesVal:'Callback Request';
-  pendingLogCbr=false;
-  var c=findContactById(pendingLogContactId);
-  if(c){
-    c['Contacted']=pendingLogOutcome;
-    c['Notes']=notesVal;
-    writeOutcome(selectedAgent,c.id,pendingLogOutcome,notesVal);
-    lastLoggedContactId=c.id;
+  if(idx!==null&&idx!==undefined&&contacts[idx]){
+    contacts[idx]['Contacted']=outcome;
+    contacts[idx]['Notes']=notesVal;
+    writeOutcome(selectedAgent,contacts[idx].rowIndex,outcome,notesVal);
   }
-  var outcome=pendingLogOutcome;
-  pendingLogOutcome=null;pendingLogContactId=null;lockedContactId=null;
-  clearActiveCallBar();
   cur='open';hist=[];
   render();
   var content=document.getElementById('content');
@@ -1110,118 +1024,40 @@ function submitLogOutcome(){
   setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
 }
 
-var pendingEditContactId=null,pendingEditOutcome=null,pendingEditCbr=false;
-function openEditContact(contactId){
-  var c=findContactById(contactId);
+function quickVoicemail(idx){
+  var c=contacts[idx];
   if(!c)return;
-  pendingEditContactId=contactId;
-  pendingEditOutcome=c['Contacted']||null;
-  pendingEditCbr=false;
-  showEditContactPanel();
-}
-function showEditContactPanel(){
-  var c=findContactById(pendingEditContactId);
-  var rawNotes=c['Notes']||'';
-  var isCbr=rawNotes.indexOf('Callback Request')===0;
-  pendingEditCbr=isCbr;
-  var notesVal=isCbr?rawNotes.replace(/^Callback Request(?: — )?/,''):rawNotes;
-  var btStyles={
-    'Voicemail Left':'border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489',
-    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
-    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Screened/Declined':'border:1.5px solid #EF4444;background:#FEE2E2;color:#B91C1C',
-    'Phone Unavailable':'border:1.5px solid var(--border);background:#F0F0F5;color:#555'
-  };
-  var html='<div class="panel">'
-    +'<div class="panel-title" style="margin-bottom:12px">Edit Call Result</div>'
-    +'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Editing result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>'
-    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Select New Outcome</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
-  OUTCOMES.forEach(function(o){
-    var sel=(o===pendingEditOutcome)?'outline:2px solid var(--brand);outline-offset:2px;':'';
-    html+='<button onclick="selectEditOutcome(\''+o+'\')" id="edit-oc-btn-'+o.replace(/\s/g,'-')+'" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';'+sel+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
-  });
-  html+='</div>'
-    +'<div id="edit-cbr-row" style="display:'+(pendingEditOutcome==='Call Answered'?'block':'none')+';margin-bottom:8px">'
-    +'<button id="edit-cbr-btn" onclick="toggleEditCbr()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid '+(isCbr?'var(--brand)':'var(--border)')+';background:'+(isCbr?'var(--brand-light)':'#fff')+';color:'+(isCbr?'var(--brand)':'var(--text-secondary)')+';cursor:pointer;font-family:var(--font);text-align:left">'+(isCbr?'✓ Call Back Request':'+ Mark as Call Back Request')+'</button></div>'
-    +'<textarea id="edit-notes" rows="3" placeholder="Add notes (optional)..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none">'+notesVal+'</textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:8px">'
-    +'<button onclick="submitEditOutcome()" id="submit-edit-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">'+(pendingEditOutcome?'Update — '+pendingEditOutcome:'Select an outcome')+'</button>'
-    +'<button onclick="cancelEdit()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
-    +'</div>'
-    +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-light)">'
-    +'<button onclick="clearEditOutcome()" style="width:100%;padding:8px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear Result — Mark as Not Called</button>'
-    +'</div>'
-    +'</div>';
-  document.getElementById('content').innerHTML=html;
-  document.getElementById('crumb').innerHTML='<span class="crumb-a">Edit Result</span>';
-  document.getElementById('tbr').innerHTML='';
-}
-function selectEditOutcome(outcome){
-  pendingEditOutcome=outcome;
-  OUTCOMES.forEach(function(o){
-    var btn=document.getElementById('edit-oc-btn-'+o.replace(/\s/g,'-'));
-    if(btn)btn.style.outline=(o===outcome)?'2px solid var(--brand)':'';
-  });
-  var cbrRow=document.getElementById('edit-cbr-row');
-  if(cbrRow)cbrRow.style.display=outcome==='Call Answered'?'block':'none';
-  var btn=document.getElementById('submit-edit-btn');
-  if(btn)btn.textContent='Update — '+outcome;
-}
-function toggleEditCbr(){
-  pendingEditCbr=!pendingEditCbr;
-  var btn=document.getElementById('edit-cbr-btn');
-  if(btn){btn.textContent=pendingEditCbr?'✓ Call Back Request':'+ Mark as Call Back Request';btn.style.background=pendingEditCbr?'var(--brand-light)':'#fff';btn.style.borderColor=pendingEditCbr?'var(--brand)':'var(--border)';btn.style.color=pendingEditCbr?'var(--brand)':'var(--text-secondary)';}
-}
-function editFromPanel(contactId){
-  editReturnFn=showContacts;
-  currentListFilter='contacted';
-  openEditContact(contactId);
-}
-function cancelEdit(){
-  pendingEditContactId=null;pendingEditOutcome=null;pendingEditCbr=false;
-  var fn=editReturnFn;editReturnFn=null;
-  if(fn)fn();else showContactList(currentListFilter);
-}
-function clearEditOutcome(){
-  if(pendingEditContactId===null)return;
-  var c=findContactById(pendingEditContactId);
-  if(!c)return;
-  c['Contacted']='';c['Notes']='';
-  clearLogged(c.id);
-  sheetPost({action:'updateResult',dateAssigned:c['Date Assigned'],agent:selectedAgentName,name:c['Name'],phone:c['Phone'],result:'',notes:''});
-  pendingEditContactId=null;pendingEditOutcome=null;pendingEditCbr=false;
-  showContactList(currentListFilter);
-  var content=document.getElementById('content');
-  var banner=document.createElement('div');
-  banner.style.cssText='background:var(--amber-light);border:1.5px solid var(--amber-mid);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--amber-dark)';
-  banner.textContent='Result cleared — '+((c['Name']||'contact')+' marked as not called.');
-  content.insertBefore(banner,content.firstChild);
-  setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
-}
-function submitEditOutcome(){
-  if(!pendingEditOutcome||pendingEditContactId===null)return;
-  var ta=document.getElementById('edit-notes');
-  var notesVal=ta?ta.value:'';
-  if(pendingEditCbr)notesVal=notesVal?'Callback Request — '+notesVal:'Callback Request';
-  var c=findContactById(pendingEditContactId);
-  if(!c)return;
-  c['Contacted']=pendingEditOutcome;
-  c['Notes']=notesVal;
-  writeOutcome(selectedAgent,c.id,pendingEditOutcome,notesVal);
-  var outcome=pendingEditOutcome;
-  pendingEditContactId=null;pendingEditOutcome=null;pendingEditCbr=false;
-  var fn=editReturnFn;editReturnFn=null;
-  if(fn)fn();else showContactList(currentListFilter);
-  var content=document.getElementById('content');
-  var banner=document.createElement('div');
-  banner.style.cssText='background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#085041';
-  banner.textContent='Result updated to: '+outcome+(notesVal?' — "'+notesVal+'"':'')+'.'
-  content.insertBefore(banner,content.firstChild);
-  setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
+  c['Contacted']='Voicemail Left';
+  writeOutcome(selectedAgent,c.rowIndex,'Voicemail Left','');
+  renderContactPanel();
 }
 
+function selectOutcome(idx,outcome){
+  pendingOutcome=outcome;
+  pendingIdx=idx;
+  var np=document.getElementById('notes-panel');
+  if(np){np.style.display='block';}
+  var btn=document.getElementById('submit-outcome-btn');
+  if(btn)btn.textContent='Submit — '+outcome;
+}
+
+function cancelOutcome(){
+  pendingOutcome=null;pendingIdx=null;
+  var np=document.getElementById('notes-panel');
+  if(np)np.style.display='none';
+}
+
+function submitOutcome(){
+  if(pendingOutcome===null||pendingIdx===null)return;
+  var notes=document.getElementById('outcome-notes');
+  var notesVal=notes?notes.value:'';
+  var c=contacts[pendingIdx];
+  c['Contacted']=pendingOutcome;
+  c['Notes']=notesVal;
+  writeOutcome(selectedAgent,c.rowIndex,pendingOutcome,notesVal);
+  pendingOutcome=null;pendingIdx=null;
+  renderContactPanel();
+}
 
 function vmText(){
   return vmS1
@@ -1237,7 +1073,7 @@ function setMode(m){
   render();
 }
 
-function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;window.scrollTo(0,0);}
+function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;}
 function goTo(id){hist.push({id:cur});cur=id;render();scrollTop();}
 function goBack(){if(!hist.length)return;cur=hist.pop().id;render();scrollTop();}
 function restartFlow(){cur=mode==='inbound'?'inbound_open':'open';hist=[];render();}
@@ -1275,7 +1111,10 @@ function render(){
     setTimeout(function(){var s=document.getElementById('vmsel');if(s){s.value=vmS1?'1':'2';s.onchange=function(){vmS1=s.value==='1';var el=document.getElementById('vm-txt');if(el)el.textContent=vmText();};}},0);
   } else {tbr.innerHTML='';}
   var ban=document.getElementById('mban');
-  ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>'+(activeContactName?'<span id="active-call-bar" style="display:flex;align-items:center;gap:10px;margin-left:10px"><span id="active-call-name" style="font-size:13px;font-weight:700;color:#fff">'+activeContactName+'</span><span style="color:rgba(255,255,255,0.35)">·</span><span id="active-call-phone" style="font-size:13px;color:rgba(255,255,255,0.7);letter-spacing:0.04em">'+activeContactPhone+'</span></span>':'<span id="active-call-bar" style="display:none"></span>');
+  var _unc=contacts.filter(function(c){return !c['Contacted'];});
+  var _ac=_unc.length?_unc[0]:null;
+  var _patInfo=(_ac&&mode==='outbound')?'<span style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 12px;display:inline-block;vertical-align:middle"></span><span style="font-size:14px;font-weight:700;color:#fff;vertical-align:middle">'+(_ac['Name']||'')+'</span><span style="font-size:12px;color:rgba(255,255,255,0.65);margin-left:10px;vertical-align:middle;font-variant-numeric:tabular-nums">'+(_ac['Phone']||'')+'</span>':'';
+  ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>'+_patInfo;
   var navEl=document.getElementById('nav-stages');navEl.innerHTML='';
   document.getElementById('nav-lbl').textContent=mode==='inbound'?'Inbound Stages':'Call Stages';
   var navOrd=mode==='inbound'?IN_NAV:OUT_NAV;
@@ -1293,6 +1132,36 @@ function render(){
     content.innerHTML='<div class="done-wrap"><div class="done-title">Call Complete</div><div class="done-sub">Ready for your next dial.</div><button onclick="restartFlow()" style="margin-top:20px;padding:10px 28px;font-size:14px;font-weight:600;border-radius:24px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Start New Call</button></div>';
     document.getElementById('back-btn').disabled=!hist.length;
     document.getElementById('khint').textContent='Ready for next call';
+    return;
+  }
+  if(t==='callback_capture'){
+    var _cc=activeCallContact||(contacts.filter(function(c){return !c['Contacted'];})[0]||null);
+    var _defTz=_cc?normTz(_cc['Time Zone']||'PT'):'PT';
+    var _today=new Date();
+    var _yyyy=_today.getFullYear(),_mm=String(_today.getMonth()+1).padStart(2,'0'),_dd=String(_today.getDate()).padStart(2,'0');
+    var _defDate=_yyyy+'-'+_mm+'-'+_dd;
+    content.innerHTML='<div class="panel">'
+      +'<div class="panel-title">Schedule Callback</div>'
+      +(_cc?'<div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">For: <b style="color:var(--brand)">'+(_cc['Name']||'Unknown')+'</b> &nbsp;&middot;&nbsp; '+(_cc['Phone']||'')+'</div>':'')
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
+      +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Date</div>'
+      +'<input type="date" id="cb-date" value="'+_defDate+'" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+      +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Time</div>'
+      +'<input type="time" id="cb-time" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+      +'</div>'
+      +'<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Their Timezone</div>'
+      +'<select id="cb-tz" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none">'
+      +'<option value="ET"'+(_defTz==='ET'?' selected':'')+'>ET \u2014 Eastern</option>'
+      +'<option value="CT"'+(_defTz==='CT'?' selected':'')+'>CT \u2014 Central</option>'
+      +'<option value="MT"'+(_defTz==='MT'?' selected':'')+'>MT \u2014 Mountain</option>'
+      +'<option value="PT"'+(_defTz==='PT'?' selected':'')+'>PT \u2014 Pacific</option>'
+      +'</select></div>'
+      +'<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
+      +'<textarea id="cb-notes" rows="2" placeholder="e.g. prefers mornings, on lunch break now..." style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea></div>'
+      +'<button onclick="saveCallbackRequest()" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Save Callback &amp; End Call</button>'
+      +'</div>';
+    document.getElementById('back-btn').disabled=false;
+    document.getElementById('khint').textContent='Fill in callback details and save';
     return;
   }
   if(st.faq&&st.faqs){
@@ -1353,7 +1222,7 @@ function showSchedule(){
     if(loc<8)return 'Ideal morning window opens in '+Math.round((8-loc)*60)+' min';
     if(loc>=8&&loc<10)return 'In ideal morning window now';
     if(loc>=10&&loc<16)return 'Ideal afternoon window in '+Math.round((16-loc)*60)+' min';
-    if(loc>=16&&loc<18)return 'In ideal afternoon window now';
+    if(loc>=16&&loc<17)return 'In ideal afternoon window now';
     return 'No more ideal windows today';
   }
   var ptNow=now.toLocaleTimeString('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit',hour12:true});
@@ -1372,7 +1241,7 @@ function showSchedule(){
   else if(ptD>=15&&ptD<16)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Wind down CT — focus MT and PT only.</div>';
   else if(ptD>=16&&ptD<17)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Ideal afternoon window across MT and PT. ET and CT too late for cold calls.</div>';
   else if(ptD>=17)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FCEBEB;border-radius:8px;border-left:3px solid #E24B4A;font-size:12px;color:#791F1F;font-weight:600">Outside calling hours for all zones.</div>';
-  var ideal='<div style="margin-top:14px;padding:12px 14px;background:var(--navy-faint);border-radius:8px;border:1px solid var(--border-light)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:10px">Best cold call windows (local time to PT)</div><div style="font-size:12px;color:var(--text-secondary);line-height:2"><div><b style="color:var(--brand)">ET</b> &nbsp; 8-10 AM local = 5-7 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 1-3 PM PT &#9733;</span></div><div><b style="color:var(--brand)">CT</b> &nbsp; 8-10 AM local = 6-8 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 2-4 PM PT &#9733;</span></div><div><b style="color:var(--brand)">MT</b> &nbsp; 8-10 AM local = 7-9 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 3-5 PM PT &#9733;</span></div><div><b style="color:var(--brand)">PT</b> &nbsp; 8-10 AM local = 8-10 AM PT &nbsp;&#183;&nbsp; <span style="color:#534AB7;font-weight:600">4-6 PM local = 4-6 PM PT &#9733;</span></div></div><div style="font-size:11px;color:var(--text-hint);margin-top:8px">&#9733; Late afternoon (4-6 PM local) is the single best cold call window.</div></div>';
+  var ideal='<div style="margin-top:14px;padding:12px 14px;background:var(--navy-faint);border-radius:8px;border:1px solid var(--border-light)"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:10px">Ideal call windows (local time to PT)</div><div style="font-size:12px;color:var(--text-secondary);line-height:2"><div><b style="color:var(--brand)">ET</b> &nbsp; <span style="color:#1D9E75;font-weight:600">8-10 AM local = 5-7 AM PT &#9733;</span> &nbsp;&#183;&nbsp; <span style="color:#1D9E75;font-weight:600">4-5 PM local = 1-2 PM PT &#9733;</span></div><div><b style="color:var(--brand)">CT</b> &nbsp; <span style="color:#1D9E75;font-weight:600">8-10 AM local = 6-8 AM PT &#9733;</span> &nbsp;&#183;&nbsp; <span style="color:#1D9E75;font-weight:600">4-5 PM local = 2-3 PM PT &#9733;</span></div><div><b style="color:var(--brand)">MT</b> &nbsp; <span style="color:#1D9E75;font-weight:600">8-10 AM local = 7-9 AM PT &#9733;</span> &nbsp;&#183;&nbsp; <span style="color:#1D9E75;font-weight:600">4-5 PM local = 3-4 PM PT &#9733;</span></div><div><b style="color:var(--brand)">PT</b> &nbsp; <span style="color:#1D9E75;font-weight:600">8-10 AM local = 8-10 AM PT &#9733;</span> &nbsp;&#183;&nbsp; <span style="color:#1D9E75;font-weight:600">4-5 PM local = 4-5 PM PT &#9733;</span></div></div><div style="font-size:11px;color:var(--text-hint);margin-top:8px">&#9733; Both morning (8-10 AM) and late afternoon (4-5 PM) local are ideal windows. The header clocks will show <span style="color:#1D9E75;font-weight:600">Ideal Window</span> when active.</div></div>';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Call Schedule</span>';
   document.getElementById('content').innerHTML='<div class="panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div class="panel-title" style="margin-bottom:0">Time zone status now</div><div style="font-size:12px;color:var(--text-hint)">PT: '+ptNow+'</div></div>'+note+rows+ideal+'</div>';
   document.getElementById('back-btn').disabled=false;

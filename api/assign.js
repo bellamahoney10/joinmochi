@@ -122,11 +122,15 @@ module.exports = async (req, res) => {
     // Source contacts from outreach_sms_schedule (populates ~4h after eligibility)
     const tzPriorityExpr = getTzPriorityExpr('oss');
     const contactsRes = await client.query(`
-      SELECT id, patient_id, phone, state, timezone, eligible_at FROM (
+      SELECT id, patient_id, phone, state, timezone, eligible_at, care_sms, marketing_sms FROM (
         SELECT DISTINCT ON (oss.phone)
           oss.id, oss.patient_id, oss.phone, oss.state, oss.timezone, oss.eligible_at,
-          ${tzPriorityExpr} AS tz_priority
+          ${tzPriorityExpr} AS tz_priority,
+          COALESCE(pcp.care_sms, false) AS care_sms,
+          COALESCE(pcp.marketing_sms, false) AS marketing_sms
         FROM outreach_sms_schedule oss
+        LEFT JOIN patient_comm_preferences pcp ON pcp.patient_id = oss.patient_id
+          AND pcp.deleted_at IS NULL
         WHERE oss.deleted_at IS NULL
           AND oss.eligible_at >= NOW() - INTERVAL '30 days'
           AND NOT EXISTS (
@@ -165,20 +169,20 @@ module.exports = async (req, res) => {
       if (!slice.length) break;
 
       const values = slice.map((r, j) => {
-        const base = j * 7;
-        return `($${base+1}, $${base+2}, $${base+3}, $${base+4}, $${base+5}, $${base+6}, $${base+7})`;
+        const base = j * 9;
+        return `($${base+1}, $${base+2}, $${base+3}, $${base+4}, $${base+5}, $${base+6}, $${base+7}, $${base+8}, $${base+9})`;
       }).join(', ');
       const params = [];
       for (const r of slice) {
-        params.push(r.id, r.patient_id, r.phone, r.state, r.timezone, r.eligible_at, agents[i].id);
+        params.push(r.id, r.patient_id, r.phone, r.state, r.timezone, r.eligible_at, agents[i].id, r.care_sms, r.marketing_sms);
       }
       await client.query(`
         INSERT INTO outreach_sms_contact_queue
           (outreach_sms_id, patient_id, phone, state, timezone, eligible_at, assigned_agent_id,
-           status, assigned_at)
+           status, assigned_at, care_sms, marketing_sms)
         SELECT v.outreach_sms_id, v.patient_id, v.phone, v.state, v.timezone, v.eligible_at,
-               v.assigned_agent_id, 'assigned', NOW()
-        FROM (VALUES ${values}) AS v(outreach_sms_id, patient_id, phone, state, timezone, eligible_at, assigned_agent_id)
+               v.assigned_agent_id, 'assigned', NOW(), v.care_sms, v.marketing_sms
+        FROM (VALUES ${values}) AS v(outreach_sms_id, patient_id, phone, state, timezone, eligible_at, assigned_agent_id, care_sms, marketing_sms)
         ON CONFLICT (outreach_sms_id) DO NOTHING
       `, params);
 
