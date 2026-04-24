@@ -919,12 +919,12 @@ function renderContactPanel(){
     if(!contacts[i]['Contacted'])uncalled.push(i);
   }
   if(!uncalled.length){
-    document.getElementById('content').innerHTML=topHtml+'<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>';
+    document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>'+(topHtml?topHtml:'');
     return;
   }
   var notSkipped=uncalled.filter(function(i){return !skippedIds.has(contacts[i].id);});
   if(!notSkipped.length){
-    document.getElementById('content').innerHTML=topHtml+'<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You\'ve skipped all remaining contacts for today.</div><button onclick="skippedIds.clear();renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>';
+    document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You\'ve skipped all remaining contacts for today.</div><button onclick="skippedIds.clear();renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>'+(topHtml?topHtml:'');
     return;
   }
   var idx=notSkipped[0];
@@ -981,7 +981,7 @@ function renderContactPanel(){
     +'</div></div>'
     +'<button onclick="skippedIds.add(\''+c.id+'\');renderContactPanel();scrollTop();" style="width:100%;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);margin-top:10px">Skip — Come Back Later</button>'
     +'</div>';
-  document.getElementById('content').innerHTML=topHtml+html+(topHtml?topHtml:'');
+  document.getElementById('content').innerHTML=html+(topHtml?topHtml:'');
 }
 
 function startCallFromContacts(idx){
