@@ -782,8 +782,9 @@ function showContactList(resultFilter,tzFilter,remainingOnly){
     +'<option value="Inbox Full">Inbox Full</option>'
     +'<option value="Screened/Declined">Screened/Declined</option>'
     +'<option value="Phone Unavailable">Phone Unavailable</option>'
-    +'</select></div>'
-    +'<button onclick="showContactList(\'all\',document.getElementById(\'cl-tz\').value,true)" style="'+btnStyle+(remActive?'border:none;background:var(--brand);color:#fff':'border:1.5px solid var(--border);background:#fff;color:var(--text)')+'">Remaining</button>'
+    +'</select>'
+    +'<button onclick="showContactList(\'all\',document.getElementById(\'cl-tz\').value,true)" style="margin-top:4px;'+btnStyle+(remActive?'border:none;background:var(--brand);color:#fff':'border:1.5px solid var(--border);background:#fff;color:var(--text)')+'">Remaining</button>'
+    +'</div>'
     +'</div>';
   document.getElementById('cl-tz').value=tzFilter;
   if(!remainingOnly)document.getElementById('cl-result').value=resultFilter;
