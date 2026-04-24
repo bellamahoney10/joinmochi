@@ -162,12 +162,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div class="pin-error" id="pin-err"></div>
     <div id="agent-sel" style="display:none;margin-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Which agent are you?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="agent-btn" onclick="selAgent(1)">Agent 1</button>
-        <button class="agent-btn" onclick="selAgent(2)">Agent 2</button>
-        <button class="agent-btn" onclick="selAgent(3)">Agent 3</button>
-        <button class="agent-btn" onclick="selAgent(4)">Agent 4</button>
-      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="agent-grid"></div>
       <div id="agent-assign" style="margin-top:12px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
       <button class="pin-btn" id="start-btn" style="display:none;margin-top:12px" onclick="startTool()">Start calling</button>
     </div>
@@ -272,11 +267,9 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
 
 <script>
 var PIN='2026';
-var SHEET_ID='1SjRvsyHCAM3ahdYamWwRGiTHPZtcpIAQmML1lBh6hlQ';
-var API_KEY='AIzaSyCzUwI-DEdwx1eX34FWeFkicnWFd0AnQyQ';
 var mode='outbound', cur='open', hist=[], vmS1=true, selectedAgent=null;
 var contacts=[], contactIdx=0, activeCallContact=null;
-var agentTabs={1:'Agent 1',2:'Agent 2',3:'Agent 3',4:'Agent 4'};
+var agentList=[];
 var OFFSETS={ET:3,CT:2,MT:1,PT:0,Eastern:3,Central:2,Mountain:1,Pacific:0};
 
 function normTz(tz){
@@ -511,20 +504,35 @@ function getScript(n){var odd=getWk()%2===1,g1=n===1||n===3;return g1?(odd?1:2):
 
 function checkPin(){
   if(document.getElementById('pin-inp').value===PIN){
-    document.getElementById('agent-sel').style.display='block';
     document.getElementById('pin-btn').style.display='none';
     document.getElementById('pin-err').textContent='';
     document.getElementById('pin-inp').disabled=true;
+    var asel=document.getElementById('agent-sel');
+    asel.style.display='block';
+    var grid=document.getElementById('agent-grid');
+    grid.innerHTML='<div style="font-size:12px;color:var(--text-secondary);padding:4px 0">Loading agents...</div>';
+    fetch('/api/agents').then(function(r){return r.json();}).then(function(agents){
+      agentList=agents;
+      grid.innerHTML=agents.map(function(a){
+        var name=(a.first_name+(a.last_name?' '+a.last_name:'')).trim();
+        return '<button class="agent-btn" onclick="selAgent(\''+a.id+'\')">'+name+'</button>';
+      }).join('');
+    }).catch(function(){
+      grid.innerHTML='<div style="font-size:12px;color:var(--red-dark)">Failed to load agents. Refresh and try again.</div>';
+    });
   } else {
     document.getElementById('pin-err').textContent='Incorrect PIN. Try again.';
     document.getElementById('pin-inp').value='';
   }
 }
 
-function selAgent(n){
-  selectedAgent=n;
-  document.querySelectorAll('.agent-btn').forEach(function(b,i){b.classList.toggle('sel',i===n-1);});
-  vmS1=getScript(n)===1;
+function selAgent(id){
+  selectedAgent=id;
+  document.querySelectorAll('.agent-btn').forEach(function(b){
+    b.classList.toggle('sel',(b.getAttribute('onclick')||'').indexOf("'"+id+"'")>=0);
+  });
+  var idx=1;for(var i=0;i<agentList.length;i++){if(agentList[i].id===id){idx=i+1;break;}}
+  vmS1=getScript(idx)===1;
   document.getElementById('agent-assign').innerHTML='<strong>Week '+getWk()+' assignment:</strong> '+(vmS1?'Script 1 — Weight Loss':'Script 2 — Personalized Care');
   document.getElementById('start-btn').style.display='block';
 }
@@ -561,7 +569,7 @@ function tzStatus(tz){
   if(loc<8||loc>=18.5)return{label:'Do Not Call',color:'#E24B4A'};
   if((tz==='ET'&&ptD>=14)||(tz==='CT'&&ptD>=15))return{label:'Wind Down',color:'#EF9F27'};
   if((loc>=8&&loc<10)||(loc>=16&&loc<17))return{label:'Ideal Window',color:'#1D9E75'};
-  return{label:'Call Now',color:'#0a0a74'};
+  return{label:'Call Now',color:'#fff'};
 }
 
 var ZONES=[{l:'ET',z:'America/New_York'},{l:'CT',z:'America/Chicago'},{l:'MT',z:'America/Denver'},{l:'PT',z:'America/Los_Angeles'}];
@@ -588,44 +596,21 @@ function getTodayStr(){
   return (d.getMonth()+1)+'/'+(d.getDate())+'/'+d.getFullYear();
 }
 
-function sheetUrl(tab,range){
-  return 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+range)+'?key='+API_KEY;
-}
-
-function loadContacts(agentNum,callback){
-  var tab=agentTabs[agentNum];
-  if(!tab){callback([]);return;}
-  fetch(sheetUrl(tab,'A:L'))
+function loadContacts(agentId,callback){
+  fetch('/api/contacts?agent_id='+agentId)
     .then(function(r){return r.json();})
-    .then(function(data){
-      var rows=data.values||[];
-      if(rows.length<2){callback([]);return;}
-      var headers=null;
-      var dataStart=0;
-      for(var h=0;h<Math.min(5,rows.length);h++){
-        if(rows[h][0]&&rows[h][0].toString().toLowerCase().indexOf('date')>=0){
-          headers=rows[h];dataStart=h+1;break;
-        }
-      }
-      if(!headers){callback([]);return;}
-      console.log('Headers found at row '+(dataStart)+':',headers);
-      var today=getTodayStr();
-      console.log('Today string:',today);
-      console.log('Total rows from sheet:',rows.length);
-      console.log('Headers:',headers);
-      var result=[];
-      for(var i=dataStart;i<rows.length;i++){
-        var row=rows[i];
-        var obj={rowIndex:i+1};
-        for(var j=0;j<headers.length;j++){
-          var hdr=(headers[j]||'').trim();
-          obj[hdr]=row[j]||'';
-        }
-        var dateVal=(obj['Date Assigned']||obj['Date assigned']||obj['date assigned']||row[0]||'').trim();
-        var contacted=(obj['Contacted']||'').trim();
-        console.log('Row '+(i+1)+': date='+dateVal+' contacted=['+contacted+'] tz='+obj['Time Zone']);
-        if(dateVal===today&&(contacted===''||contacted==='-'||contacted==='Assigned')){result.push(obj);}
-      }
+    .then(function(rows){
+      var result=rows.map(function(r){
+        return {
+          id:r.id,
+          Name:((r.first_name||'')+(r.last_name?' '+r.last_name:'')).trim(),
+          Phone:r.phone||'',
+          State:r.state||'',
+          'Time Zone':normTz(r.timezone||''),
+          Contacted:'',
+          Notes:''
+        };
+      });
       result.sort(function(a,b){
         var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
         return pa-pb;
@@ -644,25 +629,14 @@ function tzPriority(tz){
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
 
-function writeOutcome(agentNum,rowIndex,outcome,notes){
-  var tab=agentTabs[agentNum];
-  if(!tab)return;
-  var url='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!J'+rowIndex+':K'+rowIndex)+'?valueInputOption=RAW&key='+API_KEY;
-  console.log('Writing to row '+rowIndex+': outcome='+outcome+' notes='+notes);
-  console.log('URL:',url);
-  fetch(url,{
-    method:'PUT',
+function writeOutcome(agentId,contactId,outcome,notes,name,phone){
+  var agentName='';
+  for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){agentName=agentList[i].first_name;break;}}
+  fetch('/api/sheet',{
+    method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({values:[[outcome,notes||'']]})
-  })
-  .then(function(r){
-    console.log('Write response status:',r.status);
-    return r.json();
-  })
-  .then(function(d){
-    console.log('Write response:',JSON.stringify(d));
-  })
-  .catch(function(e){console.log('Write error:',e);});
+    body:JSON.stringify({agent:agentName,contact_id:contactId,name:name||'',phone:phone||'',outcome:outcome,notes:notes||'',date:getTodayStr()})
+  }).catch(function(e){console.log('Sheet write error:',e);});
 }
 
 function getDashboardStats(){
@@ -688,11 +662,14 @@ function showDashboard(){
 function refreshAndDash(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  loadContacts(selectedAgent,function(result){
-    contacts=result;contactIdx=0;
-    if(btn)btn.textContent='Refresh';
-    renderDashboard();
-  });
+  fetch('/api/refresh',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
+    .finally(function(){
+      loadContacts(selectedAgent,function(result){
+        contacts=result;contactIdx=0;
+        if(btn)btn.textContent='Refresh';
+        renderDashboard();
+      });
+    });
 }
 
 function renderDashboard(){
@@ -788,11 +765,14 @@ function showContacts(){
 function refreshContacts(){
   var btn=document.querySelector('#tbr button');
   if(btn)btn.textContent='Loading...';
-  loadContacts(selectedAgent,function(result){
-    contacts=result;contactIdx=0;
-    if(btn)btn.textContent='Refresh';
-    renderContactPanel();
-  });
+  fetch('/api/refresh',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
+    .finally(function(){
+      loadContacts(selectedAgent,function(result){
+        contacts=result;contactIdx=0;
+        if(btn)btn.textContent='Refresh';
+        renderContactPanel();
+      });
+    });
 }
 
 function renderContactPanel(){
@@ -1012,7 +992,7 @@ function logFromAnywhere(outcome, idx){
   if(idx!==null&&idx!==undefined&&contacts[idx]){
     contacts[idx]['Contacted']=outcome;
     contacts[idx]['Notes']=notesVal;
-    writeOutcome(selectedAgent,contacts[idx].rowIndex,outcome,notesVal);
+    writeOutcome(selectedAgent,contacts[idx].id,outcome,notesVal,contacts[idx]['Name'],contacts[idx]['Phone']);
   }
   cur='open';hist=[];
   render();
@@ -1028,7 +1008,7 @@ function quickVoicemail(idx){
   var c=contacts[idx];
   if(!c)return;
   c['Contacted']='Voicemail Left';
-  writeOutcome(selectedAgent,c.rowIndex,'Voicemail Left','');
+  writeOutcome(selectedAgent,c.id,'Voicemail Left','',c['Name'],c['Phone']);
   renderContactPanel();
 }
 
@@ -1054,7 +1034,7 @@ function submitOutcome(){
   var c=contacts[pendingIdx];
   c['Contacted']=pendingOutcome;
   c['Notes']=notesVal;
-  writeOutcome(selectedAgent,c.rowIndex,pendingOutcome,notesVal);
+  writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal,c['Name'],c['Phone']);
   pendingOutcome=null;pendingIdx=null;
   renderContactPanel();
 }

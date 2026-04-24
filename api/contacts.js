@@ -35,10 +35,10 @@ module.exports = async (req, res) => {
     const result = await getPool().query(`
       SELECT t.id, t.first_name, t.last_name,
              COALESCE(p.phone, t.phone) AS phone,
-             t.state, t.assigned_at
+             t.state, t.timezone, t.assigned_at
       FROM (
         SELECT ocq.id, ocq.first_name, ocq.last_name, ocq.phone,
-               ocq.state, ocq.patient_id, ocq.assigned_at
+               ocq.state, NULL AS timezone, ocq.patient_id, ocq.assigned_at
         FROM outreach_call_queue ocq
         WHERE ocq.assigned_agent_id = $1
           AND DATE(ocq.assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
         UNION ALL
 
         SELECT q.id, NULL AS first_name, NULL AS last_name, q.phone,
-               q.state, q.patient_id, q.assigned_at
+               q.state, q.timezone, q.patient_id, q.assigned_at
         FROM outreach_sms_contact_queue q
         WHERE q.assigned_agent_id = $1
           AND DATE(q.assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
