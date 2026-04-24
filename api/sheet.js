@@ -8,17 +8,21 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(req.body),
-      redirect: 'follow'
+      redirect: 'follow',
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     const text = await response.text();
     console.log('Apps Script response:', response.status, text);
     res.status(200).json({ ok: true, result: text });
   } catch (e) {
-    console.error('Apps Script error:', e);
-    res.status(500).json({ error: e.message });
+    console.error('Apps Script error:', e.message);
+    res.status(200).json({ ok: false, error: e.message });
   }
 };
