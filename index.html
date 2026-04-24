@@ -594,14 +594,18 @@ function updateClocks(){
 updateClocks();setInterval(updateClocks,1000);
 setTimeout(updateCbBadge,100);
 
+function getPtDate(){
+  // Always use PT date — so Philippines agents working past midnight log to the correct PT day
+  var s=new Date().toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'});
+  var p=s.split('/');return {m:parseInt(p[0]),d:parseInt(p[1]),y:parseInt(p[2])};
+}
 function getTodayStr(){
-  var d=new Date();
-  return (d.getMonth()+1)+'/'+(d.getDate())+'/'+d.getFullYear();
+  var p=getPtDate();return p.m+'/'+p.d+'/'+p.y;
 }
 
 function outcomeStoreKey(agentId){
-  var d=new Date();
-  return 'mochi_oc_'+agentId+'_'+(d.getMonth()+1)+'_'+d.getDate()+'_'+d.getFullYear();
+  var p=getPtDate();
+  return 'mochi_oc_'+agentId+'_'+p.m+'_'+p.d+'_'+p.y;
 }
 function saveOutcomeLocal(agentId,contactId,outcome,notes){
   var key=outcomeStoreKey(agentId);
@@ -884,8 +888,7 @@ function renderContactPanel(){
           +'<button onclick="editingLastResult=true;renderContactPanel();" style="padding:4px 9px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid #1D9E75;background:#fff;color:#085041;cursor:pointer;font-family:var(--font)">Edit</button>'
           +'<button onclick="clearLastResult()" style="padding:4px 9px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>'
           +'</div></div>'
-          +'<button onclick="showCallbackFromPanel()" style="width:100%;padding:10px;font-size:13px;font-weight:700;border-radius:var(--radius-md);border:none;background:#1D9E75;color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:6px">+ Schedule Callback for '+(_lc['Name']||'this patient')+'</button>'
-          +'<button onclick="lastLoggedContactId=null;lastLoggedOutcome=null;renderContactPanel();" style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #1D9E75;background:#fff;color:#1D9E75;cursor:pointer;font-family:var(--font)">No Callback Needed — Dismiss</button>'
+          +'<button onclick="lastLoggedContactId=null;lastLoggedOutcome=null;renderContactPanel();" style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #1D9E75;background:#fff;color:#1D9E75;cursor:pointer;font-family:var(--font)">Dismiss</button>'
           +'</div>';
       } else {
         topHtml='<div class="panel" style="border:1.5px solid var(--border)">'
@@ -934,23 +937,38 @@ function renderContactPanel(){
     +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Phone Number</div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between">'
     +'<div style="font-size:20px;font-weight:700;color:var(--brand);letter-spacing:.05em">'+(c['Phone']||'')+'</div>'
-    +'<button onclick="copyPhone(\''+( c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
-    +'</div></div>'
-    +'<button onclick="startCallFromContacts('+idx+')" style="width:100%;padding:11px;font-size:13px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:8px;text-transform:capitalize">Call '+(c['Name']||'this person')+'</button>'
-    +'<button onclick="skippedIds.add(\''+c.id+'\');renderContactPanel();scrollTop();" style="width:100%;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);margin-bottom:16px">Skip — Come Back Later</button>'
+    +'<div style="display:flex;gap:6px">'
+    +'<button onclick="copyPhone(\''+( c['Phone']||'')+'\')" style="padding:4px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
+    +'<button onclick="startCallFromContacts('+idx+')" style="padding:4px 12px;font-size:12px;font-weight:700;border-radius:6px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Call</button>'
+    +'</div></div></div>'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Result</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
   OUTCOMES.forEach(function(o){
     html+='<button onclick="selectOutcome('+idx+',\''+o+'\')" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
   });
   html+='</div>'
     +'<div id="notes-panel" style="display:none">'
+    +'<div id="cb-request-row" style="display:none;margin-bottom:10px">'
+    +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff">'
+    +'<input type="checkbox" id="cb-checkbox" onchange="toggleCbFields(\'inline\')" style="width:15px;height:15px;cursor:pointer;accent-color:var(--brand)">'
+    +'<span style="font-size:13px;font-weight:600;color:var(--text)">Call Back Request</span>'
+    +'</label>'
+    +'<div id="cb-fields-inline" style="display:none;margin-top:8px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">'
+    +'<input type="date" id="cb-date-inline" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'<input type="time" id="cb-time-inline" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'</div>'
+    +'<select id="cb-tz-inline" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
+    +'<option value="ET">ET — Eastern</option><option value="CT">CT — Central</option><option value="MT">MT — Mountain</option><option value="PT">PT — Pacific</option>'
+    +'</select>'
+    +'</div></div>'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
     +'<textarea id="outcome-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px">'
     +'<button onclick="submitOutcome()" id="submit-outcome-btn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
     +'<button onclick="cancelOutcome()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
     +'</div></div>'
+    +'<button onclick="skippedIds.add(\''+c.id+'\');renderContactPanel();scrollTop();" style="width:100%;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);margin-top:10px">Skip — Come Back Later</button>'
     +'</div>';
   document.getElementById('content').innerHTML=topHtml+html;
 }
@@ -968,6 +986,12 @@ var editingLastResult=false;
 
 var callbacks=JSON.parse(localStorage.getItem('mochi_callbacks')||'[]');
 function saveCallbacks(){localStorage.setItem('mochi_callbacks',JSON.stringify(callbacks));}
+function fmtTime(t){try{var p=t.split(':');var h=parseInt(p[0]);var m=p[1];var ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+ap;}catch(e){return t;}}
+function toggleCbFields(src){
+  var chk=document.getElementById(src==='log'?'log-cb-checkbox':'cb-checkbox');
+  var fields=document.getElementById(src==='log'?'log-cb-fields':'cb-fields-inline');
+  if(fields){fields.style.display=(chk&&chk.checked)?'block':'none';}
+}
 function updateCbBadge(){
   var pending=callbacks.filter(function(c){return !c.called;}).length;
   var b=document.getElementById('cb-badge');
@@ -1148,12 +1172,30 @@ function showLogResult(){
     +contactInfo
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Select Outcome</div>'
     +'<div id="log-outcome-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+btns+'</div>'
+    +'<div id="log-cb-row" style="display:none;margin-bottom:10px">'
+    +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff">'
+    +'<input type="checkbox" id="log-cb-checkbox" onchange="toggleCbFields(\'log\')" style="width:15px;height:15px;cursor:pointer;accent-color:var(--brand)">'
+    +'<span style="font-size:13px;font-weight:600;color:var(--text)">Call Back Request</span>'
+    +'</label>'
+    +'<div id="log-cb-fields" style="display:none;margin-top:8px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">'
+    +'<input type="date" id="log-cb-date" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'<input type="time" id="log-cb-time" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'</div>'
+    +'<select id="log-cb-tz" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
+    +'<option value="ET">ET — Eastern</option><option value="CT">CT — Central</option><option value="MT">MT — Mountain</option><option value="PT">PT — Pacific</option>'
+    +'</select>'
+    +'</div></div>'
     +'<div id="log-confirm" style="display:none">'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
     +'<textarea id="log-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none;margin-bottom:10px"></textarea>'
-    +'<button id="log-submit-btn" onclick="submitLogResult()" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button id="log-submit-btn" onclick="submitLogResult()" style="flex:1;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
+    +'<button onclick="cur=\'open\';hist=[];render();scrollTop();" style="padding:11px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
+    +'</div>'
     +'</div>'
     +'</div>';
+  scrollTop();
 }
 
 var _logSelectedOutcome=null;
@@ -1171,17 +1213,29 @@ function selectLogOutcome(outcome){
     var b=document.getElementById('lrb_'+o.replace(/[^a-zA-Z0-9]/g,'_'));
     if(b){b.style.opacity=o===outcome?'1':'0.35';b.style.transform=o===outcome?'scale(1.02)':'';}
   });
+  var cbRow=document.getElementById('log-cb-row');
+  if(cbRow){cbRow.style.display=outcome==='Call Answered'?'block':'none';}
   var confirm=document.getElementById('log-confirm');
   if(confirm){confirm.style.display='block';}
   var btn=document.getElementById('log-submit-btn');
   if(btn)btn.textContent='Submit — '+outcome;
-  setTimeout(function(){var c=document.getElementById('log-confirm');if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},30);
 }
 
 function submitLogResult(){
   if(!_logSelectedOutcome)return;
   var notes=document.getElementById('log-notes');
   var notesVal=notes?notes.value.trim():'';
+  var cbChecked=document.getElementById('log-cb-checkbox')&&document.getElementById('log-cb-checkbox').checked;
+  if(cbChecked){
+    var cbDate=(document.getElementById('log-cb-date')||{}).value||'';
+    var cbTime=(document.getElementById('log-cb-time')||{}).value||'';
+    var cbTz=(document.getElementById('log-cb-tz')||{}).value||'ET';
+    var cbStr='Call Back Request: '+cbDate+(cbTime?' at '+fmtTime(cbTime):'')+(cbTz?' '+cbTz:'');
+    notesVal=cbStr+(notesVal?'\n'+notesVal:'');
+    var ci=_logIdx!==null?contacts[_logIdx]:null;
+    callbacks.push({id:Date.now(),name:ci?ci['Name']||'':'',phone:ci?ci['Phone']||'':'',timezone:cbTz,date:cbDate,time:cbTime,notes:notesVal,called:false,savedAt:new Date().toISOString()});
+    saveCallbacks();updateCbBadge();
+  }
   var idx=_logIdx;
   if(idx!==null&&idx!==undefined&&contacts[idx]){
     contacts[idx]['Contacted']=_logSelectedOutcome;
@@ -1193,8 +1247,8 @@ function submitLogResult(){
   }
   var outcome=_logSelectedOutcome;
   _logSelectedOutcome=null;_logIdx=null;editingLastResult=false;
-  if(outcome==='Call Answered'){
-    goTo('callback_capture');
+  if(false){
+    // callback_capture no longer used — handled inline above
   } else {
     cur='open';hist=[];render();
     var content=document.getElementById('content');
@@ -1224,6 +1278,8 @@ function selectOutcome(idx,outcome){
   pendingIdx=idx;
   var np=document.getElementById('notes-panel');
   if(np){np.style.display='block';}
+  var cbRow=document.getElementById('cb-request-row');
+  if(cbRow){cbRow.style.display=outcome==='Call Answered'?'block':'none';}
   scrollTop();
   var btn=document.getElementById('submit-outcome-btn');
   if(btn)btn.textContent='Submit — '+outcome;
@@ -1238,7 +1294,18 @@ function cancelOutcome(){
 function submitOutcome(){
   if(pendingOutcome===null||pendingIdx===null)return;
   var notes=document.getElementById('outcome-notes');
-  var notesVal=notes?notes.value:'';
+  var notesVal=notes?notes.value.trim():'';
+  var cbChecked=document.getElementById('cb-checkbox')&&document.getElementById('cb-checkbox').checked;
+  if(cbChecked){
+    var cbDate=document.getElementById('cb-date-inline').value||'';
+    var cbTime=document.getElementById('cb-time-inline').value||'';
+    var cbTz=document.getElementById('cb-tz-inline').value||'ET';
+    var cbStr='Call Back Request: '+cbDate+(cbTime?' at '+fmtTime(cbTime):'')+(cbTz?' '+cbTz:'');
+    notesVal=cbStr+(notesVal?'\n'+notesVal:'');
+    var c2=contacts[pendingIdx];
+    callbacks.push({id:Date.now(),name:c2?c2['Name']||'':'',phone:c2?c2['Phone']||'':'',timezone:cbTz,date:cbDate,time:cbTime,notes:notesVal,called:false,savedAt:new Date().toISOString()});
+    saveCallbacks();updateCbBadge();
+  }
   var c=contacts[pendingIdx];
   c['Contacted']=pendingOutcome;
   c['Notes']=notesVal;
