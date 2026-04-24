@@ -759,27 +759,40 @@ function renderDashboard(){
   document.getElementById('content').innerHTML=html;
 }
 
-function showContactList(filter){
-  hist.push({id:cur});cur='_clist';
-  var title=filter==='all'?'All Contacts':filter==='contacted'?'Total Contacted':filter==='remaining'?'Remaining':filter;
+function showContactList(resultFilter,tzFilter,remainingOnly){
+  resultFilter=resultFilter||'all';tzFilter=tzFilter||'all';remainingOnly=!!remainingOnly;
+  if(cur!=='_clist'){hist.push({id:cur});cur='_clist';}
   document.getElementById('crumb').innerHTML='<span class="crumb-a">All Contacts</span>';
-  document.getElementById('tbr').innerHTML='<select onchange="showContactList(this.value)" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">'
-    +'<option value="all"'+(filter==='all'?' selected':'')+'>All</option>'
-    +'<option value="remaining"'+(filter==='remaining'?' selected':'')+'>Remaining</option>'
-    +'<option value="contacted"'+(filter==='contacted'?' selected':'')+'>All Contacted</option>'
-    +'<option value="Call Answered"'+(filter==='Call Answered'?' selected':'')+'>Call Answered</option>'
-    +'<option value="Voicemail Left"'+(filter==='Voicemail Left'?' selected':'')+'>Voicemail Left</option>'
-    +'<option value="Hung Up"'+(filter==='Hung Up'?' selected':'')+'>Hung Up</option>'
-    +'<option value="Inbox Full"'+(filter==='Inbox Full'?' selected':'')+'>Inbox Full</option>'
-    +'<option value="Screened/Declined"'+(filter==='Screened/Declined'?' selected':'')+'>Screened/Declined</option>'
-    +'<option value="Phone Unavailable"'+(filter==='Phone Unavailable'?' selected':'')+'>Phone Unavailable</option>'
-    +'</select>';
+  var sel='font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)';
+  var btnStyle='padding:5px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);cursor:pointer;font-family:var(--font);';
+  var remActive=remainingOnly;
+  document.getElementById('tbr').innerHTML='<div style="display:flex;gap:6px;align-items:center">'
+    +'<select id="cl-tz" style="'+sel+'" onchange="showContactList(document.getElementById(\'cl-result\').value,this.value,false)">'
+    +'<option value="all">All TZ</option>'
+    +'<option value="ET">ET</option><option value="CT">CT</option><option value="MT">MT</option><option value="PT">PT</option>'
+    +'</select>'
+    +'<select id="cl-result" style="'+sel+'" onchange="showContactList(this.value,document.getElementById(\'cl-tz\').value,false)">'
+    +'<option value="all">All Results</option>'
+    +'<option value="Call Answered">Call Answered</option>'
+    +'<option value="Voicemail Left">Voicemail Left</option>'
+    +'<option value="Hung Up">Hung Up</option>'
+    +'<option value="Inbox Full">Inbox Full</option>'
+    +'<option value="Screened/Declined">Screened/Declined</option>'
+    +'<option value="Phone Unavailable">Phone Unavailable</option>'
+    +'</select>'
+    +'<button onclick="showContactList(\'all\',document.getElementById(\'cl-tz\').value,true)" style="'+btnStyle+(remActive?'border:none;background:var(--brand);color:#fff':'border:1.5px solid var(--border);background:#fff;color:var(--text)')+'">Remaining</button>'
+    +'</div>';
+  document.getElementById('cl-tz').value=tzFilter;
+  if(!remainingOnly)document.getElementById('cl-result').value=resultFilter;
   var rows=contacts.filter(function(c){
-    if(filter==='all')return true;
-    if(filter==='remaining')return !c['Contacted'];
-    if(filter==='contacted')return !!c['Contacted'];
-    return c['Contacted']===filter;
+    var tz=normTz(c['Time Zone']||'');
+    if(tzFilter!=='all'&&tz!==tzFilter)return false;
+    if(remainingOnly)return !c['Contacted'];
+    if(resultFilter==='all')return true;
+    if(resultFilter==='contacted')return !!c['Contacted'];
+    return c['Contacted']===resultFilter;
   });
+  var title=remainingOnly?'Remaining':resultFilter==='all'?'All Contacts':resultFilter;
   if(!rows.length){
     document.getElementById('content').innerHTML='<div class="panel"><div style="font-size:13px;color:var(--text-secondary)">No contacts in this category.</div></div>';
     return;
@@ -806,8 +819,8 @@ function showContactList(filter){
       +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
       +(tz?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+tzBg+';color:#fff">'+tz+'</span>':'')
       +'<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;background:'+ob+';color:'+oc+'">'+outcome+'</span>'
-      +(c['Contacted']?'<button onclick="editFromList(\''+c.id+'\',\''+filter+'\')" style="padding:3px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)">Edit</button>':'')
-      +(c['Contacted']?'<button onclick="clearFromList(\''+c.id+'\',\''+filter+'\')" style="padding:3px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>':'')
+      +(c['Contacted']?'<button onclick="editFromList(\''+c.id+'\',\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+')" style="padding:3px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)">Edit</button>':'')
+      +(c['Contacted']?'<button onclick="clearFromList(\''+c.id+'\',\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+')" style="padding:3px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>':'')
       +'</div>'
       +'</div>';
   });
@@ -816,36 +829,36 @@ function showContactList(filter){
   document.getElementById('back-btn').disabled=false;
 }
 
-function editFromList(contactId, filter){
+function editFromList(contactId, resultFilter, tzFilter, remainingOnly){
   lastLoggedContactId=contactId;
   editingLastResult=true;
-  showContactList(filter);
+  showContactList(resultFilter,tzFilter,remainingOnly);
   var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
   if(!lc)return;
   var btStyles={'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)','Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041','Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)','Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)','Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d','Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'};
   var editHtml='<div class="panel" style="margin-top:8px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:8px">Change result for '+(lc['Name']||'contact')+'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
-  OUTCOMES.forEach(function(o){editHtml+='<button onclick="editResultFromList(\''+contactId+'\',\''+o+'\',\''+filter+'\')" style="padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';});
-  editHtml+='</div><button onclick="editingLastResult=false;showContactList(\''+filter+'\');" style="width:100%;margin-top:8px;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Cancel</button></div>';
+  OUTCOMES.forEach(function(o){editHtml+='<button onclick="editResultFromList(\''+contactId+'\',\''+o+'\',\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+')" style="padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';});
+  editHtml+='</div><button onclick="editingLastResult=false;showContactList(\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+');" style="width:100%;margin-top:8px;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Cancel</button></div>';
   var content=document.getElementById('content');
   content.insertAdjacentHTML('beforeend',editHtml);
   scrollTop();
 }
-function editResultFromList(contactId, outcome, filter){
+function editResultFromList(contactId, outcome, resultFilter, tzFilter, remainingOnly){
   var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
   if(!lc)return;
   lc['Contacted']=outcome;
   writeOutcome(selectedAgent,lc.id,outcome,lc['Notes']||'',lc['Name'],lc['Phone']);
   lastLoggedContactId=contactId;lastLoggedOutcome=outcome;editingLastResult=false;
-  showContactList(filter);scrollTop();
+  showContactList(resultFilter,tzFilter,remainingOnly);scrollTop();
 }
-function clearFromList(contactId, filter){
+function clearFromList(contactId, resultFilter, tzFilter, remainingOnly){
   var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
   if(!lc)return;
   lc['Contacted']='';lc['Notes']='';
   writeOutcome(selectedAgent,lc.id,'','',lc['Name'],lc['Phone']);
   if(lastLoggedContactId===contactId){lastLoggedContactId=null;lastLoggedOutcome=null;}
-  showContactList(filter);scrollTop();
+  showContactList(resultFilter,tzFilter,remainingOnly);scrollTop();
 }
 
 function showContacts(){
