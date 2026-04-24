@@ -671,6 +671,27 @@ function tzPriority(tz){
   if(ideal)return 0;
   return [].indexOf.call(['ET','CT','MT','PT'],tz)+1;
 }
+function idealWindowTzs(){
+  var ptD=getPtDecimal();
+  return ['ET','CT','MT','PT'].filter(function(tz){
+    var loc=ptD+(OFFSETS[tz]||0);
+    return (loc>=8&&loc<10)||(loc>=16&&loc<17);
+  });
+}
+function capCheck(uncalled){
+  // Always allow if under cap
+  if(uncalled.length<10)return null;
+  // If an ideal-window TZ has no uncalled contacts remaining, allow refresh
+  var idealTzs=idealWindowTzs();
+  if(idealTzs.length>0){
+    var missingIdeal=idealTzs.filter(function(tz){
+      return !uncalled.some(function(c){return normTz(c['Time Zone'])===tz;});
+    });
+    if(missingIdeal.length>0)return null; // allow — ideal TZ has been exhausted
+    return 'Work through '+idealTzs.join('/')+' contacts first ('+uncalled.filter(function(c){return idealTzs.indexOf(normTz(c['Time Zone']))!==-1;}).length+' ideal-window remaining)';
+  }
+  return 'Work through contacts first ('+uncalled.length+' callable remaining)';
+}
 
 function writeOutcome(agentId,contactId,outcome,notes,name,phone){
   try{saveOutcomeLocal(agentId,contactId,outcome,notes);}catch(e){console.warn('localStorage save failed:',e);}
@@ -708,8 +729,9 @@ function showDashboard(){
 function refreshAndDash(){
   var btn=document.querySelector('#tbr button');
   var uncalled=contacts.filter(function(c){return !c['Contacted']&&tzPriority(normTz(c['Time Zone']))<999;});
-  if(contacts.length>0&&uncalled.length>=10){
-    if(btn){btn.textContent='Work through contacts first ('+uncalled.length+' callable remaining)';setTimeout(function(){btn.textContent='Refresh';},3000);}
+  var capMsg=contacts.length>0?capCheck(uncalled):null;
+  if(capMsg){
+    if(btn){btn.textContent=capMsg;setTimeout(function(){btn.textContent='Refresh';},3000);}
     return;
   }
   if(btn)btn.textContent='Loading...';
@@ -877,8 +899,9 @@ function showContacts(){
 function refreshContacts(){
   var btn=document.querySelector('#tbr button');
   var uncalled=contacts.filter(function(c){return !c['Contacted']&&tzPriority(normTz(c['Time Zone']))<999;});
-  if(contacts.length>0&&uncalled.length>=10){
-    if(btn){btn.textContent='Work through contacts first ('+uncalled.length+' callable remaining)';setTimeout(function(){btn.textContent='Refresh';},3000);}
+  var capMsg=contacts.length>0?capCheck(uncalled):null;
+  if(capMsg){
+    if(btn){btn.textContent=capMsg;setTimeout(function(){btn.textContent='Refresh';},3000);}
     return;
   }
   if(btn)btn.textContent='Loading...';
