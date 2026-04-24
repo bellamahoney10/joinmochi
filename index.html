@@ -637,7 +637,7 @@ function loadContacts(agentId,callback){
       });
       // initSession: pre-populate sheet tab with today's contacts
       var agentName='';
-      for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){agentName=agentList[i].first_name;break;}}
+      for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){var _an=agentList[i];agentName=(_an.first_name+(_an.last_name?' '+_an.last_name:'')).trim();break;}}
       if(agentName&&result.length){
         var sheetRows=result.map(function(c){return[getTodayStr(),agentName,c.Name,c.Phone,'',''];});
         fetch('/api/sheet',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -661,7 +661,7 @@ function tzPriority(tz){
 function writeOutcome(agentId,contactId,outcome,notes,name,phone){
   try{saveOutcomeLocal(agentId,contactId,outcome,notes);}catch(e){console.warn('localStorage save failed:',e);}
   var agentName='';
-  for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){agentName=agentList[i].first_name;break;}}
+  for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){var _wn=agentList[i];agentName=(_wn.first_name+(_wn.last_name?' '+_wn.last_name:'')).trim();break;}}
   fetch('/api/sheet',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
