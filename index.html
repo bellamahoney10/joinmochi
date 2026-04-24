@@ -704,7 +704,7 @@ function loadContacts(agentId,callback){
     });
 
     // Merge sheet callbacks with any localStorage callbacks not yet in sheet
-    var localCbs=JSON.parse(localStorage.getItem('mochi_callbacks')||'[]');
+    var localCbs=JSON.parse(localStorage.getItem('mochi_callbacks_'+agentId)||'[]');
     var sheetCbList=Object.values(cbMap);
     var merged=sheetCbList.slice();
     localCbs.forEach(function(lc){
@@ -1136,8 +1136,8 @@ var lastLoggedContactId=null;
 var lastLoggedOutcome=null;
 var editingLastResult=false;
 
-var callbacks=JSON.parse(localStorage.getItem('mochi_callbacks')||'[]');
-function saveCallbacks(){localStorage.setItem('mochi_callbacks',JSON.stringify(callbacks));}
+var callbacks=[];
+function saveCallbacks(){localStorage.setItem('mochi_callbacks_'+(selectedAgent||''),JSON.stringify(callbacks));}
 function fmtTime(t){try{var p=t.split(':');var h=parseInt(p[0]);var m=p[1];var ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+ap;}catch(e){return t;}}
 function toggleCbFields(src){
   var chk=document.getElementById(src==='log'?'log-cb-checkbox':'cb-checkbox');
@@ -1261,9 +1261,9 @@ function renderCallbacks(){
 function logCallbackResult(idx, outcome){
   var cb=callbacks[idx];
   if(!cb)return;
-  cb.called=true;cb.result=outcome;
-  saveCallbacks();updateCbBadge();
   writeOutcome(selectedAgent,cb.id||('cb_'+idx),outcome,'Callback: '+(cb.date||'')+(cb.time?' at '+cb.time:'')+' '+(cb.timezone||''),cb.name,cb.phone,'appendResult');
+  callbacks.splice(idx,1);
+  saveCallbacks();updateCbBadge();
   _cbExpanded=-1;
   renderCallbacks();
 }
