@@ -783,6 +783,7 @@ function renderDashboard(){
 
 function showContactList(resultFilter,tzFilter,remainingOnly){
   resultFilter=resultFilter||'all';tzFilter=tzFilter||'all';remainingOnly=!!remainingOnly;
+  if(resultFilter==='remaining'){remainingOnly=true;resultFilter='all';}
   if(cur!=='_clist'){hist.push({id:cur});cur='_clist';}
   document.getElementById('crumb').innerHTML='<span class="crumb-a">All Contacts</span>';
   var sel='font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)';
@@ -844,6 +845,7 @@ function showContactList(resultFilter,tzFilter,remainingOnly){
       +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
       +(tz?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+tzBg+';color:#fff">'+tz+'</span>':'')
       +'<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;background:'+ob+';color:'+oc+'">'+outcome+'</span>'
+      +(!c['Contacted']?'<button onclick="callFromList(\''+c.id+'\')" style="padding:3px 10px;font-size:11px;font-weight:700;border-radius:6px;border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Call</button>':'')
       +(c['Contacted']?'<button onclick="editFromList(\''+c.id+'\',\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+')" style="padding:3px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)">Edit</button>':'')
       +(c['Contacted']?'<button onclick="clearFromList(\''+c.id+'\',\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+')" style="padding:3px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>':'')
       +'</div>'
@@ -884,6 +886,13 @@ function clearFromList(contactId, resultFilter, tzFilter, remainingOnly){
   writeOutcome(selectedAgent,lc.id,'','',lc['Name'],lc['Phone']);
   if(lastLoggedContactId===contactId){lastLoggedContactId=null;lastLoggedOutcome=null;}
   showContactList(resultFilter,tzFilter,remainingOnly);scrollTop();
+}
+
+function callFromList(contactId){
+  // Move selected contact to front of uncalled queue, then go to My Contacts
+  var idx=contacts.findIndex(function(c){return c.id===contactId;});
+  if(idx>0){contacts.unshift(contacts.splice(idx,1)[0]);}
+  showContacts();
 }
 
 function showContacts(){
