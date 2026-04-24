@@ -845,7 +845,7 @@ function renderContactPanel(){
           +'<button onclick="clearLastResult()" style="padding:4px 9px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>'
           +'</div></div>'
           +'<button onclick="showCallbackFromPanel()" style="width:100%;padding:10px;font-size:13px;font-weight:700;border-radius:var(--radius-md);border:none;background:#1D9E75;color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:6px">+ Schedule Callback for '+(_lc['Name']||'this patient')+'</button>'
-          +'<button onclick="lastLoggedContactId=null;lastLoggedOutcome=null;renderContactPanel();" style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #1D9E75;background:#fff;color:#1D9E75;cursor:pointer;font-family:var(--font)">No callback needed — dismiss</button>'
+          +'<button onclick="lastLoggedContactId=null;lastLoggedOutcome=null;renderContactPanel();" style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #1D9E75;background:#fff;color:#1D9E75;cursor:pointer;font-family:var(--font)">NO CALLBACK NEEDED — DISMISS</button>'
           +'</div>';
       } else {
         topHtml='<div class="panel" style="border:1.5px solid var(--border)">'
@@ -896,7 +896,7 @@ function renderContactPanel(){
     +'<div style="font-size:20px;font-weight:700;color:var(--brand);letter-spacing:.05em">'+(c['Phone']||'')+'</div>'
     +'<button onclick="copyPhone(\''+( c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
     +'</div></div>'
-    +'<button onclick="startCallFromContacts('+idx+')" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:8px">Call '+(c['Name']||'this person')+'</button>'
+    +'<button onclick="startCallFromContacts('+idx+')" style="width:100%;padding:11px;font-size:13px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Call '+(c['Name']||'this person')+'</button>'
     +'<button onclick="skippedIds.add(\''+c.id+'\');renderContactPanel();scrollTop();" style="width:100%;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);margin-bottom:16px">Skip — Come Back Later</button>'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Result</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
