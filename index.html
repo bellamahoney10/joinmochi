@@ -333,7 +333,7 @@ var S={
     q:'How do they respond?',
     br:[{t:'Interested — ready to sign up',n:'close'},{t:'Question about pricing',n:'price'},{t:'Not interested',n:'optout'}]},
   price:{title:'Price Objection',trail:['Price'],type:'warn',
-    script:'<i>The <b>$79/month</b> membership covers unlimited provider and dietitian visits, nutrition coaching, and 24/7 customer support. Compounded semaglutide is <b>$99/month</b> with shipping included — compared to up to $1,300/month for brand-name. The <b>3-month plan</b> brings membership down to about $66/month. FSA and HSA accepted. No hidden fees.</i>',
+    script:'<i>The <b>$79/month</b> membership covers unlimited provider and dietitian visits, nutrition coaching, and 24/7 customer support. Compounded semaglutide is <b>$99/month</b> with shipping included — compared to up to $1,300/month for brand-name. The <b>3-month plan</b> brings membership down to about $66/month. FSA and HSA accepted (pre-tax accounts for medical expenses — cards work at checkout, or you can submit a Mochi billing statement for reimbursement). No hidden fees.</i>',
     q:'Do they have more questions?',
     br:[{t:"That makes sense — let's continue",n:'close'},{t:'Question about medication',n:'safety'},{t:'Question about insurance',n:'insurance'},{t:'Still not sure',n:'notready'}]},
   insurance:{title:'Insurance Question',trail:['Insurance'],type:'normal',
@@ -394,7 +394,7 @@ var S={
       {q:'What is Wellness+?',a:'<i>If your insurance qualifies, you may be eligible for our Wellness+ plan at <b>$69/month</b> — less than our standard plan, plus preventative health screenings, mental health support, and advanced nutrition therapy. Mochi guarantees <b>no surprise bills or copays</b>.</i>'},
       {q:'Who qualifies for Wellness+?',a:'<i>Most standard commercial insurance plans qualify. Not eligible: Medicare, Medicaid, Cigna as of April 2025, any HMO plan including Kaiser, and states without an in-network provider. If you would like, I can look into whether your plan would qualify.</i>'},
       {q:'Are there hidden fees?',a:'<i>No hidden fees and no surprise bills — ever. Shipping is included in the medication price.</i>'},
-      {q:'Can I use FSA or HSA?',a:'<i>Yes — FSA or HSA pre-tax dollars can be used toward the membership and medication.</i>'}
+      {q:'Can I use FSA or HSA?',a:'<i><b>FSA (Flexible Spending Account)</b> and <b>HSA (Health Savings Account)</b> are pre-tax accounts offered through many employers that can be used for qualified medical expenses — both can be applied toward your Mochi membership and medication.<br><br>If your FSA or HSA card does not work directly at checkout, you can <b>download your Mochi billing statement</b> from your account and submit it to your FSA or HSA provider for reimbursement.</i>'}
     ],
     q:'Do they have more questions?',
     br:[{t:'Question about medication',n:'faq_medication'},{t:'Question about compounded GLP-1s',n:'faq_compounded'},{t:'Question about insurance',n:'insurance'},{t:'Question about the program',n:'faq_program'},{t:'Ready to sign up',n:'close'}]},
@@ -460,7 +460,7 @@ var S={
     q:'How do they respond?',
     br:[{t:'That makes sense — tell me more',n:'pitch'},{t:'Still concerned about the price',n:'obj_price'},{t:'Ready to sign up',n:'close'},{t:'Still not interested',n:'optout'}]},
   obj_price:{title:'Too Expensive',trail:['Objections','Too Expensive'],type:'warn',
-    script:'<i>I hear you. Here is how the numbers break down: <b>$79/month</b> for the membership, plus medication — compounded semaglutide at <b>$99/month</b> or tirzepatide at <b>$199/month</b>, shipping included. That is <b>$178 or $278 total</b>, compared to $1,000+ per month for brand-name. The price never changes regardless of dosage. A <b>3-month plan</b> brings membership down to about <b>$66/month</b>, and FSA and HSA are accepted.</i>',
+    script:'<i>I hear you. Here is how the numbers break down: <b>$79/month</b> for the membership, plus medication — compounded semaglutide at <b>$99/month</b> or tirzepatide at <b>$199/month</b>, shipping included. That is <b>$178 or $278 total</b>, compared to $1,000+ per month for brand-name. The price never changes regardless of dosage. A <b>3-month plan</b> brings membership down to about <b>$66/month</b>, and FSA and HSA are accepted (pre-tax accounts for medical expenses — cards work at checkout, or download your Mochi billing statement to submit for reimbursement).</i>',
     q:'How do they respond?',
     br:[{t:"That makes sense — let's continue",n:'close'},{t:'Question about insurance',n:'insurance'},{t:'Still not sure',n:'notready'},{t:'Not interested',n:'optout'}]},
   obj_competitor:{title:'Went With a Competitor',trail:['Objections','Chose Competitor'],type:'warn',
