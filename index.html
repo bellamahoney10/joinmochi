@@ -894,6 +894,7 @@ function refreshContacts(){
 
 function renderContactPanel(){
   var _c=document.getElementById('content');if(_c)_c.scrollTop=0;
+  var _ptd=(function(){var p=getPtDate();return String(p.m).padStart(2,'0')+'/'+String(p.d).padStart(2,'0')+'/'+p.y;})();
   var btStyles={
     'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
     'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
@@ -994,7 +995,7 @@ function renderContactPanel(){
     +'</label>'
     +'<div id="cb-fields-inline" style="display:none;margin-top:8px">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">'
-    +'<input type="text" id="cb-date-inline" placeholder="MM/DD/YYYY" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'<input type="text" id="cb-date-inline" value="'+_ptd+'" placeholder="MM/DD/YYYY" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'<input type="time" id="cb-time-inline" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'</div>'
     +'<select id="cb-tz-inline" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
@@ -1185,6 +1186,7 @@ function copyPhone(num){
 var _logIdx=null;
 
 function showLogResult(){
+  var _ptd=(function(){var p=getPtDate();return String(p.m).padStart(2,'0')+'/'+String(p.d).padStart(2,'0')+'/'+p.y;})();
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
   var idx=uncalled.length?uncalled[0]:null;
@@ -1221,7 +1223,7 @@ function showLogResult(){
     +'</label>'
     +'<div id="log-cb-fields" style="display:none;margin-top:8px">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">'
-    +'<input type="text" id="log-cb-date" placeholder="MM/DD/YYYY" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'<input type="text" id="log-cb-date" value="'+_ptd+'" placeholder="MM/DD/YYYY" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'<input type="time" id="log-cb-time" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'</div>'
     +'<select id="log-cb-tz" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
