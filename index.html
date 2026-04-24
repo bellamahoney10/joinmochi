@@ -1086,6 +1086,7 @@ function saveNewCallback(){
   saveCallbacks();updateCbBadge();showCallbacks();
 }
 
+var _cbExpanded=-1;
 function renderCallbacks(){
   var sort=(document.getElementById('cb-sort')||{}).value||'datetime';
   var items=callbacks.slice();
@@ -1098,6 +1099,8 @@ function renderCallbacks(){
     return (to[a.timezone]||0)-(to[b.timezone]||0);
   });
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
+  var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)','Screened/Declined':'#7f1d1d','Phone Unavailable':'#555'};
+  var outcomeBg={'Call Answered':'#E1F5EE','Voicemail Left':'#EEEDFE','Inbox Full':'#F2F3F7','Hung Up':'var(--amber-light)','Screened/Declined':'#fee2e2','Phone Unavailable':'#f0f0f5'};
   var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   if(!items.length){
     document.getElementById('content').innerHTML='<div class="panel"><div style="font-size:13px;color:var(--text-secondary)">No callbacks scheduled yet. When a patient asks to be called back, use the "Schedule Callback" option to capture the details here.</div></div>';
@@ -1117,23 +1120,40 @@ function renderCallbacks(){
       try{if(cb.time){var tp=cb.time.split(':');var h=parseInt(tp[0]);var m=tp[1];var ampm=h>=12?'PM':'AM';h=h%12||12;timeStr=h+':'+m+' '+ampm;}}catch(e){}
       var realIdx=callbacks.indexOf(cb);
       var faded=cb.called?'opacity:.4;':'';
-      html+='<div style="'+faded+'display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-light);gap:10px;flex-wrap:wrap">'
+      var resultBadge=cb.result?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+(outcomeBg[cb.result]||'#F2F3F7')+';color:'+(outcomeColors[cb.result]||'#555')+'">'+cb.result+'</span>':'';
+      html+='<div style="'+faded+'padding:10px 0;border-bottom:1px solid var(--border-light)">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">'
         +'<div style="display:flex;align-items:center;gap:10px;min-width:0">'
         +'<div style="width:34px;height:34px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brand);flex-shrink:0">'+(cb.name||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase()+'</div>'
         +'<div style="min-width:0">'
-        +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(cb.name||'Unknown')+(cb.called?' <span style="font-size:10px;color:#1D9E75;font-weight:700">&#10003; Called</span>':'')+'</div>'
+        +'<div style="font-size:13px;font-weight:600;color:var(--text)">'+(cb.name||'Unknown')+'</div>'
         +'<div style="font-size:11px;color:var(--text-secondary)">'+(cb.phone||'')+(cb.notes?' &nbsp;&middot;&nbsp; <i>'+cb.notes+'</i>':'')+'</div>'
         +'</div></div>'
         +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
         +'<span style="font-size:13px;font-weight:700;color:var(--brand)">'+timeStr+'</span>'
         +(cb.timezone?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+bc+';color:#fff">'+cb.timezone+'</span>':'')
-        +(!cb.called?'<button onclick="markCallbackCalled('+realIdx+')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041;cursor:pointer;font-family:var(--font)">Mark Called</button>':'')
-        +'</div>'
+        +(cb.called?resultBadge:'<button onclick="_cbExpanded=(_cbExpanded==='+realIdx+'?-1:'+realIdx+');renderCallbacks();" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--brand);background:#fff;color:var(--brand);cursor:pointer;font-family:var(--font)">Log Result</button>')
+        +'</div></div>'
+        +(!cb.called&&_cbExpanded===realIdx?'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px">'
+          +['Voicemail Left','Call Answered','Hung Up','Inbox Full','Screened/Declined','Phone Unavailable'].map(function(o){
+            return '<button onclick="logCallbackResult('+realIdx+',\''+o+'\')" style="padding:7px 4px;font-size:11px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">'+o+'</button>';
+          }).join('')
+          +'</div>':'')
         +'</div>';
     });
     html+='</div>';
   });
   document.getElementById('content').innerHTML=html;
+}
+
+function logCallbackResult(idx, outcome){
+  var cb=callbacks[idx];
+  if(!cb)return;
+  cb.called=true;cb.result=outcome;
+  saveCallbacks();updateCbBadge();
+  writeOutcome(selectedAgent,cb.id||('cb_'+idx),outcome,'Callback: '+(cb.date||'')+(cb.time?' at '+cb.time:'')+' '+( cb.timezone||''),cb.name,cb.phone);
+  _cbExpanded=-1;
+  renderCallbacks();
 }
 
 function markCallbackCalled(idx){
