@@ -572,7 +572,7 @@ function tzStatus(tz){
   if(loc<8||loc>=18.5)return{label:'Do Not Call',color:'#E24B4A'};
   if((tz==='ET'&&ptD>=14)||(tz==='CT'&&ptD>=15))return{label:'Wind Down',color:'#EF9F27'};
   if((loc>=8&&loc<10)||(loc>=16&&loc<17))return{label:'Ideal Window',color:'#1D9E75'};
-  return{label:'Call Now',color:'#0a0a74'};
+  return{label:'Call Now',color:'#4ADE80'};
 }
 
 var ZONES=[{l:'ET',z:'America/New_York'},{l:'CT',z:'America/Chicago'},{l:'MT',z:'America/Denver'},{l:'PT',z:'America/Los_Angeles'}];
@@ -1332,7 +1332,7 @@ function render(){
       +'<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
       +'<textarea id="cb-notes" rows="2" placeholder="e.g. prefers mornings, on lunch break now..." style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea></div>'
       +'<button onclick="saveCallbackRequest()" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:8px">Save Callback &amp; End Call</button>'
-      +'<button onclick="cur=\'open\';hist=[];render();scrollTop();" style="width:100%;padding:9px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">No callback needed — end call</button>'
+      +'<button onclick="cur=\'open\';hist=[];render();scrollTop();" style="width:100%;padding:9px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">NO CALLBACK NEEDED — END CALL</button>'
       +'</div>';
     document.getElementById('back-btn').disabled=false;
     document.getElementById('khint').textContent='Fill in callback details and save';
