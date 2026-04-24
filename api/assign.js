@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
-          AND ae.updated_at >= NOW() - INTERVAL '48 hours'
+          AND ae.updated_at >= NOW() - INTERVAL '24 hours'
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
           AND NOT EXISTS (
