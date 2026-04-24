@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
              COALESCE(p.phone, ocq.phone) AS phone,
              ocq.state, NULL AS timezone, ocq.assigned_at
       FROM outreach_call_queue ocq
-      LEFT JOIN patients p ON p.patient_id = ocq.patient_id
+      LEFT JOIN patients p ON p.id = ocq.patient_id
       WHERE ocq.assigned_agent_id = $1
         AND DATE(ocq.assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
         AND ocq.status = 'assigned'
