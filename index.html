@@ -894,7 +894,7 @@ function refreshContacts(){
 
 function renderContactPanel(){
   var _c=document.getElementById('content');if(_c)_c.scrollTop=0;
-  var _ptd=(function(){var p=getPtDate();return String(p.m).padStart(2,'0')+'/'+String(p.d).padStart(2,'0')+'/'+p.y;})();
+  var _ptd=(function(){var p=getPtDate();return p.y+'-'+String(p.m).padStart(2,'0')+'-'+String(p.d).padStart(2,'0');})();
   var btStyles={
     'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
     'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
@@ -995,7 +995,7 @@ function renderContactPanel(){
     +'</label>'
     +'<div id="cb-fields-inline" style="display:none;margin-top:8px">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">'
-    +'<input type="text" id="cb-date-inline" value="'+_ptd+'" placeholder="MM/DD/YYYY" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'<input type="date" id="cb-date-inline" value="'+_ptd+'" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'<input type="time" id="cb-time-inline" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'</div>'
     +'<select id="cb-tz-inline" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
@@ -1059,7 +1059,7 @@ function showAddCallbackForm(){
     +'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
     +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Date</div>'
-    +'<input type="text" id="new-cb-date" value="'+_mm+'/'+_dd+'/'+_yyyy+'" placeholder="MM/DD/YYYY" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+    +'<input type="date" id="new-cb-date" value="'+_yyyy+'-'+_mm+'-'+_dd+'" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
     +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Time</div>'
     +'<input type="time" id="new-cb-time" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
     +'</div>'
@@ -1186,7 +1186,7 @@ function copyPhone(num){
 var _logIdx=null;
 
 function showLogResult(){
-  var _ptd=(function(){var p=getPtDate();return String(p.m).padStart(2,'0')+'/'+String(p.d).padStart(2,'0')+'/'+p.y;})();
+  var _ptd=(function(){var p=getPtDate();return p.y+'-'+String(p.m).padStart(2,'0')+'-'+String(p.d).padStart(2,'0');})();
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
   var idx=uncalled.length?uncalled[0]:null;
@@ -1223,7 +1223,7 @@ function showLogResult(){
     +'</label>'
     +'<div id="log-cb-fields" style="display:none;margin-top:8px">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">'
-    +'<input type="text" id="log-cb-date" value="'+_ptd+'" placeholder="MM/DD/YYYY" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'<input type="date" id="log-cb-date" value="'+_ptd+'" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'<input type="time" id="log-cb-time" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'</div>'
     +'<select id="log-cb-tz" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
@@ -1463,13 +1463,13 @@ function render(){
     var _defTz=_cc?normTz(_cc['Time Zone']||'PT'):'PT';
     var _today=new Date();
     var _yyyy=_today.getFullYear(),_mm=String(_today.getMonth()+1).padStart(2,'0'),_dd=String(_today.getDate()).padStart(2,'0');
-    var _defDate=_mm+'/'+_dd+'/'+_yyyy;
+    var _defDate=_yyyy+'-'+_mm+'-'+_dd;
     content.innerHTML='<div class="panel">'
       +'<div class="panel-title">Schedule Callback</div>'
       +(_cc?'<div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">For: <b style="color:var(--brand)">'+(_cc['Name']||'Unknown')+'</b> &nbsp;&middot;&nbsp; '+(_cc['Phone']||'')+'</div>':'')
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
       +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Date</div>'
-      +'<input type="text" id="cb-date" value="'+_defDate+'" placeholder="MM/DD/YYYY" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+      +'<input type="date" id="cb-date" value="'+_defDate+'" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
       +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Time</div>'
       +'<input type="time" id="cb-time" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
       +'</div>'
