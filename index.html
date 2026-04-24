@@ -675,7 +675,7 @@ function tzPriority(tz){
 function writeOutcome(agentId,contactId,outcome,notes,name,phone){
   try{saveOutcomeLocal(agentId,contactId,outcome,notes);}catch(e){console.warn('localStorage save failed:',e);}
   var agentName='';
-  for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){var _wn=agentList[i];agentName=(_wn.first_name+(_wn.last_name?' '+_wn.last_name:'')).trim();break;}}
+  for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){var _wn=agentList[i];agentName=(_wn.first_name+(_wn.last_name?' '+_wn.last_name:'')).trim().replace(/\s+/g,' ');break;}}
   fetch('/api/sheet',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
