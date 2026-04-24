@@ -761,14 +761,14 @@ function capCheck(uncalled){
   return 'Work through contacts first ('+uncalled.length+' callable remaining)';
 }
 
-function writeOutcome(agentId,contactId,outcome,notes,name,phone){
+function writeOutcome(agentId,contactId,outcome,notes,name,phone,action){
   try{saveOutcomeLocal(agentId,contactId,outcome,notes);}catch(e){console.warn('localStorage save failed:',e);}
   var agentName='';
   for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){var _wn=agentList[i];agentName=(_wn.first_name+(_wn.last_name?' '+_wn.last_name:'')).trim().replace(/\s+/g,' ');break;}}
   fetch('/api/sheet',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'updateResult',agent:agentName,name:name||'',phone:phone||'',result:outcome,notes:notes||'',dateAssigned:getTodayStr()})
+    body:JSON.stringify({action:action||'updateResult',agent:agentName,name:name||'',phone:phone||'',result:outcome,notes:notes||'',dateAssigned:getTodayStr()})
   }).then(function(r){
     if(!r.ok)console.error('Sheet write HTTP error:',r.status);
   }).catch(function(e){console.error('Sheet write error:',e);});
@@ -1263,7 +1263,7 @@ function logCallbackResult(idx, outcome){
   if(!cb)return;
   cb.called=true;cb.result=outcome;
   saveCallbacks();updateCbBadge();
-  writeOutcome(selectedAgent,cb.id||('cb_'+idx),outcome,'Callback: '+(cb.date||'')+(cb.time?' at '+cb.time:'')+' '+( cb.timezone||''),cb.name,cb.phone);
+  writeOutcome(selectedAgent,cb.id||('cb_'+idx),outcome,'Callback: '+(cb.date||'')+(cb.time?' at '+cb.time:'')+' '+(cb.timezone||''),cb.name,cb.phone,'appendResult');
   _cbExpanded=-1;
   renderCallbacks();
 }
