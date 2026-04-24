@@ -1173,7 +1173,10 @@ function showLogResult(){
     'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
     'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
   };
-  var contactInfo=c?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>':'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved.</div>';
+  var _ctz=c?normTz(c['Time Zone']||''):'';
+  var _ctzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
+  var _ctzBadge=_ctz?'&nbsp;<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+(_ctzColors[_ctz]||'#534AB7')+';color:#fff">'+_ctz+'</span>':'';
+  var contactInfo=c?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+_ctzBadge+'</div>':'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved.</div>';
   var btns=Object.keys(btStyles).map(function(o){
     var safe=o.replace(/[^a-zA-Z0-9]/g,'_');
     return '<button id="lrb_'+safe+'" onclick="selectLogOutcome(\''+o+'\')" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font);transition:opacity .15s">'+o+'</button>';
