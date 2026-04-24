@@ -748,12 +748,46 @@ function showContactList(filter){
       +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
       +(tz?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:'+tzBg+';color:#fff">'+tz+'</span>':'')
       +'<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;background:'+ob+';color:'+oc+'">'+outcome+'</span>'
+      +(c['Contacted']?'<button onclick="editFromList(\''+c.id+'\',\''+filter+'\')" style="padding:3px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)">Edit</button>':'')
+      +(c['Contacted']?'<button onclick="clearFromList(\''+c.id+'\',\''+filter+'\')" style="padding:3px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>':'')
       +'</div>'
       +'</div>';
   });
   html+='</div>';
   document.getElementById('content').innerHTML=html;
   document.getElementById('back-btn').disabled=false;
+}
+
+function editFromList(contactId, filter){
+  lastLoggedContactId=contactId;
+  editingLastResult=true;
+  showContactList(filter);
+  var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
+  if(!lc)return;
+  var btStyles={'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)','Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041','Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)','Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)','Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d','Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'};
+  var editHtml='<div class="panel" style="margin-top:8px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:8px">Change result for '+(lc['Name']||'contact')+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+  OUTCOMES.forEach(function(o){editHtml+='<button onclick="editResultFromList(\''+contactId+'\',\''+o+'\',\''+filter+'\')" style="padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';});
+  editHtml+='</div><button onclick="editingLastResult=false;showContactList(\''+filter+'\');" style="width:100%;margin-top:8px;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Cancel</button></div>';
+  var content=document.getElementById('content');
+  content.insertAdjacentHTML('beforeend',editHtml);
+  scrollTop();
+}
+function editResultFromList(contactId, outcome, filter){
+  var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
+  if(!lc)return;
+  lc['Contacted']=outcome;
+  writeOutcome(selectedAgent,lc.id,outcome,lc['Notes']||'',lc['Name'],lc['Phone']);
+  lastLoggedContactId=contactId;lastLoggedOutcome=outcome;editingLastResult=false;
+  showContactList(filter);scrollTop();
+}
+function clearFromList(contactId, filter){
+  var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
+  if(!lc)return;
+  lc['Contacted']='';lc['Notes']='';
+  writeOutcome(selectedAgent,lc.id,'','',lc['Name'],lc['Phone']);
+  if(lastLoggedContactId===contactId){lastLoggedContactId=null;lastLoggedOutcome=null;}
+  showContactList(filter);scrollTop();
 }
 
 function showContacts(){
