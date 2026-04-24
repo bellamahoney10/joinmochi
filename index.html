@@ -1295,12 +1295,6 @@ function submitLogResult(){
     // callback_capture no longer used — handled inline above
   } else {
     showContacts();
-    var content=document.getElementById('content');
-    var banner=document.createElement('div');
-    banner.style.cssText='background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#085041';
-    banner.textContent='Result logged: '+outcome+(notesVal?' — "'+notesVal+'"':'')+'. Ready for next call.';
-    content.insertBefore(banner,content.firstChild);
-    setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
   }
 }
 
