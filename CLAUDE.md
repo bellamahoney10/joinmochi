@@ -32,6 +32,7 @@ Vercel-deployed outreach calling tool for Mochi health coaches (AJ Ciar, Marien 
 - Restored on every `loadContacts` call so refresh doesn't wipe logged results
 
 ## Rules
-- Never edit the Downloads copy (`~/Downloads/mochi_call_script*.html`) — always edit this repo
-- Always push to main; Vercel auto-deploys
-- When UI changes don't appear to work, instruct user to hard refresh: Cmd+Shift+R
+- ALWAYS edit files in this repo (`/Users/bellamahoney/joinmochi/`). NEVER create or edit HTML files in ~/Downloads or anywhere outside this repo.
+- When the user asks to update the call tool, edit `index.html` and/or `api/*.js` here and push to main.
+- Always push to main; Vercel auto-deploys.
+- When UI changes don't appear to work, instruct user to hard refresh: Cmd+Shift+R.
