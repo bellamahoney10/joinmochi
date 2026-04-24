@@ -813,17 +813,63 @@ function refreshContacts(){
 }
 
 function renderContactPanel(){
+  var btStyles={
+    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
+    'No Answer':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
+    'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
+    'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
+  };
+
+  // Build last-logged / callback banner — shown at TOP regardless of contacts remaining
+  var topHtml='';
+  if(lastLoggedContactId){
+    var _lc=null;for(var _li=0;_li<contacts.length;_li++){if(contacts[_li].id===lastLoggedContactId){_lc=contacts[_li];break;}}
+    if(_lc){
+      if(editingLastResult){
+        topHtml='<div class="panel" style="border:1.5px solid var(--border)">'
+          +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:8px">Change result for '+(_lc['Name']||'last contact')+'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+        OUTCOMES.forEach(function(o){topHtml+='<button onclick="editLastResultOutcome(\''+o+'\')" style="padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';});
+        topHtml+='</div><button onclick="editingLastResult=false;renderContactPanel();" style="width:100%;margin-top:8px;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Cancel</button></div>';
+      } else if(lastLoggedOutcome==='Call Answered'){
+        topHtml='<div class="panel" style="border:1.5px solid #1D9E75;background:#E1F5EE">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+          +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#085041">Call Answered</div>'
+          +'<div style="font-size:13px;font-weight:600;color:#085041">'+(_lc['Name']||_lc['Phone'])+'</div></div>'
+          +'<div style="display:flex;gap:6px">'
+          +'<button onclick="editingLastResult=true;renderContactPanel();" style="padding:4px 9px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid #1D9E75;background:#fff;color:#085041;cursor:pointer;font-family:var(--font)">Edit</button>'
+          +'<button onclick="clearLastResult()" style="padding:4px 9px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>'
+          +'</div></div>'
+          +'<button onclick="showCallbackFromPanel()" style="width:100%;padding:10px;font-size:13px;font-weight:700;border-radius:var(--radius-md);border:none;background:#1D9E75;color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:6px">+ Schedule Callback for '+(_lc['Name']||'this patient')+'</button>'
+          +'<button onclick="lastLoggedContactId=null;lastLoggedOutcome=null;renderContactPanel();" style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #1D9E75;background:#fff;color:#1D9E75;cursor:pointer;font-family:var(--font)">No callback needed — dismiss</button>'
+          +'</div>';
+      } else {
+        topHtml='<div class="panel" style="border:1.5px solid var(--border)">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between">'
+          +'<div><div style="font-size:11px;color:var(--text-hint);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Last logged</div>'
+          +'<div style="font-size:13px;color:var(--text);font-weight:600">'+(_lc['Name']||_lc['Phone'])+' — '+(_lc['Contacted']||'')+'</div></div>'
+          +'<div style="display:flex;gap:6px">'
+          +'<button onclick="editingLastResult=true;renderContactPanel();" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font)">Edit</button>'
+          +'<button onclick="clearLastResult()" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>'
+          +'</div></div></div>';
+      }
+    }
+  }
+
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){
     if(!contacts[i]['Contacted'])uncalled.push(i);
   }
   if(!uncalled.length){
-    document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>';
+    document.getElementById('content').innerHTML=topHtml+'<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>';
     return;
   }
   var notSkipped=uncalled.filter(function(i){return !skippedIds.has(contacts[i].id);});
   if(!notSkipped.length){
-    document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You\'ve skipped all remaining contacts for today.</div><button onclick="skippedIds.clear();renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>';
+    document.getElementById('content').innerHTML=topHtml+'<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You\'ve skipped all remaining contacts for today.</div><button onclick="skippedIds.clear();renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>';
     return;
   }
   var idx=notSkipped[0];
@@ -853,43 +899,11 @@ function renderContactPanel(){
     +'<button onclick="skippedIds.add(\''+c.id+'\');renderContactPanel();scrollTop();" style="width:100%;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);margin-bottom:16px">Skip — Come Back Later</button>'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Result</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
-  var btStyles={
-    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
-    'No Answer':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
-    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
-    'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
-    'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
-  };
   OUTCOMES.forEach(function(o){
     html+='<button onclick="selectOutcome('+idx+',\''+o+'\')" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
   });
-  html+='</div>';
-  if(lastLoggedContactId){
-    var _lc=null;for(var _li=0;_li<contacts.length;_li++){if(contacts[_li].id===lastLoggedContactId){_lc=contacts[_li];break;}}
-    if(_lc){
-      if(editingLastResult){
-        html+='<div style="margin-top:10px;padding:12px;background:var(--gray-50);border-radius:var(--radius-md);border:1.5px solid var(--border)">'
-          +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:8px">Change result for '+(_lc['Name']||'last contact')+'</div>'
-          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
-        OUTCOMES.forEach(function(o){html+='<button onclick="editLastResultOutcome(\''+o+'\')" style="padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';});
-        html+='</div><button onclick="editingLastResult=false;renderContactPanel();" style="width:100%;margin-top:8px;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Cancel</button></div>';
-      } else {
-        html+='<div style="margin-top:10px;padding:10px 12px;background:var(--gray-50);border-radius:var(--radius-md);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
-          +'<div><div style="font-size:11px;color:var(--text-hint);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Last logged</div>'
-          +'<div style="font-size:13px;color:var(--text);font-weight:600">'+(_lc['Name']||_lc['Phone'])+' — '+(_lc['Contacted']||'')+'</div></div>'
-          +'<div style="display:flex;gap:6px">'
-          +'<button onclick="editingLastResult=true;renderContactPanel();scrollTop();" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font)">Edit</button>'
-          +'<button onclick="clearLastResult()" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>'
-          +'</div></div>';
-        if(lastLoggedOutcome==='Call Answered'){
-          html+='<button onclick="showCallbackFromPanel()" style="width:100%;margin-top:8px;padding:9px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041;cursor:pointer;font-family:var(--font)">+ Schedule Callback for '+(_lc['Name']||'this patient')+'</button>';
-        }
-      }
-    }
-  }
-  html+='<div id="notes-panel" style="display:none">'
+  html+='</div>'
+    +'<div id="notes-panel" style="display:none">'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
     +'<textarea id="outcome-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px">'
@@ -897,7 +911,7 @@ function renderContactPanel(){
     +'<button onclick="cancelOutcome()" style="padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
     +'</div></div>'
     +'</div>';
-  document.getElementById('content').innerHTML=html;
+  document.getElementById('content').innerHTML=topHtml+html;
 }
 
 function startCallFromContacts(idx){
@@ -1124,8 +1138,7 @@ function selectOutcome(idx,outcome){
   pendingOutcome=outcome;
   pendingIdx=idx;
   var np=document.getElementById('notes-panel');
-  if(np){np.style.display='block';}
-  scrollTop();
+  if(np){np.style.display='block';setTimeout(function(){np.scrollIntoView({behavior:'smooth',block:'nearest'});},30);}
   var btn=document.getElementById('submit-outcome-btn');
   if(btn)btn.textContent='Submit — '+outcome;
 }
