@@ -572,7 +572,7 @@ function tzStatus(tz){
   if(loc<8||loc>=18.5)return{label:'Do Not Call',color:'#E24B4A'};
   if((tz==='ET'&&ptD>=14)||(tz==='CT'&&ptD>=15))return{label:'Wind Down',color:'#EF9F27'};
   if((loc>=8&&loc<10)||(loc>=16&&loc<17))return{label:'Ideal Window',color:'#1D9E75'};
-  return{label:'Call Now',color:'#4ADE80'};
+  return{label:'Call Now',color:'#ffffff'};
 }
 
 var ZONES=[{l:'ET',z:'America/New_York'},{l:'CT',z:'America/Chicago'},{l:'MT',z:'America/Denver'},{l:'PT',z:'America/Los_Angeles'}];
