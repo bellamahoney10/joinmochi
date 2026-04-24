@@ -1286,7 +1286,7 @@ function render(){
   } else {tbr.innerHTML='';}
   var ban=document.getElementById('mban');
   var _ac=activeCallContact||null;
-  var _patInfo=(_ac&&mode==='outbound')?'<span style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 12px;display:inline-block;vertical-align:middle"></span><span style="font-size:14px;font-weight:700;color:#fff;vertical-align:middle">'+(_ac['Name']||'')+'</span><span style="font-size:12px;color:rgba(255,255,255,0.65);margin-left:10px;vertical-align:middle;font-variant-numeric:tabular-nums">'+(_ac['Phone']||'')+'</span>':'';
+  var _patInfo=(_ac&&mode==='outbound')?'<span style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 12px;display:inline-block;vertical-align:middle"></span><span style="font-size:12px;font-weight:700;color:#fff;vertical-align:middle">'+(_ac['Name']||'')+'</span><span style="font-size:12px;color:rgba(255,255,255,0.65);margin-left:10px;vertical-align:middle;font-variant-numeric:tabular-nums">'+(_ac['Phone']||'')+'</span>':'';
   ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>'+_patInfo;
   var navEl=document.getElementById('nav-stages');navEl.innerHTML='';
   document.getElementById('nav-lbl').textContent=mode==='inbound'?'Inbound Stages':'Call Stages';
