@@ -33,6 +33,22 @@ module.exports = async (req, res) => {
 
   const client = await getPool().connect();
   try {
+    // Guard: skip if any agent already has contacts assigned today
+    const alreadyAssigned = await client.query(`
+      SELECT COUNT(*) AS cnt
+      FROM outreach_call_queue ocq
+      JOIN admins a ON a.id = ocq.assigned_agent_id
+      JOIN outreach_agents oa ON a.id = oa.admin_id
+      WHERE oa.is_active = true AND oa.deleted_at IS NULL
+        AND (TRIM(a.first_name) = 'AJ' OR TRIM(a.first_name) = 'Marien')
+        AND ocq.status = 'assigned'
+        AND ocq.deleted_at IS NULL
+        AND DATE(ocq.assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
+    `);
+    if (parseInt(alreadyAssigned.rows[0].cnt, 10) > 0) {
+      return res.json({ assigned: 0, message: 'Already assigned today — skipping' });
+    }
+
     const agentsRes = await client.query(`
       SELECT a.id, a.first_name, a.last_name
       FROM admins a
