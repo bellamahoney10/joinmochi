@@ -41,18 +41,10 @@ module.exports = async (req, res) => {
   try {
     client = await getPool().connect();
 
-    // Guard: don't add more if agent already has 10+ assigned contacts today
-    const assignedRes = await client.query(`
-      SELECT COUNT(*) AS cnt
-      FROM outreach_call_queue
-      WHERE assigned_agent_id = $1
-        AND status = 'assigned'
-        AND deleted_at IS NULL
-        AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
-    `, [agent_id]);
-    const assignedCount = parseInt(assignedRes.rows[0].cnt, 10);
-    if (assignedCount >= 10) {
-      return res.json({ assigned: 0, message: `Agent already has ${assignedCount} assigned contacts today` });
+    // Guard: don't add more if agent still has 10+ uncalled contacts (count passed from client)
+    const uncalledCount = parseInt(req.body.uncalled_count ?? -1, 10);
+    if (uncalledCount >= 10) {
+      return res.json({ assigned: 0, message: `Agent still has ${uncalledCount} uncalled contacts` });
     }
 
     const contactsRes = await client.query(`
