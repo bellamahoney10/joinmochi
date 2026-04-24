@@ -922,7 +922,7 @@ function editFromList(contactId, resultFilter, tzFilter, remainingOnly){
   showContactList(resultFilter,tzFilter,remainingOnly);
   var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
   if(!lc)return;
-  var btStyles={'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)','Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041','Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)','Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)','Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d','Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'};
+  var btStyles={'Voicemail Left':'border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489','Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041','Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)','Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)','Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d','Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'};
   var editHtml='<div class="panel" style="margin-top:8px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:8px">Change result for '+(lc['Name']||'contact')+'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
   OUTCOMES.forEach(function(o){editHtml+='<button onclick="editResultFromList(\''+contactId+'\',\''+o+'\',\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+')" style="padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';});
@@ -988,7 +988,7 @@ function renderContactPanel(){
   var _c=document.getElementById('content');if(_c)_c.scrollTop=0;
   var _ptd=(function(){var p=getPtDate();return p.y+'-'+String(p.m).padStart(2,'0')+'-'+String(p.d).padStart(2,'0');})();
   var btStyles={
-    'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Voicemail Left':'border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489',
     'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
     'No Answer':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
     'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
@@ -1020,14 +1020,22 @@ function renderContactPanel(){
           +'<button onclick="lastLoggedContactId=null;lastLoggedOutcome=null;renderContactPanel();" style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #1D9E75;background:#fff;color:#1D9E75;cursor:pointer;font-family:var(--font)">Dismiss</button>'
           +'</div>';
       } else {
-        topHtml='<div class="panel" style="border:1.5px solid var(--border)">'
-          +'<div style="display:flex;align-items:center;justify-content:space-between">'
-          +'<div><div style="font-size:11px;color:var(--text-hint);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Last logged</div>'
-          +'<div style="font-size:13px;color:var(--text);font-weight:600">'+(_lc['Name']||_lc['Phone'])+' — '+(_lc['Contacted']||'')+'</div></div>'
+        var _oBorder={'Voicemail Left':'#534AB7','Hung Up':'var(--amber-mid)','Screened/Declined':'#fca5a5','Inbox Full':'var(--border)','Phone Unavailable':'var(--border)'};
+        var _oBg={'Voicemail Left':'#EEEDFE','Hung Up':'var(--amber-light)','Screened/Declined':'#fee2e2','Inbox Full':'#F2F3F7','Phone Unavailable':'#f0f0f5'};
+        var _oText={'Voicemail Left':'#3C3489','Hung Up':'var(--amber-dark)','Screened/Declined':'#7f1d1d','Inbox Full':'#555972','Phone Unavailable':'#555'};
+        var _ob=_oBorder[lastLoggedOutcome]||'var(--border)';
+        var _obg=_oBg[lastLoggedOutcome]||'#f8f8fb';
+        var _otc=_oText[lastLoggedOutcome]||'var(--text)';
+        topHtml='<div class="panel" style="border:1.5px solid '+_ob+';background:'+_obg+'">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+          +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:'+_otc+'">'+lastLoggedOutcome+'</div>'
+          +'<div style="font-size:13px;font-weight:600;color:'+_otc+'">'+(_lc['Name']||_lc['Phone'])+'</div></div>'
           +'<div style="display:flex;gap:6px">'
-          +'<button onclick="editingLastResult=true;renderContactPanel();" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font)">Edit</button>'
-          +'<button onclick="clearLastResult()" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>'
-          +'</div></div></div>';
+          +'<button onclick="editingLastResult=true;renderContactPanel();" style="padding:4px 9px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid '+_ob+';background:#fff;color:'+_otc+';cursor:pointer;font-family:var(--font)">Edit</button>'
+          +'<button onclick="clearLastResult()" style="padding:4px 9px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>'
+          +'</div></div>'
+          +'<button onclick="lastLoggedContactId=null;lastLoggedOutcome=null;renderContactPanel();" style="width:100%;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid '+_ob+';background:#fff;color:'+_otc+';cursor:pointer;font-family:var(--font)">Dismiss</button>'
+          +'</div>';
       }
     }
   }
