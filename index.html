@@ -683,7 +683,7 @@ function refreshAndDash(){
 
 function renderDashboard(){
   var st=getDashboardStats();
-  var agentName='Agent';for(var _ai=0;_ai<agentList.length;_ai++){if(agentList[_ai].id===selectedAgent){agentName=agentList[_ai].first_name;break;}}
+  var agentName='Agent';for(var _ai=0;_ai<agentList.length;_ai++){if(agentList[_ai].id===selectedAgent){var _a=agentList[_ai];agentName=(_a.first_name+(_a.last_name?' '+_a.last_name:'')).trim();break;}}
   var now=new Date();
   var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var dateStr=months[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
