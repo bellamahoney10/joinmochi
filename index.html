@@ -970,7 +970,7 @@ function renderContactPanel(){
     +'</div></div>'
     +'<button onclick="skippedIds.add(\''+c.id+'\');renderContactPanel();scrollTop();" style="width:100%;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);margin-top:10px">Skip — Come Back Later</button>'
     +'</div>';
-  document.getElementById('content').innerHTML=topHtml+html;
+  document.getElementById('content').innerHTML=topHtml+html+(topHtml?topHtml:'');
 }
 
 function startCallFromContacts(idx){
