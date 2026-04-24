@@ -533,7 +533,7 @@ function selAgent(id){
   selectedAgent=id;
   var idx=1;for(var i=0;i<agentList.length;i++){if(agentList[i].id===id){idx=i+1;break;}}
   vmS1=getScript(idx)===1;
-  document.getElementById('agent-assign').innerHTML='<strong>Week '+getWk()+' assignment:</strong> '+(vmS1?'Script 1 — Weight Loss':'Script 2 — Personalized Care');
+  document.getElementById('agent-assign').innerHTML='<strong>Voicemail script:</strong> '+(vmS1?'Script 1 — Weight Loss':'Script 2 — Personalized Care');
   document.getElementById('start-btn').style.display='block';
 }
 function selAgentSelect(id){
