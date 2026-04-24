@@ -792,6 +792,7 @@ function clearFromList(contactId, filter){
 
 function showContacts(){
   hist.push({id:cur});cur='_contacts';
+  activeCallContact=null;
   document.getElementById('crumb').innerHTML='<span class="crumb-a">My Contacts</span>';
   document.getElementById('tbr').innerHTML='<button onclick="refreshContacts()" style="padding:5px 12px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">Refresh</button>';
   renderContactPanel();
@@ -1201,7 +1202,7 @@ function setMode(m){
   render();
 }
 
-function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;window.scrollTo(0,0);}
+function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;window.scrollTo(0,0);requestAnimationFrame(function(){if(c)c.scrollTop=0;window.scrollTo(0,0);});}
 function goTo(id){hist.push({id:cur});cur=id;render();scrollTop();}
 function goBack(){if(!hist.length)return;cur=hist.pop().id;render();scrollTop();}
 function restartFlow(){cur=mode==='inbound'?'inbound_open':'open';hist=[];render();}
@@ -1239,8 +1240,7 @@ function render(){
     setTimeout(function(){var s=document.getElementById('vmsel');if(s){s.value=vmS1?'1':'2';s.onchange=function(){vmS1=s.value==='1';var el=document.getElementById('vm-txt');if(el)el.textContent=vmText();};}},0);
   } else {tbr.innerHTML='';}
   var ban=document.getElementById('mban');
-  var _unc=contacts.filter(function(c){return !c['Contacted'];});
-  var _ac=_unc.length?_unc[0]:null;
+  var _ac=activeCallContact||null;
   var _patInfo=(_ac&&mode==='outbound')?'<span style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 12px;display:inline-block;vertical-align:middle"></span><span style="font-size:14px;font-weight:700;color:#fff;vertical-align:middle">'+(_ac['Name']||'')+'</span><span style="font-size:12px;color:rgba(255,255,255,0.65);margin-left:10px;vertical-align:middle;font-variant-numeric:tabular-nums">'+(_ac['Phone']||'')+'</span>':'';
   ban.innerHTML='<span class="mban-logo">mochi <span>health</span></span><span class="mban-pill">'+(mode==='inbound'?'Inbound Call':'Outbound Call')+'</span>'+_patInfo;
   var navEl=document.getElementById('nav-stages');navEl.innerHTML='';
