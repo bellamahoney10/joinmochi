@@ -650,14 +650,16 @@ function tzPriority(tz){
 }
 
 function writeOutcome(agentId,contactId,outcome,notes,name,phone){
-  saveOutcomeLocal(agentId,contactId,outcome,notes);
+  try{saveOutcomeLocal(agentId,contactId,outcome,notes);}catch(e){console.warn('localStorage save failed:',e);}
   var agentName='';
   for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){agentName=agentList[i].first_name;break;}}
   fetch('/api/sheet',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({agent:agentName,contact_id:contactId,name:name||'',phone:phone||'',outcome:outcome,notes:notes||'',date:getTodayStr()})
-  }).catch(function(e){console.log('Sheet write error:',e);});
+  }).then(function(r){
+    if(!r.ok)console.error('Sheet write HTTP error:',r.status);
+  }).catch(function(e){console.error('Sheet write error:',e);});
 }
 
 function getDashboardStats(){
