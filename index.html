@@ -766,11 +766,14 @@ function showContactList(resultFilter,tzFilter,remainingOnly){
   var sel='font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)';
   var btnStyle='padding:5px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);cursor:pointer;font-family:var(--font);';
   var remActive=remainingOnly;
-  document.getElementById('tbr').innerHTML='<div style="display:flex;gap:6px;align-items:center">'
+  var lbl='font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);margin-bottom:3px';
+  document.getElementById('tbr').innerHTML='<div style="display:flex;gap:10px;align-items:flex-end">'
+    +'<div style="display:flex;flex-direction:column"><div style="'+lbl+'">Time Zone</div>'
     +'<select id="cl-tz" style="'+sel+'" onchange="showContactList(document.getElementById(\'cl-result\').value,this.value,false)">'
     +'<option value="all">All TZ</option>'
     +'<option value="ET">ET</option><option value="CT">CT</option><option value="MT">MT</option><option value="PT">PT</option>'
-    +'</select>'
+    +'</select></div>'
+    +'<div style="display:flex;flex-direction:column"><div style="'+lbl+'">Call Results</div>'
     +'<select id="cl-result" style="'+sel+'" onchange="showContactList(this.value,document.getElementById(\'cl-tz\').value,false)">'
     +'<option value="all">All Results</option>'
     +'<option value="Call Answered">Call Answered</option>'
@@ -779,7 +782,7 @@ function showContactList(resultFilter,tzFilter,remainingOnly){
     +'<option value="Inbox Full">Inbox Full</option>'
     +'<option value="Screened/Declined">Screened/Declined</option>'
     +'<option value="Phone Unavailable">Phone Unavailable</option>'
-    +'</select>'
+    +'</select></div>'
     +'<button onclick="showContactList(\'all\',document.getElementById(\'cl-tz\').value,true)" style="'+btnStyle+(remActive?'border:none;background:var(--brand);color:#fff':'border:1.5px solid var(--border);background:#fff;color:var(--text)')+'">Remaining</button>'
     +'</div>';
   document.getElementById('cl-tz').value=tzFilter;
