@@ -994,7 +994,7 @@ function renderContactPanel(){
     +'</label>'
     +'<div id="cb-fields-inline" style="display:none;margin-top:8px">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">'
-    +'<input type="date" id="cb-date-inline" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'<input type="text" id="cb-date-inline" placeholder="MM/DD/YYYY" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'<input type="time" id="cb-time-inline" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'</div>'
     +'<select id="cb-tz-inline" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
@@ -1058,7 +1058,7 @@ function showAddCallbackForm(){
     +'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
     +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Date</div>'
-    +'<input type="date" id="new-cb-date" value="'+_yyyy+'-'+_mm+'-'+_dd+'" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+    +'<input type="text" id="new-cb-date" value="'+_mm+'/'+_dd+'/'+_yyyy+'" placeholder="MM/DD/YYYY" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
     +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Time</div>'
     +'<input type="time" id="new-cb-time" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
     +'</div>'
@@ -1221,7 +1221,7 @@ function showLogResult(){
     +'</label>'
     +'<div id="log-cb-fields" style="display:none;margin-top:8px">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">'
-    +'<input type="date" id="log-cb-date" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
+    +'<input type="text" id="log-cb-date" placeholder="MM/DD/YYYY" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'<input type="time" id="log-cb-time" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'</div>'
     +'<select id="log-cb-tz" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
@@ -1461,13 +1461,13 @@ function render(){
     var _defTz=_cc?normTz(_cc['Time Zone']||'PT'):'PT';
     var _today=new Date();
     var _yyyy=_today.getFullYear(),_mm=String(_today.getMonth()+1).padStart(2,'0'),_dd=String(_today.getDate()).padStart(2,'0');
-    var _defDate=_yyyy+'-'+_mm+'-'+_dd;
+    var _defDate=_mm+'/'+_dd+'/'+_yyyy;
     content.innerHTML='<div class="panel">'
       +'<div class="panel-title">Schedule Callback</div>'
       +(_cc?'<div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">For: <b style="color:var(--brand)">'+(_cc['Name']||'Unknown')+'</b> &nbsp;&middot;&nbsp; '+(_cc['Phone']||'')+'</div>':'')
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
       +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Date</div>'
-      +'<input type="date" id="cb-date" value="'+_defDate+'" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+      +'<input type="text" id="cb-date" value="'+_defDate+'" placeholder="MM/DD/YYYY" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
       +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Time</div>'
       +'<input type="time" id="cb-time" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
       +'</div>'
