@@ -10,13 +10,13 @@ module.exports = async (req, res) => {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
-    const response = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(req.body),
-      redirect: 'follow',
-      signal: controller.signal
-    });
+    const body = JSON.stringify(req.body);
+    const opts = { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body, redirect: 'manual', signal: controller.signal };
+    let response = await fetch(APPS_SCRIPT_URL, opts);
+    if (response.status === 302 || response.status === 301) {
+      const location = response.headers.get('location');
+      if (location) response = await fetch(location, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body, signal: controller.signal });
+    }
     clearTimeout(timeout);
     const text = await response.text();
     console.log('Apps Script response:', response.status, text);
