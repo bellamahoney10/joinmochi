@@ -270,6 +270,9 @@ function normTz(tz){
   var map={Eastern:'ET',Central:'CT',Mountain:'MT',Pacific:'PT'};
   return map[tz]||tz;
 }
+var STATE_TZ={'Connecticut':'ET','District of Columbia':'ET','Delaware':'ET','Florida':'ET','Georgia':'ET','Indiana':'ET','Massachusetts':'ET','Maryland':'ET','Maine':'ET','Michigan':'ET','North Carolina':'ET','New Hampshire':'ET','New Jersey':'ET','New York':'ET','Ohio':'ET','Pennsylvania':'ET','Rhode Island':'ET','South Carolina':'ET','Virginia':'ET','Vermont':'ET','West Virginia':'ET','Alabama':'CT','Arkansas':'CT','Iowa':'CT','Illinois':'CT','Kansas':'CT','Kentucky':'CT','Louisiana':'CT','Minnesota':'CT','Missouri':'CT','Mississippi':'CT','North Dakota':'CT','Nebraska':'CT','Oklahoma':'CT','South Dakota':'CT','Tennessee':'CT','Texas':'CT','Wisconsin':'CT','Colorado':'MT','Idaho':'MT','Montana':'MT','New Mexico':'MT','Utah':'MT','Wyoming':'MT','Arizona':'MT','California':'PT','Nevada':'PT','Oregon':'PT','Washington':'PT','Alaska':'AK','Hawaii':'HI'};
+function stateToTz(state){return STATE_TZ[state]||'';}
+var skippedIds=new Set();
 var OUTCOMES=['Voicemail Left','Call Answered','Hung Up','Inbox Full','Screened/Declined','Phone Unavailable'];
 var OUTCOME_STYLES={
   'Voicemail Left':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
@@ -606,7 +609,7 @@ function loadContacts(agentId,callback){
           Name:((r.first_name||'')+(r.last_name?' '+r.last_name:'')).trim(),
           Phone:r.phone||'',
           State:r.state||'',
-          'Time Zone':normTz(r.timezone||''),
+          'Time Zone':normTz(r.timezone||'')||stateToTz(r.state||''),
           Contacted:'',
           Notes:''
         };
@@ -784,7 +787,12 @@ function renderContactPanel(){
     document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>';
     return;
   }
-  var idx=uncalled[0];
+  var notSkipped=uncalled.filter(function(i){return !skippedIds.has(contacts[i].id);});
+  if(!notSkipped.length){
+    document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All remaining contacts skipped</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">You\'ve skipped all remaining contacts for today.</div><button onclick="skippedIds.clear();renderContactPanel();" style="padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Clear Skips</button></div>';
+    return;
+  }
+  var idx=notSkipped[0];
   var c=contacts[idx];
   var tz=normTz(c['Time Zone']||'');
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
@@ -807,7 +815,8 @@ function renderContactPanel(){
     +'<div style="font-size:20px;font-weight:700;color:var(--brand);letter-spacing:.05em">'+(c['Phone']||'')+'</div>'
     +'<button onclick="copyPhone(\''+( c['Phone']||'')+'\')" style="padding:4px 10px;font-size:11px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font);color:var(--text-secondary)" id="copy-phone-btn">Copy</button>'
     +'</div></div>'
-    +'<button onclick="startCallFromContacts('+idx+')" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:16px">Call '+(c['Name']||'this person')+'</button>'
+    +'<button onclick="startCallFromContacts('+idx+')" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:8px">Call '+(c['Name']||'this person')+'</button>'
+    +'<button onclick="skippedIds.add(\''+c.id+'\');renderContactPanel();scrollTop();" style="width:100%;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font);margin-bottom:16px">Skip — Come Back Later</button>'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Log Result</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
   var btStyles={
@@ -822,8 +831,31 @@ function renderContactPanel(){
   OUTCOMES.forEach(function(o){
     html+='<button onclick="selectOutcome('+idx+',\''+o+'\')" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
   });
-  html+='</div>'
-    +'<div id="notes-panel" style="display:none">'
+  html+='</div>';
+  if(lastLoggedContactId){
+    var _lc=null;for(var _li=0;_li<contacts.length;_li++){if(contacts[_li].id===lastLoggedContactId){_lc=contacts[_li];break;}}
+    if(_lc){
+      if(editingLastResult){
+        html+='<div style="margin-top:10px;padding:12px;background:var(--gray-50);border-radius:var(--radius-md);border:1.5px solid var(--border)">'
+          +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:8px">Change result for '+(_lc['Name']||'last contact')+'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+        OUTCOMES.forEach(function(o){html+='<button onclick="editLastResultOutcome(\''+o+'\')" style="padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';});
+        html+='</div><button onclick="editingLastResult=false;renderContactPanel();" style="width:100%;margin-top:8px;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Cancel</button></div>';
+      } else {
+        html+='<div style="margin-top:10px;padding:10px 12px;background:var(--gray-50);border-radius:var(--radius-md);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
+          +'<div><div style="font-size:11px;color:var(--text-hint);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Last logged</div>'
+          +'<div style="font-size:13px;color:var(--text);font-weight:600">'+(_lc['Name']||_lc['Phone'])+' — '+(_lc['Contacted']||'')+'</div></div>'
+          +'<div style="display:flex;gap:6px">'
+          +'<button onclick="editingLastResult=true;renderContactPanel();scrollTop();" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:var(--font)">Edit</button>'
+          +'<button onclick="clearLastResult()" style="padding:5px 10px;font-size:12px;font-weight:600;border-radius:6px;border:1.5px solid var(--red-mid);background:var(--red-light);color:var(--red-dark);cursor:pointer;font-family:var(--font)">Clear</button>'
+          +'</div></div>';
+        if(lastLoggedOutcome==='Call Answered'){
+          html+='<button onclick="showCallbackFromPanel()" style="width:100%;margin-top:8px;padding:9px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041;cursor:pointer;font-family:var(--font)">+ Schedule Callback for '+(_lc['Name']||'this patient')+'</button>';
+        }
+      }
+    }
+  }
+  html+='<div id="notes-panel" style="display:none">'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
     +'<textarea id="outcome-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px">'
@@ -841,6 +873,9 @@ function startCallFromContacts(idx){
 
 var pendingOutcome=null;
 var pendingIdx=null;
+var lastLoggedContactId=null;
+var lastLoggedOutcome=null;
+var editingLastResult=false;
 
 var callbacks=JSON.parse(localStorage.getItem('mochi_callbacks')||'[]');
 function saveCallbacks(){localStorage.setItem('mochi_callbacks',JSON.stringify(callbacks));}
@@ -853,10 +888,49 @@ function updateCbBadge(){
 function showCallbacks(){
   hist.push({id:cur});cur='_callbacks';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">My Callbacks</span>';
-  document.getElementById('tbr').innerHTML='<select id="cb-sort" onchange="renderCallbacks()" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)"><option value="datetime">Sort: Date &amp; Time</option><option value="tz">Sort: Timezone</option></select>';
+  document.getElementById('tbr').innerHTML='<div style="display:flex;gap:8px"><select id="cb-sort" onchange="renderCallbacks()" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)"><option value="datetime">Sort: Date &amp; Time</option><option value="tz">Sort: Timezone</option></select><button onclick="showAddCallbackForm()" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">+ Add</button></div>';
   renderCallbacks();
   document.getElementById('back-btn').disabled=false;
   scrollTop();
+}
+
+function showAddCallbackForm(){
+  var _today=new Date();
+  var _yyyy=_today.getFullYear(),_mm=String(_today.getMonth()+1).padStart(2,'0'),_dd=String(_today.getDate()).padStart(2,'0');
+  document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">New Callback</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
+    +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Patient Name</div>'
+    +'<input type="text" id="new-cb-name" placeholder="Full name" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+    +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Phone</div>'
+    +'<input type="text" id="new-cb-phone" placeholder="Phone number" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
+    +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Date</div>'
+    +'<input type="date" id="new-cb-date" value="'+_yyyy+'-'+_mm+'-'+_dd+'" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+    +'<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Time</div>'
+    +'<input type="time" id="new-cb-time" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"></div>'
+    +'</div>'
+    +'<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Timezone</div>'
+    +'<select id="new-cb-tz" style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none">'
+    +'<option value="ET">ET — Eastern</option><option value="CT">CT — Central</option><option value="MT">MT — Mountain</option><option value="PT">PT — Pacific</option>'
+    +'</select></div>'
+    +'<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
+    +'<textarea id="new-cb-notes" rows="2" placeholder="e.g. prefers mornings, on lunch break now..." style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea></div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button onclick="saveNewCallback()" style="flex:1;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Save Callback</button>'
+    +'<button onclick="showCallbacks()" style="padding:11px 16px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font)">Cancel</button>'
+    +'</div></div>';
+  scrollTop();
+}
+function saveNewCallback(){
+  var name=(document.getElementById('new-cb-name')||{}).value||'';
+  var phone=(document.getElementById('new-cb-phone')||{}).value||'';
+  var date=(document.getElementById('new-cb-date')||{}).value||'';
+  var time=(document.getElementById('new-cb-time')||{}).value||'';
+  var tz=(document.getElementById('new-cb-tz')||{}).value||'ET';
+  var notes=(document.getElementById('new-cb-notes')||{}).value||'';
+  callbacks.push({id:Date.now(),name:name,phone:phone,timezone:tz,date:date,time:time,notes:notes,called:false,savedAt:new Date().toISOString()});
+  saveCallbacks();updateCbBadge();showCallbacks();
 }
 
 function renderCallbacks(){
@@ -1017,6 +1091,7 @@ function selectOutcome(idx,outcome){
   pendingIdx=idx;
   var np=document.getElementById('notes-panel');
   if(np){np.style.display='block';}
+  scrollTop();
   var btn=document.getElementById('submit-outcome-btn');
   if(btn)btn.textContent='Submit — '+outcome;
 }
@@ -1035,8 +1110,34 @@ function submitOutcome(){
   c['Contacted']=pendingOutcome;
   c['Notes']=notesVal;
   writeOutcome(selectedAgent,c.id,pendingOutcome,notesVal,c['Name'],c['Phone']);
+  lastLoggedContactId=c.id;
+  lastLoggedOutcome=pendingOutcome;
+  editingLastResult=false;
   pendingOutcome=null;pendingIdx=null;
   renderContactPanel();
+  scrollTop();
+}
+function editLastResultOutcome(outcome){
+  var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===lastLoggedContactId){lc=contacts[i];break;}}
+  if(!lc)return;
+  lc['Contacted']=outcome;
+  writeOutcome(selectedAgent,lc.id,outcome,lc['Notes']||'',lc['Name'],lc['Phone']);
+  lastLoggedOutcome=outcome;
+  editingLastResult=false;
+  renderContactPanel();scrollTop();
+}
+function clearLastResult(){
+  var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===lastLoggedContactId){lc=contacts[i];break;}}
+  if(!lc)return;
+  lc['Contacted']='';lc['Notes']='';
+  writeOutcome(selectedAgent,lc.id,'','',lc['Name'],lc['Phone']);
+  lastLoggedContactId=null;lastLoggedOutcome=null;editingLastResult=false;
+  renderContactPanel();scrollTop();
+}
+function showCallbackFromPanel(){
+  var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===lastLoggedContactId){lc=contacts[i];break;}}
+  if(lc)activeCallContact=lc;
+  goTo('callback_capture');
 }
 
 function vmText(){
@@ -1053,7 +1154,7 @@ function setMode(m){
   render();
 }
 
-function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;}
+function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;window.scrollTo(0,0);}
 function goTo(id){hist.push({id:cur});cur=id;render();scrollTop();}
 function goBack(){if(!hist.length)return;cur=hist.pop().id;render();scrollTop();}
 function restartFlow(){cur=mode==='inbound'?'inbound_open':'open';hist=[];render();}
