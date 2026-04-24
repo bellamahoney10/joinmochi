@@ -45,16 +45,16 @@ module.exports = async (req, res) => {
       SELECT id, patient_id, phone FROM (
         SELECT DISTINCT ON (ocq.phone)
           ocq.id, ocq.patient_id, ocq.phone,
-          COALESCE(oss.eligible_at, ae.updated_at) AS eligible_at,
+          COALESCE(oss.eligible_at, ae.updated_at, ocq.added_to_queue_at) AS eligible_at,
           ${tzPriorityExpr} AS tz_priority
         FROM outreach_call_queue ocq
         LEFT JOIN outreach_sms_schedule oss ON oss.patient_id = ocq.patient_id
           AND oss.deleted_at IS NULL
-        JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
+        LEFT JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
-          AND COALESCE(oss.eligible_at, ae.updated_at) >= NOW() - INTERVAL '30 days'
+          AND COALESCE(oss.eligible_at, ae.updated_at, ocq.added_to_queue_at) >= NOW() - INTERVAL '30 days'
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
             WHERE s.patient_id = ocq.patient_id
@@ -64,7 +64,7 @@ module.exports = async (req, res) => {
             SELECT 1 FROM outreach_call_queue ocq2
             WHERE ocq2.phone = ocq.phone AND ocq2.status = 'assigned' AND ocq2.deleted_at IS NULL
           )
-        ORDER BY ocq.phone, COALESCE(oss.eligible_at, ae.updated_at) DESC
+        ORDER BY ocq.phone, COALESCE(oss.eligible_at, ae.updated_at, ocq.added_to_queue_at) DESC
       ) sub
       ORDER BY
         CASE WHEN sub.eligible_at >= NOW() - INTERVAL '24 hours' THEN 0 ELSE 1 END ASC,
