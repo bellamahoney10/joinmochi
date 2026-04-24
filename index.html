@@ -677,14 +677,22 @@ function loadContacts(agentId,callback){
       var cbMatch=sr.notes.match(/Call Back Request:\s*([^\n]+)/);
       if(cbMatch){
         var cbStr=cbMatch[1].trim();
-        // Parse "MM/DD/YYYY at H:MM AM/PM TZ"
-        var dm=cbStr.match(/^(\d{1,2}\/\d{1,2}\/\d{4})/);
-        var tm=cbStr.match(/at\s+(\d{1,2}:\d{2}\s*[AP]M)/i);
+        // Parse "YYYY-MM-DD at H:MM AM/PM TZ" (or legacy MM/DD/YYYY)
+        var dm=cbStr.match(/^(\d{4}-\d{2}-\d{2})/)||cbStr.match(/^(\d{1,2}\/\d{1,2}\/\d{4})/);
+        var tm=cbStr.match(/at\s+(\d{1,2}:\d{2})\s*([AP]M)?/i);
         var tzm=cbStr.match(/\b(ET|CT|MT|PT)\b/);
+        // Convert parsed time back to 24h HH:MM for storage
+        var cbTime='';
+        if(tm){
+          var _tH=parseInt(tm[1].split(':')[0]),_tM=(tm[1].split(':')[1]||'00'),_tAP=(tm[2]||'').toUpperCase();
+          if(_tAP==='PM'&&_tH!==12)_tH+=12;
+          else if(_tAP==='AM'&&_tH===12)_tH=0;
+          cbTime=String(_tH).padStart(2,'0')+':'+_tM;
+        }
         var key=phone10+'|'+(dm?dm[1]:'');
         if(!cbMap[key]){
           cbMap[key]={id:sr.date+'_'+phone10,name:sr.name,phone:sr.phone,
-            date:dm?dm[1]:'',time:tm?tm[1]:'',timezone:tzm?tzm[1]:'',
+            date:dm?dm[1]:'',time:cbTime,timezone:tzm?tzm[1]:'',
             notes:sr.notes,called:false,savedAt:sr.date};
         }
       }
@@ -926,7 +934,7 @@ function editFromList(contactId, resultFilter, tzFilter, remainingOnly){
   OUTCOMES.forEach(function(o){editHtml+='<button onclick="editResultFromList(\''+contactId+'\',\''+o+'\',\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+')" style="padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';});
   editHtml+='</div><button onclick="editingLastResult=false;showContactList(\''+resultFilter+'\',\''+tzFilter+'\','+remainingOnly+');" style="width:100%;margin-top:8px;padding:7px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">Cancel</button></div>';
   var content=document.getElementById('content');
-  content.insertAdjacentHTML('beforeend',editHtml);
+  content.insertAdjacentHTML('afterbegin',editHtml);
   scrollTop();
 }
 function editResultFromList(contactId, outcome, resultFilter, tzFilter, remainingOnly){
@@ -1215,7 +1223,7 @@ function renderCallbacks(){
   var html='';
   Object.keys(groups).sort().forEach(function(date){
     var label=date;
-    try{var d=new Date(date+'T12:00:00');label=months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}catch(e){}
+    try{var d=new Date(date+'T12:00:00');if(!isNaN(d.getTime()))label=months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}catch(e){}
     html+='<div class="panel" style="margin-bottom:10px">';
     html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:10px">'+label+'</div>';
     groups[date].forEach(function(cb){
