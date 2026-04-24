@@ -38,7 +38,7 @@ module.exports = async (req, res) => {
              ocq.state, NULL AS timezone, ocq.assigned_at
       FROM outreach_call_queue ocq
       WHERE ocq.assigned_agent_id = $1
-        AND DATE(ocq.assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
+        AND DATE(ocq.assigned_at AT TIME ZONE 'America/Los_Angeles') >= (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date - INTERVAL '1 day'
         AND ocq.status = 'assigned'
         AND ocq.deleted_at IS NULL
         AND NOT EXISTS (

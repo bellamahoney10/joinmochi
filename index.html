@@ -614,9 +614,16 @@ function saveOutcomeLocal(agentId,contactId,outcome,notes){
   map[contactId]={o:outcome,n:notes||''};
   localStorage.setItem(key,JSON.stringify(map));
 }
+function getYesterdayPtKey(agentId){
+  var d=new Date(Date.now()-86400000);
+  var s=d.toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'});
+  var p=s.split('/');
+  return 'mochi_oc_'+agentId+'_'+parseInt(p[0])+'_'+parseInt(p[1])+'_'+parseInt(p[2]);
+}
 function restoreOutcomes(agentId,result){
-  var key=outcomeStoreKey(agentId);
-  var map=JSON.parse(localStorage.getItem(key)||'{}');
+  var todayMap=JSON.parse(localStorage.getItem(outcomeStoreKey(agentId))||'{}');
+  var yestMap=JSON.parse(localStorage.getItem(getYesterdayPtKey(agentId))||'{}');
+  var map=Object.assign({},yestMap,todayMap); // today wins on conflict
   result.forEach(function(c){if(map[c.id]){c['Contacted']=map[c.id].o;c['Notes']=map[c.id].n;}});
 }
 
@@ -625,12 +632,14 @@ function loadContacts(agentId,callback){
     .then(function(r){return r.json();})
     .then(function(rows){
       var result=rows.map(function(r){
+        var _asgn=r.assigned_at?new Date(r.assigned_at).toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'}):'';
         return {
           id:r.id,
           Name:((r.first_name||'')+(r.last_name?' '+r.last_name:'')).trim(),
           Phone:r.phone||'',
           State:r.state||'',
           'Time Zone':normTz(r.timezone||'')||stateToTz(r.state||''),
+          AssignedPtDate:_asgn,
           Contacted:'',
           Notes:''
         };
@@ -914,9 +923,12 @@ function renderContactPanel(){
     }
   }
 
+  // My Contacts only works through today's assigned contacts
+  var _today=getTodayStr();
+  var todayContacts=contacts.filter(function(c){return !c.AssignedPtDate||c.AssignedPtDate===_today;});
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){
-    if(!contacts[i]['Contacted'])uncalled.push(i);
+    if(!contacts[i]['Contacted']&&(!contacts[i].AssignedPtDate||contacts[i].AssignedPtDate===_today))uncalled.push(i);
   }
   if(!uncalled.length){
     document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">All contacts called!</div><div style="font-size:13px;color:var(--text-secondary)">You have worked through all assigned contacts for today.</div><button onclick="showDashboard()" style="margin-top:14px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">View Dashboard</button></div>'+(topHtml?topHtml:'');
