@@ -157,12 +157,15 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div class="pin-sub-logo">health</div>
     <div class="pin-divider"></div>
     <div class="pin-title">PCS Call Script</div>
-    <div class="pin-sub">Enter your PIN, then select your agent number</div>
+    <div class="pin-sub">Enter your PIN, then select your agent name</div>
     <input class="pin-input" type="password" id="pin-inp" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="pin-error" id="pin-err"></div>
     <div id="agent-sel" style="display:none;margin-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Which agent are you?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="agent-grid"></div>
+      <div id="agent-grid"></div>
+      <select id="agent-select" style="display:none;width:100%;padding:11px 14px;font-size:14px;font-family:var(--font);border:1.5px solid var(--border);border-radius:var(--radius);background:#fff;color:var(--text);cursor:pointer;appearance:auto" onchange="selAgentSelect(this.value)">
+        <option value="">Agent Name</option>
+      </select>
       <div id="agent-assign" style="margin-top:12px;font-size:12px;color:var(--text-secondary);min-height:16px"></div>
       <button class="pin-btn" id="start-btn" style="display:none;margin-top:12px" onclick="startTool()">Start calling</button>
     </div>
@@ -509,13 +512,19 @@ function checkPin(){
     document.getElementById('pin-inp').disabled=true;
     document.getElementById('agent-sel').style.display='block';
     var grid=document.getElementById('agent-grid');
+    var sel=document.getElementById('agent-select');
     grid.innerHTML='<div style="font-size:12px;color:var(--text-secondary);padding:4px 0">Loading agents...</div>';
     fetch('/api/agents').then(function(r){return r.json();}).then(function(agents){
       agentList=agents;
-      grid.innerHTML=agents.map(function(a){
+      grid.innerHTML='';
+      sel.innerHTML='<option value="">Agent Name</option>';
+      agents.forEach(function(a){
         var name=(a.first_name+(a.last_name?' '+a.last_name:'')).trim();
-        return '<button class="agent-btn" onclick="selAgent(\''+a.id+'\')">'+name+'</button>';
-      }).join('');
+        var opt=document.createElement('option');
+        opt.value=a.id; opt.textContent=name;
+        sel.appendChild(opt);
+      });
+      sel.style.display='block';
     }).catch(function(){
       grid.innerHTML='<div style="font-size:12px;color:var(--red-dark)">Failed to load agents. Refresh and try again.</div>';
     });
@@ -527,13 +536,14 @@ function checkPin(){
 
 function selAgent(id){
   selectedAgent=id;
-  document.querySelectorAll('.agent-btn').forEach(function(b){
-    b.classList.toggle('sel',(b.getAttribute('onclick')||'').indexOf("'"+id+"'")>=0);
-  });
   var idx=1;for(var i=0;i<agentList.length;i++){if(agentList[i].id===id){idx=i+1;break;}}
   vmS1=getScript(idx)===1;
   document.getElementById('agent-assign').innerHTML='<strong>Week '+getWk()+' assignment:</strong> '+(vmS1?'Script 1 — Weight Loss':'Script 2 — Personalized Care');
   document.getElementById('start-btn').style.display='block';
+}
+function selAgentSelect(id){
+  if(!id) return;
+  selAgent(id);
 }
 
 function startTool(){
