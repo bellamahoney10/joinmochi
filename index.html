@@ -917,8 +917,6 @@ function showContactList(resultFilter,tzFilter,remainingOnly){
 }
 
 function editFromList(contactId, resultFilter, tzFilter, remainingOnly){
-  lastLoggedContactId=contactId;
-  editingLastResult=true;
   showContactList(resultFilter,tzFilter,remainingOnly);
   var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
   if(!lc)return;
@@ -942,9 +940,12 @@ function editResultFromList(contactId, outcome, resultFilter, tzFilter, remainin
 function clearFromList(contactId, resultFilter, tzFilter, remainingOnly){
   var lc=null;for(var i=0;i<contacts.length;i++){if(contacts[i].id===contactId){lc=contacts[i];break;}}
   if(!lc)return;
+  var phone10=(lc['Phone']||'').replace(/\D/g,'').slice(-10);
   lc['Contacted']='';lc['Notes']='';
   writeOutcome(selectedAgent,lc.id,'','',lc['Name'],lc['Phone']);
   if(lastLoggedContactId===contactId){lastLoggedContactId=null;lastLoggedOutcome=null;}
+  callbacks=callbacks.filter(function(cb){return (cb.phone||'').replace(/\D/g,'').slice(-10)!==phone10||cb.called;});
+  saveCallbacks();updateCbBadge();
   showContactList(resultFilter,tzFilter,remainingOnly);scrollTop();
 }
 
@@ -1099,7 +1100,10 @@ function renderContactPanel(){
     +'<input type="time" id="cb-time-inline" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'</div>'
     +'<select id="cb-tz-inline" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
-    +'<option value="ET">ET — Eastern</option><option value="CT">CT — Central</option><option value="MT">MT — Mountain</option><option value="PT">PT — Pacific</option>'
+    +'<option value="ET"'+(tz==='ET'?' selected':'')+'>ET — Eastern</option>'
+    +'<option value="CT"'+(tz==='CT'?' selected':'')+'>CT — Central</option>'
+    +'<option value="MT"'+(tz==='MT'?' selected':'')+'>MT — Mountain</option>'
+    +'<option value="PT"'+(tz==='PT'?' selected':'')+'>PT — Pacific</option>'
     +'</select>'
     +'</div></div>'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
@@ -1347,7 +1351,10 @@ function showLogResult(){
     +'<input type="time" id="log-cb-time" style="padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none;width:100%">'
     +'</div>'
     +'<select id="log-cb-tz" style="width:100%;padding:8px 10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);background:#fff;outline:none;margin-bottom:6px">'
-    +'<option value="ET">ET — Eastern</option><option value="CT">CT — Central</option><option value="MT">MT — Mountain</option><option value="PT">PT — Pacific</option>'
+    +'<option value="ET"'+(_ctz==='ET'?' selected':'')+'>ET — Eastern</option>'
+    +'<option value="CT"'+(_ctz==='CT'?' selected':'')+'>CT — Central</option>'
+    +'<option value="MT"'+(_ctz==='MT'?' selected':'')+'>MT — Mountain</option>'
+    +'<option value="PT"'+(_ctz==='PT'?' selected':'')+'>PT — Pacific</option>'
     +'</select>'
     +'</div></div>'
     +'<div id="log-confirm" style="display:none">'
@@ -1397,6 +1404,8 @@ function submitLogResult(){
     var cbStr='Call Back Request: '+cbDate+(cbTime?' at '+fmtTime(cbTime):'')+(cbTz?' '+cbTz:'');
     notesVal=cbStr+(notesVal?'\n'+notesVal:'');
     var ci=_logIdx!==null?contacts[_logIdx]:null;
+    var _cbPhone10=(ci?ci['Phone']||'':'').replace(/\D/g,'').slice(-10);
+    callbacks=callbacks.filter(function(cb){return !_cbPhone10||(cb.phone||'').replace(/\D/g,'').slice(-10)!==_cbPhone10||cb.called;});
     callbacks.push({id:Date.now(),name:ci?ci['Name']||'':'',phone:ci?ci['Phone']||'':'',timezone:cbTz,date:cbDate,time:cbTime,notes:notesVal,called:false,savedAt:new Date().toISOString()});
     saveCallbacks();updateCbBadge();
   }
@@ -1461,6 +1470,8 @@ function submitOutcome(){
     var cbStr='Call Back Request: '+cbDate+(cbTime?' at '+fmtTime(cbTime):'')+(cbTz?' '+cbTz:'');
     notesVal=cbStr+(notesVal?'\n'+notesVal:'');
     var c2=contacts[pendingIdx];
+    var _cbPhone10=(c2?c2['Phone']||'':'').replace(/\D/g,'').slice(-10);
+    callbacks=callbacks.filter(function(cb){return !_cbPhone10||(cb.phone||'').replace(/\D/g,'').slice(-10)!==_cbPhone10||cb.called;});
     callbacks.push({id:Date.now(),name:c2?c2['Name']||'':'',phone:c2?c2['Phone']||'':'',timezone:cbTz,date:cbDate,time:cbTime,notes:notesVal,called:false,savedAt:new Date().toISOString()});
     saveCallbacks();updateCbBadge();
   }
