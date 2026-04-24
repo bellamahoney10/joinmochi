@@ -201,6 +201,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
     <div style="padding:0 14px 6px">
       <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showDashboard()">&#128200; My Dashboard</button>
       <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContacts()">&#128222; My Contacts</button>
+      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContactList('all')">&#128101; All Contacts</button>
       <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showCallbacks()">&#128337; Callbacks <span id="cb-badge" style="display:none;margin-left:4px;background:#E24B4A;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;vertical-align:middle"></span></button>
       <button class="qbtn n" style="margin:0;width:100%" onclick="showSchedule()">Call Schedule</button>
     </div>
@@ -752,8 +753,18 @@ function renderDashboard(){
 function showContactList(filter){
   hist.push({id:cur});cur='_clist';
   var title=filter==='all'?'All Contacts':filter==='contacted'?'Total Contacted':filter==='remaining'?'Remaining':filter;
-  document.getElementById('crumb').innerHTML='<span class="crumb-a">'+title+'</span>';
-  document.getElementById('tbr').innerHTML='';
+  document.getElementById('crumb').innerHTML='<span class="crumb-a">All Contacts</span>';
+  document.getElementById('tbr').innerHTML='<select onchange="showContactList(this.value)" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)">'
+    +'<option value="all"'+(filter==='all'?' selected':'')+'>All</option>'
+    +'<option value="remaining"'+(filter==='remaining'?' selected':'')+'>Remaining</option>'
+    +'<option value="contacted"'+(filter==='contacted'?' selected':'')+'>All Contacted</option>'
+    +'<option value="Call Answered"'+(filter==='Call Answered'?' selected':'')+'>Call Answered</option>'
+    +'<option value="Voicemail Left"'+(filter==='Voicemail Left'?' selected':'')+'>Voicemail Left</option>'
+    +'<option value="Hung Up"'+(filter==='Hung Up'?' selected':'')+'>Hung Up</option>'
+    +'<option value="Inbox Full"'+(filter==='Inbox Full'?' selected':'')+'>Inbox Full</option>'
+    +'<option value="Screened/Declined"'+(filter==='Screened/Declined'?' selected':'')+'>Screened/Declined</option>'
+    +'<option value="Phone Unavailable"'+(filter==='Phone Unavailable'?' selected':'')+'>Phone Unavailable</option>'
+    +'</select>';
   var rows=contacts.filter(function(c){
     if(filter==='all')return true;
     if(filter==='remaining')return !c['Contacted'];
