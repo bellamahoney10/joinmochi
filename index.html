@@ -628,39 +628,99 @@ function restoreOutcomes(agentId,result){
 }
 
 function loadContacts(agentId,callback){
-  fetch('/api/contacts?agent_id='+agentId)
-    .then(function(r){return r.json();})
-    .then(function(rows){
-      var result=rows.map(function(r){
-        var _asgn=r.assigned_at?new Date(r.assigned_at).toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'}):'';
-        return {
-          id:r.id,
-          Name:((r.first_name||'')+(r.last_name?' '+r.last_name:'')).trim(),
-          Phone:r.phone||'',
-          State:r.state||'',
-          'Time Zone':normTz(r.timezone||'')||stateToTz(r.state||''),
-          AssignedPtDate:_asgn,
-          Contacted:'',
-          Notes:''
-        };
-      });
-      restoreOutcomes(agentId,result);
-      result.sort(function(a,b){
-        var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
-        return pa-pb;
-      });
-      // initSession: pre-populate sheet tab with today's contacts
-      var agentName='';
-      for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){var _an=agentList[i];agentName=(_an.first_name+(_an.last_name?' '+_an.last_name:'')).trim();break;}}
-      if(agentName&&result.length){
-        var sheetRows=result.map(function(c){return[getTodayStr(),agentName,c.Name,c.Phone,'',''];});
-        fetch('/api/sheet',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({action:'initSession',agent:agentName,rows:sheetRows})
-        }).catch(function(){});
+  var agentName='';
+  for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){var _an=agentList[i];agentName=(_an.first_name+(_an.last_name?' '+_an.last_name:'')).trim().replace(/\s+/g,' ');break;}}
+
+  var contactsPromise=fetch('/api/contacts?agent_id='+agentId).then(function(r){return r.json();}).catch(function(){return[];});
+  var sheetPromise=agentName?fetch('/api/results?agent_name='+encodeURIComponent(agentName)).then(function(r){return r.json();}).catch(function(){return{rows:[]};}):{rows:[]};
+
+  Promise.all([contactsPromise,sheetPromise]).then(function(vals){
+    var rows=vals[0];
+    var sheetRows=(vals[1]&&vals[1].rows)||[];
+
+    // Build phone→{result,notes} map from sheet (most recent non-blank result wins)
+    var phoneResultMap={};
+    sheetRows.forEach(function(sr){
+      if(sr.phone&&sr.result&&sr.result!==''){
+        phoneResultMap[sr.phone]={result:sr.result,notes:sr.notes||''};
       }
-      callback(result);
-    })
-    .catch(function(){callback([]);});
+    });
+
+    var result=rows.map(function(r){
+      var _asgn=r.assigned_at?new Date(r.assigned_at).toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'}):'';
+      return {
+        id:r.id,
+        Name:((r.first_name||'')+(r.last_name?' '+r.last_name:'')).trim(),
+        Phone:r.phone||'',
+        State:r.state||'',
+        'Time Zone':normTz(r.timezone||'')||stateToTz(r.state||''),
+        AssignedPtDate:_asgn,
+        Contacted:'',
+        Notes:''
+      };
+    });
+
+    // Restore from localStorage first, then sheet overrides (sheet = source of truth)
+    restoreOutcomes(agentId,result);
+    result.forEach(function(c){
+      var phone10=(c.Phone||'').replace(/\D/g,'').slice(-10);
+      var sr=phoneResultMap[phone10];
+      if(sr){c['Contacted']=sr.result;c['Notes']=sr.notes;}
+    });
+
+    // Rebuild callbacks from sheet rows (last 5 days)
+    var cbMap={};
+    sheetRows.forEach(function(sr){
+      if(!sr.notes)return;
+      var phone10=(sr.phone||'').replace(/\D/g,'').slice(-10);
+      // Pending callback request
+      var cbMatch=sr.notes.match(/Call Back Request:\s*([^\n]+)/);
+      if(cbMatch){
+        var cbStr=cbMatch[1].trim();
+        // Parse "MM/DD/YYYY at H:MM AM/PM TZ"
+        var dm=cbStr.match(/^(\d{1,2}\/\d{1,2}\/\d{4})/);
+        var tm=cbStr.match(/at\s+(\d{1,2}:\d{2}\s*[AP]M)/i);
+        var tzm=cbStr.match(/\b(ET|CT|MT|PT)\b/);
+        var key=phone10+'|'+(dm?dm[1]:'');
+        if(!cbMap[key]){
+          cbMap[key]={id:sr.date+'_'+phone10,name:sr.name,phone:sr.phone,
+            date:dm?dm[1]:'',time:tm?tm[1]:'',timezone:tzm?tzm[1]:'',
+            notes:sr.notes,called:false,savedAt:sr.date};
+        }
+      }
+      // Completed callback
+      if(sr.notes.match(/^Callback:/)){
+        var phone10c=(sr.phone||'').replace(/\D/g,'').slice(-10);
+        Object.keys(cbMap).forEach(function(k){if(k.split('|')[0]===phone10c)cbMap[k].called=true;});
+      }
+    });
+
+    // Merge sheet callbacks with any localStorage callbacks not yet in sheet
+    var localCbs=JSON.parse(localStorage.getItem('mochi_callbacks')||'[]');
+    var sheetCbList=Object.values(cbMap);
+    var merged=sheetCbList.slice();
+    localCbs.forEach(function(lc){
+      var phone10=(lc.phone||'').replace(/\D/g,'').slice(-10);
+      var alreadyInSheet=sheetCbList.some(function(sc){return (sc.phone||'').replace(/\D/g,'').slice(-10)===phone10&&sc.date===lc.date;});
+      if(!alreadyInSheet)merged.push(lc);
+    });
+    callbacks=merged;
+    saveCallbacks();updateCbBadge();
+
+    result.sort(function(a,b){
+      var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
+      return pa-pb;
+    });
+
+    // initSession: pre-populate sheet tab with today's contacts
+    if(agentName&&result.length){
+      var sheetInitRows=result.map(function(c){return[getTodayStr(),agentName,c.Name,c.Phone,'',''];});
+      fetch('/api/sheet',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'initSession',agent:agentName,rows:sheetInitRows})
+      }).catch(function(){});
+    }
+    callback(result);
+  }).catch(function(){callback([]);});
 }
 
 function tzPriority(tz){
