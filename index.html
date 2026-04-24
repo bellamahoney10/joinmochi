@@ -1079,10 +1079,13 @@ function copyPhone(num){
   });
 }
 
+var _logIdx=null;
+
 function showLogResult(){
   var uncalled=[];
   for(var i=0;i<contacts.length;i++){if(!contacts[i]['Contacted'])uncalled.push(i);}
   var idx=uncalled.length?uncalled[0]:null;
+  _logIdx=idx;
   var c=idx!==null?contacts[idx]:null;
   hist.push({id:cur});cur='_log';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Log Call Result</span>';
@@ -1095,36 +1098,77 @@ function showLogResult(){
     'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
     'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
   };
-  var contactInfo=c?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>':'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved to sheet.</div>';
+  var contactInfo=c?'<div style="background:var(--navy-faint);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Logging result for: <b style="color:var(--brand)">'+(c['Name']||'Unknown')+'</b> &nbsp;·&nbsp; '+(c['Phone']||'')+'</div>':'<div style="background:var(--amber-light);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--amber-dark)">No active contact found — result will not be saved.</div>';
   var btns=Object.keys(btStyles).map(function(o){
-    return '<button onclick="logFromAnywhere(\''+o+'\','+idx+')" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
+    var safe=o.replace(/[^a-zA-Z0-9]/g,'_');
+    return '<button id="lrb_'+safe+'" onclick="selectLogOutcome(\''+o+'\')" style="padding:12px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font);transition:opacity .15s">'+o+'</button>';
   }).join('');
   document.getElementById('content').innerHTML='<div class="panel">'
     +'<div class="panel-title" style="margin-bottom:12px">Log Result for Current Call</div>'
     +contactInfo
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Select Outcome</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+btns+'</div>'
+    +'<div id="log-outcome-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+btns+'</div>'
+    +'<div id="log-confirm" style="display:none">'
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
-    +'<textarea id="log-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea>'
+    +'<textarea id="log-notes" rows="3" placeholder="Add any notes about this call..." style="width:100%;padding:10px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none;margin-bottom:10px"></textarea>'
+    +'<button id="log-submit-btn" onclick="submitLogResult()" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Submit</button>'
+    +'</div>'
     +'</div>';
 }
 
-function logFromAnywhere(outcome, idx){
+var _logSelectedOutcome=null;
+function selectLogOutcome(outcome){
+  _logSelectedOutcome=outcome;
+  var btStyles={
+    'Voicemail Left':'border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489',
+    'Call Answered':'border:1.5px solid #1D9E75;background:#E1F5EE;color:#085041',
+    'Hung Up':'border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark)',
+    'Inbox Full':'border:1.5px solid var(--border);background:#fff;color:var(--text)',
+    'Screened/Declined':'border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d',
+    'Phone Unavailable':'border:1.5px solid var(--border);background:#f0f0f5;color:#555'
+  };
+  ['Voicemail Left','Call Answered','Hung Up','Inbox Full','Screened/Declined','Phone Unavailable'].forEach(function(o){
+    var b=document.getElementById('lrb_'+o.replace(/[^a-zA-Z0-9]/g,'_'));
+    if(b){b.style.opacity=o===outcome?'1':'0.35';b.style.transform=o===outcome?'scale(1.02)':'';}
+  });
+  var confirm=document.getElementById('log-confirm');
+  if(confirm){confirm.style.display='block';}
+  var btn=document.getElementById('log-submit-btn');
+  if(btn)btn.textContent='Submit — '+outcome;
+  setTimeout(function(){var c=document.getElementById('log-confirm');if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},30);
+}
+
+function submitLogResult(){
+  if(!_logSelectedOutcome)return;
   var notes=document.getElementById('log-notes');
   var notesVal=notes?notes.value.trim():'';
+  var idx=_logIdx;
   if(idx!==null&&idx!==undefined&&contacts[idx]){
-    contacts[idx]['Contacted']=outcome;
+    contacts[idx]['Contacted']=_logSelectedOutcome;
     contacts[idx]['Notes']=notesVal;
-    writeOutcome(selectedAgent,contacts[idx].id,outcome,notesVal,contacts[idx]['Name'],contacts[idx]['Phone']);
+    writeOutcome(selectedAgent,contacts[idx].id,_logSelectedOutcome,notesVal,contacts[idx]['Name'],contacts[idx]['Phone']);
+    lastLoggedContactId=contacts[idx].id;
+    lastLoggedOutcome=_logSelectedOutcome;
+    if(_logSelectedOutcome==='Call Answered')activeCallContact=contacts[idx];
   }
-  cur='open';hist=[];
-  render();
-  var content=document.getElementById('content');
-  var banner=document.createElement('div');
-  banner.style.cssText='background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#085041';
-  banner.textContent='Result logged: '+outcome+(notesVal?' — "'+notesVal+'"':'')+'. Ready for next call.';
-  content.insertBefore(banner,content.firstChild);
-  setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
+  var outcome=_logSelectedOutcome;
+  _logSelectedOutcome=null;_logIdx=null;editingLastResult=false;
+  if(outcome==='Call Answered'){
+    goTo('callback_capture');
+  } else {
+    cur='open';hist=[];render();
+    var content=document.getElementById('content');
+    var banner=document.createElement('div');
+    banner.style.cssText='background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#085041';
+    banner.textContent='Result logged: '+outcome+(notesVal?' — "'+notesVal+'"':'')+'. Ready for next call.';
+    content.insertBefore(banner,content.firstChild);
+    setTimeout(function(){if(banner.parentNode)banner.parentNode.removeChild(banner);},4000);
+  }
+}
+
+function logFromAnywhere(outcome, idx){
+  // legacy shim — redirect to new flow
+  _logSelectedOutcome=outcome;_logIdx=idx;submitLogResult();
 }
 
 function quickVoicemail(idx){
@@ -1202,7 +1246,12 @@ function setMode(m){
   render();
 }
 
-function scrollTop(){var c=document.getElementById('content');if(c)c.scrollTop=0;window.scrollTo(0,0);requestAnimationFrame(function(){if(c)c.scrollTop=0;window.scrollTo(0,0);});}
+function scrollTop(){
+  var c=document.getElementById('content');
+  if(c)c.scrollTop=0;
+  document.body.scrollTop=0;document.documentElement.scrollTop=0;window.scrollTo(0,0);
+  setTimeout(function(){if(c)c.scrollTop=0;document.body.scrollTop=0;document.documentElement.scrollTop=0;window.scrollTo(0,0);},50);
+}
 function goTo(id){hist.push({id:cur});cur=id;render();scrollTop();}
 function goBack(){if(!hist.length)return;cur=hist.pop().id;render();scrollTop();}
 function restartFlow(){cur=mode==='inbound'?'inbound_open':'open';hist=[];render();}
