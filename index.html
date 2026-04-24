@@ -1294,7 +1294,7 @@ function submitLogResult(){
   if(false){
     // callback_capture no longer used — handled inline above
   } else {
-    cur='open';hist=[];render();
+    showContacts();
     var content=document.getElementById('content');
     var banner=document.createElement('div');
     banner.style.cssText='background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#085041';
@@ -1358,7 +1358,7 @@ function submitOutcome(){
   lastLoggedOutcome=pendingOutcome;
   editingLastResult=false;
   pendingOutcome=null;pendingIdx=null;
-  renderContactPanel();
+  showContacts();
   scrollTop();
 }
 function editLastResultOutcome(outcome){
