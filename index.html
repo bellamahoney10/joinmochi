@@ -599,6 +599,22 @@ function getTodayStr(){
   return (d.getMonth()+1)+'/'+(d.getDate())+'/'+d.getFullYear();
 }
 
+function outcomeStoreKey(agentId){
+  var d=new Date();
+  return 'mochi_oc_'+agentId+'_'+(d.getMonth()+1)+'_'+d.getDate()+'_'+d.getFullYear();
+}
+function saveOutcomeLocal(agentId,contactId,outcome,notes){
+  var key=outcomeStoreKey(agentId);
+  var map=JSON.parse(localStorage.getItem(key)||'{}');
+  map[contactId]={o:outcome,n:notes||''};
+  localStorage.setItem(key,JSON.stringify(map));
+}
+function restoreOutcomes(agentId,result){
+  var key=outcomeStoreKey(agentId);
+  var map=JSON.parse(localStorage.getItem(key)||'{}');
+  result.forEach(function(c){if(map[c.id]){c['Contacted']=map[c.id].o;c['Notes']=map[c.id].n;}});
+}
+
 function loadContacts(agentId,callback){
   fetch('/api/contacts?agent_id='+agentId)
     .then(function(r){return r.json();})
@@ -614,6 +630,7 @@ function loadContacts(agentId,callback){
           Notes:''
         };
       });
+      restoreOutcomes(agentId,result);
       result.sort(function(a,b){
         var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
         return pa-pb;
@@ -633,6 +650,7 @@ function tzPriority(tz){
 }
 
 function writeOutcome(agentId,contactId,outcome,notes,name,phone){
+  saveOutcomeLocal(agentId,contactId,outcome,notes);
   var agentName='';
   for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){agentName=agentList[i].first_name;break;}}
   fetch('/api/sheet',{
