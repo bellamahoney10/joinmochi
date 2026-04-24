@@ -822,6 +822,11 @@ function showContacts(){
 
 function refreshContacts(){
   var btn=document.querySelector('#tbr button');
+  var uncalled=contacts.filter(function(c){return !c['Contacted'];});
+  if(uncalled.length>=10){
+    if(btn){btn.textContent='Work through contacts first ('+uncalled.length+' remaining)';setTimeout(function(){btn.textContent='Refresh';},3000);}
+    return;
+  }
   if(btn)btn.textContent='Loading...';
   fetch('/api/refresh',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:selectedAgent})})
     .finally(function(){
