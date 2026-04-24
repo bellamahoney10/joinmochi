@@ -774,7 +774,7 @@ function showContactList(resultFilter,tzFilter,remainingOnly){
     +'<option value="ET">ET</option><option value="CT">CT</option><option value="MT">MT</option><option value="PT">PT</option>'
     +'</select></div>'
     +'<div style="display:flex;flex-direction:column"><div style="'+lbl+'">Call Results</div>'
-    +'<select id="cl-result" style="'+sel+'" onchange="showContactList(this.value,document.getElementById(\'cl-tz\').value,false)">'
+    +'<select id="cl-result" style="'+sel+'" onchange="var v=this.value,tz=document.getElementById(\'cl-tz\').value;if(v===\'remaining\'){showContactList(\'all\',tz,true);}else{showContactList(v,tz,false);}">'
     +'<option value="all">All Results</option>'
     +'<option value="Call Answered">Call Answered</option>'
     +'<option value="Voicemail Left">Voicemail Left</option>'
@@ -782,12 +782,11 @@ function showContactList(resultFilter,tzFilter,remainingOnly){
     +'<option value="Inbox Full">Inbox Full</option>'
     +'<option value="Screened/Declined">Screened/Declined</option>'
     +'<option value="Phone Unavailable">Phone Unavailable</option>'
-    +'</select>'
-    +'<button onclick="showContactList(\'all\',document.getElementById(\'cl-tz\').value,true)" style="margin-top:4px;'+btnStyle+(remActive?'border:none;background:var(--brand);color:#fff':'border:1.5px solid var(--border);background:#fff;color:var(--text)')+'">Remaining</button>'
-    +'</div>'
+    +'<option value="remaining">Remaining</option>'
+    +'</select></div>'
     +'</div>';
   document.getElementById('cl-tz').value=tzFilter;
-  if(!remainingOnly)document.getElementById('cl-result').value=resultFilter;
+  document.getElementById('cl-result').value=remainingOnly?'remaining':resultFilter;
   var rows=contacts.filter(function(c){
     var tz=normTz(c['Time Zone']||'');
     if(tzFilter!=='all'&&tz!==tzFilter)return false;
