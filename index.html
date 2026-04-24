@@ -635,6 +635,15 @@ function loadContacts(agentId,callback){
         var pa=tzPriority(normTz(a['Time Zone'])),pb=tzPriority(normTz(b['Time Zone']));
         return pa-pb;
       });
+      // initSession: pre-populate sheet tab with today's contacts
+      var agentName='';
+      for(var i=0;i<agentList.length;i++){if(agentList[i].id===agentId){agentName=agentList[i].first_name;break;}}
+      if(agentName&&result.length){
+        var sheetRows=result.map(function(c){return[getTodayStr(),agentName,c.Name,c.Phone,'',''];});
+        fetch('/api/sheet',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({action:'initSession',agent:agentName,rows:sheetRows})
+        }).catch(function(){});
+      }
       callback(result);
     })
     .catch(function(){callback([]);});
@@ -656,7 +665,7 @@ function writeOutcome(agentId,contactId,outcome,notes,name,phone){
   fetch('/api/sheet',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({agent:agentName,contact_id:contactId,name:name||'',phone:phone||'',outcome:outcome,notes:notes||'',date:getTodayStr()})
+    body:JSON.stringify({action:'updateResult',agent:agentName,name:name||'',phone:phone||'',result:outcome,notes:notes||'',dateAssigned:getTodayStr()})
   }).then(function(r){
     if(!r.ok)console.error('Sheet write HTTP error:',r.status);
   }).catch(function(e){console.error('Sheet write error:',e);});
