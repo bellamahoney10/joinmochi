@@ -1335,7 +1335,8 @@ function render(){
       +'</select></div>'
       +'<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);margin-bottom:6px">Notes (optional)</div>'
       +'<textarea id="cb-notes" rows="2" placeholder="e.g. prefers mornings, on lunch break now..." style="width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);resize:vertical;outline:none"></textarea></div>'
-      +'<button onclick="saveCallbackRequest()" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Save Callback &amp; End Call</button>'
+      +'<button onclick="saveCallbackRequest()" style="width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:8px">Save Callback &amp; End Call</button>'
+      +'<button onclick="cur=\'open\';hist=[];render();scrollTop();" style="width:100%;padding:9px;font-size:13px;font-weight:600;border-radius:var(--radius-md);border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);cursor:pointer;font-family:var(--font)">No callback needed — end call</button>'
       +'</div>';
     document.getElementById('back-btn').disabled=false;
     document.getElementById('khint').textContent='Fill in callback details and save';
