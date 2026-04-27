@@ -10,7 +10,8 @@ function getPool() {
       user: process.env.DATA_DB_USER || 'bella_mahoney_data',
       password: process.env.DATA_DB_PASSWORD,
       ssl: { rejectUnauthorized: false },
-      max: 1
+      max: 1,
+      connectionTimeoutMillis: 5000
     });
   }
   return pool;
