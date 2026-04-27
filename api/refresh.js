@@ -23,11 +23,11 @@ let readPool;
 function getReadPool() {
   if (!readPool) {
     readPool = new Pool({
-      host: 'db-ro1.ourmochi.com',
+      host: process.env.DB_WRITE_HOST || 'db-prod.ourmochi.com',
       port: 5432,
       database: 'postgres',
-      user: 'bella_mahoney_prod',
-      password: process.env.DB_READ_PASSWORD,
+      user: process.env.DB_USER || 'bella_mahoney_prod',
+      password: process.env.DB_PASSWORD,
       ssl: { rejectUnauthorized: false },
       max: 1,
       connectionTimeoutMillis: 8000
