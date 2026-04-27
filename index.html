@@ -1153,7 +1153,7 @@ function updateCbBadge(){
 function showCallbacks(){
   hist.push({id:cur});cur='_callbacks';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">My Callbacks</span>';
-  document.getElementById('tbr').innerHTML='<div style="display:flex;gap:8px;align-items:center"><select id="cb-sort" onchange="renderCallbacks()" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)"><option value="datetime">Sort: Date &amp; Time</option><option value="tz">Sort: Timezone</option></select><input type="date" id="cb-date-filter" onchange="renderCallbacks()" title="Filter by date" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"><button onclick="showAddCallbackForm()" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">+ Add</button></div>';
+  document.getElementById('tbr').innerHTML='<div style="display:flex;gap:8px;align-items:center"><input type="date" id="cb-date-filter" onchange="renderCallbacks()" title="Filter by date" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"><button onclick="showAddCallbackForm()" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">+ Add</button></div>';
   renderCallbacks();
   document.getElementById('back-btn').disabled=false;
   scrollTop();
@@ -1200,7 +1200,6 @@ function saveNewCallback(){
 
 var _cbExpanded=-1;
 function renderCallbacks(){
-  var sort=(document.getElementById('cb-sort')||{}).value||'datetime';
   var dateFilter=(document.getElementById('cb-date-filter')||{}).value||'';
   var _cbCutoff=(function(){var d=new Date(new Date().getTime()-5*24*60*60*1000);var p=d.toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'}).split('/');return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');})();
   var items=callbacks.filter(function(cb){
@@ -1208,13 +1207,14 @@ function renderCallbacks(){
     if(dateFilter)return cb.date===dateFilter;
     return !cb.date||cb.date>=_cbCutoff;
   });
+  var _ptOff={ET:3,CT:2,MT:1,PT:0};
   items.sort(function(a,b){
-    if(sort==='datetime'){
-      var da=(a.date||'9999')+'-'+(a.time||'00:00'),db=(b.date||'9999')+'-'+(b.time||'00:00');
-      return da<db?-1:da>db?1:0;
-    }
-    var to={ET:0,CT:1,MT:2,PT:3};
-    return (to[a.timezone]||0)-(to[b.timezone]||0);
+    var da=a.date||'9999',db=b.date||'9999';
+    if(da!==db)return da<db?-1:1;
+    var ap=(a.time||'23:59').split(':'),bp=(b.time||'23:59').split(':');
+    var am=(parseInt(ap[0])-(_ptOff[a.timezone]||0))*60+parseInt(ap[1]||0);
+    var bm=(parseInt(bp[0])-(_ptOff[b.timezone]||0))*60+parseInt(bp[1]||0);
+    return am-bm;
   });
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
   var outcomeColors={'Call Answered':'#085041','Voicemail Left':'#3C3489','Inbox Full':'#555972','Hung Up':'var(--amber-dark)','Screened/Declined':'#7f1d1d','Phone Unavailable':'#555'};
