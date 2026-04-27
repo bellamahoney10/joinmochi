@@ -81,7 +81,7 @@ module.exports = async (req, res) => {
 
     let pendingRows = contactsRes.rows;
 
-    // Fallback: if 24h window is empty, widen to 48h
+    // Fallback: if 24h window is empty, widen to all pending (ordered by most recent)
     if (!pendingRows.length) {
       const fallbackRes = await client.query(`
         SELECT id, patient_id, phone FROM (
@@ -90,7 +90,6 @@ module.exports = async (req, res) => {
           FROM outreach_call_queue ocq
           JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
             AND ae.completed = true
-            AND ae.updated_at >= NOW() - INTERVAL '48 hours'
             AND ae.updated_at < NOW() - INTERVAL '24 hours'
           WHERE ocq.status = 'pending'
             AND ocq.deleted_at IS NULL
