@@ -55,13 +55,6 @@ module.exports = async (req, res) => {
         WHERE status = 'assigned'
           AND deleted_at IS NULL
           AND assigned_at >= NOW() - INTERVAL '5 days'
-      ),
-      active_patients AS (
-        SELECT DISTINCT patient_id
-        FROM subscriptions
-        WHERE active = true
-          AND descriptor = 'HEALTH'
-          AND deleted_at IS NULL
       )
       SELECT id, patient_id, phone FROM (
         SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
@@ -71,11 +64,9 @@ module.exports = async (req, res) => {
           AND ae.completed = true
           AND ae.updated_at >= NOW() - INTERVAL '24 hours'
         LEFT JOIN assigned_phones ap ON ap.phone = ocq.phone
-        LEFT JOIN active_patients act ON act.patient_id = ocq.patient_id
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
           AND ap.phone IS NULL
-          AND act.patient_id IS NULL
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
       ORDER BY
@@ -96,13 +87,6 @@ module.exports = async (req, res) => {
           WHERE status = 'assigned'
             AND deleted_at IS NULL
             AND assigned_at >= NOW() - INTERVAL '5 days'
-        ),
-        active_patients AS (
-          SELECT DISTINCT patient_id
-          FROM subscriptions
-          WHERE active = true
-            AND descriptor = 'HEALTH'
-            AND deleted_at IS NULL
         )
         SELECT id, patient_id, phone FROM (
           SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
@@ -112,11 +96,9 @@ module.exports = async (req, res) => {
             AND ae.completed = true
             AND ae.updated_at < NOW() - INTERVAL '24 hours'
           LEFT JOIN assigned_phones ap ON ap.phone = ocq.phone
-          LEFT JOIN active_patients act ON act.patient_id = ocq.patient_id
           WHERE ocq.status = 'pending'
             AND ocq.deleted_at IS NULL
             AND ap.phone IS NULL
-            AND act.patient_id IS NULL
           ORDER BY ocq.phone, ae.updated_at DESC
         ) sub
         ORDER BY
