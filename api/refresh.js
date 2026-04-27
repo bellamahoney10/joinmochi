@@ -12,7 +12,8 @@ function getPool() {
       user: process.env.DB_USER || 'bella_mahoney_prod',
       password: process.env.DB_PASSWORD,
       ssl: { rejectUnauthorized: false },
-      max: 1
+      max: 1,
+      connectionTimeoutMillis: 8000
     });
   }
   return pool;
@@ -69,6 +70,7 @@ module.exports = async (req, res) => {
             WHERE ocq2.phone = ocq.phone
               AND ocq2.status = 'assigned'
               AND ocq2.deleted_at IS NULL
+              AND ocq2.assigned_at >= NOW() - INTERVAL '30 days'
           )
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
@@ -105,6 +107,7 @@ module.exports = async (req, res) => {
               WHERE ocq2.phone = ocq.phone
                 AND ocq2.status = 'assigned'
                 AND ocq2.deleted_at IS NULL
+                AND ocq2.assigned_at >= NOW() - INTERVAL '30 days'
             )
           ORDER BY ocq.phone, ae.updated_at DESC
         ) sub
