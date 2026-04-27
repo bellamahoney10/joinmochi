@@ -49,6 +49,20 @@ module.exports = async (req, res) => {
     }
 
     const contactsRes = await client.query(`
+      WITH assigned_phones AS (
+        SELECT DISTINCT phone
+        FROM outreach_call_queue
+        WHERE status = 'assigned'
+          AND deleted_at IS NULL
+          AND assigned_at >= NOW() - INTERVAL '5 days'
+      ),
+      active_patients AS (
+        SELECT DISTINCT patient_id
+        FROM subscriptions
+        WHERE active = true
+          AND descriptor = 'HEALTH'
+          AND deleted_at IS NULL
+      )
       SELECT id, patient_id, phone FROM (
         SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
           ${tzPriorityExpr} AS tz_priority
@@ -56,22 +70,12 @@ module.exports = async (req, res) => {
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
           AND ae.updated_at >= NOW() - INTERVAL '24 hours'
+        LEFT JOIN assigned_phones ap ON ap.phone = ocq.phone
+        LEFT JOIN active_patients act ON act.patient_id = ocq.patient_id
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
-          AND NOT EXISTS (
-            SELECT 1 FROM subscriptions s
-            WHERE s.patient_id = ocq.patient_id
-              AND s.active = true
-              AND s.descriptor = 'HEALTH'
-              AND s.deleted_at IS NULL
-          )
-          AND NOT EXISTS (
-            SELECT 1 FROM outreach_call_queue ocq2
-            WHERE ocq2.phone = ocq.phone
-              AND ocq2.status = 'assigned'
-              AND ocq2.deleted_at IS NULL
-              AND ocq2.assigned_at >= NOW() - INTERVAL '5 days'
-          )
+          AND ap.phone IS NULL
+          AND act.patient_id IS NULL
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
       ORDER BY
@@ -86,6 +90,20 @@ module.exports = async (req, res) => {
     // Fallback: if 24h window is empty, widen to all pending (ordered by most recent)
     if (!pendingRows.length) {
       const fallbackRes = await client.query(`
+        WITH assigned_phones AS (
+          SELECT DISTINCT phone
+          FROM outreach_call_queue
+          WHERE status = 'assigned'
+            AND deleted_at IS NULL
+            AND assigned_at >= NOW() - INTERVAL '5 days'
+        ),
+        active_patients AS (
+          SELECT DISTINCT patient_id
+          FROM subscriptions
+          WHERE active = true
+            AND descriptor = 'HEALTH'
+            AND deleted_at IS NULL
+        )
         SELECT id, patient_id, phone FROM (
           SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
             ${tzPriorityExpr} AS tz_priority
@@ -93,22 +111,12 @@ module.exports = async (req, res) => {
           JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
             AND ae.completed = true
             AND ae.updated_at < NOW() - INTERVAL '24 hours'
+          LEFT JOIN assigned_phones ap ON ap.phone = ocq.phone
+          LEFT JOIN active_patients act ON act.patient_id = ocq.patient_id
           WHERE ocq.status = 'pending'
             AND ocq.deleted_at IS NULL
-            AND NOT EXISTS (
-              SELECT 1 FROM subscriptions s
-              WHERE s.patient_id = ocq.patient_id
-                AND s.active = true
-                AND s.descriptor = 'HEALTH'
-                AND s.deleted_at IS NULL
-            )
-            AND NOT EXISTS (
-              SELECT 1 FROM outreach_call_queue ocq2
-              WHERE ocq2.phone = ocq.phone
-                AND ocq2.status = 'assigned'
-                AND ocq2.deleted_at IS NULL
-                AND ocq2.assigned_at >= NOW() - INTERVAL '5 days'
-            )
+            AND ap.phone IS NULL
+            AND act.patient_id IS NULL
           ORDER BY ocq.phone, ae.updated_at DESC
         ) sub
         ORDER BY
