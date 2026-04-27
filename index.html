@@ -1153,7 +1153,7 @@ function updateCbBadge(){
 function showCallbacks(){
   hist.push({id:cur});cur='_callbacks';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">My Callbacks</span>';
-  document.getElementById('tbr').innerHTML='<div style="display:flex;gap:8px"><select id="cb-sort" onchange="renderCallbacks()" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)"><option value="datetime">Sort: Date &amp; Time</option><option value="tz">Sort: Timezone</option></select><button onclick="showAddCallbackForm()" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">+ Add</button></div>';
+  document.getElementById('tbr').innerHTML='<div style="display:flex;gap:8px;align-items:center"><select id="cb-sort" onchange="renderCallbacks()" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff;cursor:pointer;font-family:var(--font)"><option value="datetime">Sort: Date &amp; Time</option><option value="tz">Sort: Timezone</option></select><input type="date" id="cb-date-filter" onchange="renderCallbacks()" title="Filter by date" style="font-size:12px;padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font);color:var(--text);outline:none"><button onclick="showAddCallbackForm()" style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:var(--radius-md);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">+ Add</button></div>';
   renderCallbacks();
   document.getElementById('back-btn').disabled=false;
   scrollTop();
@@ -1201,8 +1201,13 @@ function saveNewCallback(){
 var _cbExpanded=-1;
 function renderCallbacks(){
   var sort=(document.getElementById('cb-sort')||{}).value||'datetime';
+  var dateFilter=(document.getElementById('cb-date-filter')||{}).value||'';
   var _cbCutoff=(function(){var d=new Date(new Date().getTime()-5*24*60*60*1000);var p=d.toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'}).split('/');return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');})();
-  var items=callbacks.filter(function(cb){return !cb.date||cb.date>=_cbCutoff;});
+  var items=callbacks.filter(function(cb){
+    if(cb.called)return false;
+    if(dateFilter)return cb.date===dateFilter;
+    return !cb.date||cb.date>=_cbCutoff;
+  });
   items.sort(function(a,b){
     if(sort==='datetime'){
       var da=(a.date||'9999')+'-'+(a.time||'00:00'),db=(b.date||'9999')+'-'+(b.time||'00:00');
