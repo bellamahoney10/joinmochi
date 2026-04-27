@@ -70,7 +70,7 @@ module.exports = async (req, res) => {
             WHERE ocq2.phone = ocq.phone
               AND ocq2.status = 'assigned'
               AND ocq2.deleted_at IS NULL
-              AND ocq2.assigned_at >= NOW() - INTERVAL '30 days'
+              AND ocq2.assigned_at >= NOW() - INTERVAL '5 days'
           )
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
@@ -107,7 +107,7 @@ module.exports = async (req, res) => {
               WHERE ocq2.phone = ocq.phone
                 AND ocq2.status = 'assigned'
                 AND ocq2.deleted_at IS NULL
-                AND ocq2.assigned_at >= NOW() - INTERVAL '30 days'
+                AND ocq2.assigned_at >= NOW() - INTERVAL '5 days'
             )
           ORDER BY ocq.phone, ae.updated_at DESC
         ) sub
