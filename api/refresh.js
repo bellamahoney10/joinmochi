@@ -2,10 +2,10 @@ const { Pool } = require('pg');
 const { getActiveMemberQueueIds } = require('./lib/dataPool');
 const { getTzPriorityExpr, isIdealWindow, getCallableStates } = require('./lib/tzConfig');
 
-let pool;
-function getPool() {
-  if (!pool) {
-    pool = new Pool({
+let writePool;
+function getWritePool() {
+  if (!writePool) {
+    writePool = new Pool({
       host: process.env.DB_WRITE_HOST || 'db-prod.ourmochi.com',
       port: 5432,
       database: 'postgres',
@@ -16,7 +16,24 @@ function getPool() {
       connectionTimeoutMillis: 8000
     });
   }
-  return pool;
+  return writePool;
+}
+
+let readPool;
+function getReadPool() {
+  if (!readPool) {
+    readPool = new Pool({
+      host: 'db-ro1.ourmochi.com',
+      port: 5432,
+      database: 'postgres',
+      user: 'bella_mahoney_prod',
+      password: process.env.DB_READ_PASSWORD,
+      ssl: { rejectUnauthorized: false },
+      max: 1,
+      connectionTimeoutMillis: 8000
+    });
+  }
+  return readPool;
 }
 
 const REFRESH_BATCH = 25;
@@ -38,9 +55,9 @@ module.exports = async (req, res) => {
   const idealWindow = isIdealWindow(callableStates);
   const tzPriorityExpr = getTzPriorityExpr();
 
-  let client;
+  let readClient, writeClient;
   try {
-    client = await getPool().connect();
+    readClient = await getReadPool().connect();
 
     // Guard: don't add more if agent still has 10+ uncalled contacts (count passed from client)
     const uncalledCount = parseInt(req.body.uncalled_count ?? -1, 10);
@@ -48,7 +65,7 @@ module.exports = async (req, res) => {
       return res.json({ assigned: 0, message: `Agent still has ${uncalledCount} uncalled contacts` });
     }
 
-    const contactsRes = await client.query(`
+    const contactsRes = await readClient.query(`
       WITH assigned_phones AS (
         SELECT DISTINCT phone
         FROM outreach_call_queue
@@ -80,7 +97,7 @@ module.exports = async (req, res) => {
 
     // Fallback: if 24h window is empty, widen to all pending (ordered by most recent)
     if (!pendingRows.length) {
-      const fallbackRes = await client.query(`
+      const fallbackRes = await readClient.query(`
         WITH assigned_phones AS (
           SELECT DISTINCT phone
           FROM outreach_call_queue
@@ -127,7 +144,8 @@ module.exports = async (req, res) => {
 
     const now = new Date();
     const ids = toAssign.map(r => r.id);
-    await client.query(`
+    writeClient = await getWritePool().connect();
+    await writeClient.query(`
       UPDATE outreach_call_queue
       SET status = 'assigned',
           assigned_agent_id = $1,
@@ -141,6 +159,7 @@ module.exports = async (req, res) => {
     console.error(e);
     res.status(500).json({ error: e.message });
   } finally {
-    if (client) client.release();
+    if (readClient) readClient.release();
+    if (writeClient) writeClient.release();
   }
 };
