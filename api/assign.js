@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
       JOIN outreach_agents oa ON a.id = oa.admin_id
       WHERE oa.is_active = true AND oa.deleted_at IS NULL
         AND (TRIM(a.first_name) = 'AJ' OR TRIM(a.first_name) = 'Marien')
-        AND ocq.status = 'assigned'
+        AND ocq.status IN ('assigned', 'contacted')
         AND ocq.deleted_at IS NULL
         AND DATE(ocq.assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
     `);

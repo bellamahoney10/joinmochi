@@ -1201,7 +1201,8 @@ function saveNewCallback(){
 var _cbExpanded=-1;
 function renderCallbacks(){
   var sort=(document.getElementById('cb-sort')||{}).value||'datetime';
-  var items=callbacks.slice();
+  var _cbCutoff=(function(){var d=new Date(new Date().getTime()-5*24*60*60*1000);var p=d.toLocaleDateString('en-US',{timeZone:'America/Los_Angeles'}).split('/');return p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');})();
+  var items=callbacks.filter(function(cb){return !cb.date||cb.date>=_cbCutoff;});
   items.sort(function(a,b){
     if(sort==='datetime'){
       var da=(a.date||'9999')+'-'+(a.time||'00:00'),db=(b.date||'9999')+'-'+(b.time||'00:00');
