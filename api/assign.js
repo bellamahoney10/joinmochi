@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 const { getActiveMemberQueueIds } = require('./lib/dataPool');
-const { getCallableStates, getTzPriorityExpr, isIdealWindow } = require('./lib/tzConfig');
+const { getCallableStates, getTzPriorityExpr } = require('./lib/tzConfig');
 
 let pool;
 function getPool() {
@@ -61,10 +61,10 @@ module.exports = async (req, res) => {
     if (!agents.length) return res.json({ assigned: 0, message: 'No active agents' });
 
     const needed = MORNING_BATCH * agents.length;
-    const callableStates = getCallableStates();
-    const idealWindow = isIdealWindow(callableStates);
+    const callableStates = getCallableStates(); // no buffer — contacts sit in queue until called
     const tzPriorityExpr = getTzPriorityExpr();
 
+    // Primary window: 24h eligibility recency, sorted by tz_priority then recency
     const contactsRes = await client.query(`
       SELECT id, patient_id, phone FROM (
         SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
@@ -90,12 +90,9 @@ module.exports = async (req, res) => {
           )
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
-      ORDER BY
-        (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
-        sub.updated_at DESC,
-        (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
+      ORDER BY sub.tz_priority ASC, sub.updated_at DESC
       LIMIT $1
-    `, [needed, idealWindow]);
+    `, [needed]);
 
     const rawPending = contactsRes.rows;
 
@@ -114,7 +111,7 @@ module.exports = async (req, res) => {
             AND ae.updated_at < NOW() - INTERVAL '24 hours'
           WHERE ocq.status = 'pending'
             AND ocq.deleted_at IS NULL
-            AND NOT (ocq.phone = ANY($3::text[]))
+            AND NOT (ocq.phone = ANY($2::text[]))
             AND NOT EXISTS (
               SELECT 1 FROM subscriptions s
               WHERE s.patient_id = ocq.patient_id
@@ -130,12 +127,9 @@ module.exports = async (req, res) => {
             )
           ORDER BY ocq.phone, ae.updated_at DESC
         ) sub
-        ORDER BY
-          (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
-          sub.updated_at DESC,
-          (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
+        ORDER BY sub.tz_priority ASC, sub.updated_at DESC
         LIMIT $1
-      `, [remaining, idealWindow, fetchedPhones]);
+      `, [remaining, fetchedPhones]);
       rawPending.push(...fallbackRes.rows);
     }
 
