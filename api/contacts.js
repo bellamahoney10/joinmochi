@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const { getTzPriorityExpr } = require('./lib/tzConfig');
 
 let pool;
 function getPool() {
@@ -16,20 +17,16 @@ function getPool() {
   return pool;
 }
 
-const NOT_ACTIVE_MEMBER = `NOT EXISTS (
-  SELECT 1 FROM subscriptions s
-  WHERE s.patient_id = t.patient_id
-    AND s.active = true
-    AND s.descriptor = 'HEALTH'
-    AND s.deleted_at IS NULL
-)`;
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(200).end();
   const { agent_id } = req.query;
   if (!agent_id) return res.status(400).json({ error: 'agent_id required' });
+
+  // Recomputed at request time so contacts re-sort as TZ windows shift throughout the day.
+  // Prime-window contacts float to the top automatically without any re-assignment.
+  const tzPriorityExpr = getTzPriorityExpr('ocq');
 
   try {
     const result = await getPool().query(`
@@ -46,7 +43,7 @@ module.exports = async (req, res) => {
           WHERE s.patient_id = ocq.patient_id
             AND s.active = true AND s.descriptor = 'HEALTH' AND s.deleted_at IS NULL
         )
-      ORDER BY ocq.assigned_at ASC
+      ORDER BY ${tzPriorityExpr} ASC, ocq.assigned_at ASC
     `, [agent_id]);
     res.json(result.rows);
   } catch (e) {

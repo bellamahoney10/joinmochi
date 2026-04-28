@@ -1,6 +1,6 @@
 // start/end in [hour, minute] (24h), inclusive start, exclusive end
 const TZ_CONFIG = {
-  'America/New_York':    { states: ['Connecticut','District of Columbia','Delaware','Florida','Georgia','Indiana','Massachusetts','Maryland','Maine','Michigan','North Carolina','New Hampshire','New Jersey','New York','Ohio','Pennsylvania','Rhode Island','South Carolina','Virginia','Vermont','West Virginia'], start: [8, 0], end: [18, 30] },
+  'America/New_York':    { states: ['Connecticut','District of Columbia','Delaware','Florida','Georgia','Indiana','Massachusetts','Maryland','Maine','Michigan','North Carolina','New Hampshire','New Jersey','New York','Ohio','Pennsylvania','Rhode Island','South Carolina','Virginia','Vermont','West Virginia'], start: [8, 0], end: [19, 30] }, // ET extended to 7:30 PM (data supports 7 PM; 8 PM too thin)
   'America/Chicago':     { states: ['Alabama','Arkansas','Iowa','Illinois','Kansas','Kentucky','Louisiana','Minnesota','Missouri','Mississippi','North Dakota','Nebraska','Oklahoma','South Dakota','Tennessee','Texas','Wisconsin'], start: [8, 0], end: [18, 30] },
   'America/Denver':      { states: ['Colorado','Idaho','Montana','New Mexico','Utah','Wyoming'], start: [8, 0], end: [18, 30] },
   'America/Phoenix':     { states: ['Arizona'], start: [8, 0], end: [18, 30] },
@@ -21,14 +21,17 @@ const PRIME_HOURS = {
   'Pacific/Honolulu':    [[9,  17]],             // insufficient data; broad window
 };
 
-// Returns callable states based on current local time for each TZ
-function getCallableStates() {
+// Returns callable states based on current local time for each TZ.
+// bufferMins: exclude TZs whose window closes within this many minutes (default 0).
+// Pass 30 in refresh to avoid assigning contacts from TZs closing imminently.
+function getCallableStates(bufferMins = 0) {
   const now = new Date();
   const callable = [];
   for (const [tz, { states, start, end }] of Object.entries(TZ_CONFIG)) {
     const parts = now.toLocaleString('en-US', { timeZone: tz, hour: 'numeric', minute: 'numeric', hour12: false }).split(':');
     const mins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-    if (mins >= start[0] * 60 + start[1] && mins < end[0] * 60 + end[1]) callable.push(...states);
+    const endMins = end[0] * 60 + end[1];
+    if (mins >= start[0] * 60 + start[1] && mins < endMins - bufferMins) callable.push(...states);
   }
   return callable;
 }
@@ -59,9 +62,22 @@ function getTzPriorityExpr(tableAlias = 'ocq') {
   return `CASE ${tableAlias}.state ${parts.join(' ')} ELSE 99999 END`;
 }
 
+// Returns a SQL CASE expression mapping state → IANA TZ key.
+// Used to group contacts by timezone for proportional batch allocation.
+// tableAlias: the table alias whose .state column to use (default 'ocq')
+function buildTzLabelExpr(tableAlias = 'ocq') {
+  const parts = [];
+  for (const [tz, { states }] of Object.entries(TZ_CONFIG)) {
+    for (const state of states) {
+      parts.push(`WHEN '${state}' THEN '${tz}'`);
+    }
+  }
+  return `CASE ${tableAlias}.state ${parts.join(' ')} ELSE NULL END`;
+}
+
 // Always use tz_priority as primary sort — prime vs callable distinction is always meaningful.
 function isIdealWindow() {
   return true;
 }
 
-module.exports = { TZ_CONFIG, getCallableStates, getTzPriorityExpr, isIdealWindow };
+module.exports = { TZ_CONFIG, getCallableStates, getTzPriorityExpr, buildTzLabelExpr, isIdealWindow };

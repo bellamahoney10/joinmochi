@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 const { getActiveMemberQueueIds } = require('./lib/dataPool');
-const { getTzPriorityExpr, isIdealWindow, getCallableStates } = require('./lib/tzConfig');
+const { TZ_CONFIG, getCallableStates, getTzPriorityExpr, buildTzLabelExpr } = require('./lib/tzConfig');
 
 let writePool;
 function getWritePool() {
@@ -37,6 +37,7 @@ function getReadPool() {
 }
 
 const REFRESH_BATCH = 25;
+const CALLABLE_BUFFER_MINS = 30; // skip TZs whose window closes within 30 min
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -47,34 +48,52 @@ module.exports = async (req, res) => {
   const { agent_id } = req.body || {};
   if (!agent_id) return res.status(400).json({ error: 'agent_id required' });
 
-  const callableStates = getCallableStates();
+  // 1. Get callable states with 30-min closing buffer
+  const callableStates = getCallableStates(CALLABLE_BUFFER_MINS);
   if (!callableStates.length) {
-    return res.json({ assigned: 0, message: 'Outside calling hours for all timezones' });
+    return res.json({ assigned: 0, message: 'Outside calling hours (or all windows closing within 30 min)' });
   }
 
-  const idealWindow = isIdealWindow(callableStates);
+  // 2. Guard: don't add more if agent still has 10+ uncalled contacts
+  const uncalledCount = parseInt(req.body.uncalled_count ?? -1, 10);
+  if (uncalledCount >= 10) {
+    return res.json({ assigned: 0, message: `Agent still has ${uncalledCount} uncalled contacts` });
+  }
+
+  // 3. Build callable TZ map: tzKey → [states within that TZ that are callable]
+  const callableTzStates = {};
+  for (const [tz, { states }] of Object.entries(TZ_CONFIG)) {
+    const tzCallable = states.filter(s => callableStates.includes(s));
+    if (tzCallable.length) callableTzStates[tz] = tzCallable;
+  }
+
   const tzPriorityExpr = getTzPriorityExpr();
+  const tzLabelExpr    = buildTzLabelExpr();
+
+  // Shared assigned_phones CTE: phones assigned in the last 5 days
+  const ASSIGNED_PHONES_CTE = `
+    assigned_phones AS (
+      SELECT DISTINCT phone FROM outreach_call_queue
+      WHERE status = 'assigned' AND deleted_at IS NULL
+        AND assigned_at >= NOW() - INTERVAL '5 days'
+    )
+  `;
 
   let readClient, writeClient;
   try {
     readClient = await getReadPool().connect();
 
-    // Guard: don't add more if agent still has 10+ uncalled contacts (count passed from client)
-    const uncalledCount = parseInt(req.body.uncalled_count ?? -1, 10);
-    if (uncalledCount >= 10) {
-      return res.json({ assigned: 0, message: `Agent still has ${uncalledCount} uncalled contacts` });
-    }
-
+    // 4. Proportional allocation: one query to count + rank contacts per callable TZ.
+    //    Contacts are deduplicated by phone (freshest eligibility record wins).
+    //    Within each TZ, ranked by tz_priority ASC then recency DESC.
+    //    Each TZ gets ROUND(tz_share * BATCH) slots, minimum 1.
+    //    Final LIMIT caps to REFRESH_BATCH.
     const contactsRes = await readClient.query(`
-      WITH assigned_phones AS (
-        SELECT DISTINCT phone
-        FROM outreach_call_queue
-        WHERE status = 'assigned'
-          AND deleted_at IS NULL
-          AND assigned_at >= NOW() - INTERVAL '5 days'
-      )
-      SELECT id, patient_id, phone FROM (
-        SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
+      WITH ${ASSIGNED_PHONES_CTE},
+      candidates AS (
+        SELECT DISTINCT ON (ocq.phone)
+          ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
+          ${tzLabelExpr} AS tz_key,
           ${tzPriorityExpr} AS tz_priority
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
@@ -84,28 +103,40 @@ module.exports = async (req, res) => {
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
           AND ap.phone IS NULL
-          AND ocq.state = ANY($3::text[])
+          AND ocq.state = ANY($1::text[])
         ORDER BY ocq.phone, ae.updated_at DESC
-      ) sub
-      ORDER BY
-        (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
-        sub.updated_at DESC,
-        (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
-      LIMIT $1
-    `, [REFRESH_BATCH, idealWindow, callableStates]);
+      ),
+      tz_totals AS (
+        SELECT tz_key, COUNT(*) AS tz_cnt, SUM(COUNT(*)) OVER () AS total_cnt
+        FROM candidates
+        WHERE tz_key IS NOT NULL
+        GROUP BY tz_key
+      ),
+      ranked AS (
+        SELECT
+          c.id, c.patient_id, c.phone, c.updated_at, c.tz_priority,
+          ROW_NUMBER() OVER (
+            PARTITION BY c.tz_key
+            ORDER BY c.tz_priority ASC, c.updated_at DESC
+          ) AS rn,
+          GREATEST(1, ROUND(tt.tz_cnt::numeric / NULLIF(tt.total_cnt, 0) * $2)) AS slot_limit
+        FROM candidates c
+        JOIN tz_totals tt ON tt.tz_key = c.tz_key
+      )
+      SELECT id, patient_id, phone
+      FROM ranked
+      WHERE rn <= slot_limit
+      ORDER BY tz_priority ASC, updated_at DESC
+      LIMIT $2
+    `, [callableStates, REFRESH_BATCH]);
 
     let pendingRows = contactsRes.rows;
 
-    // Fallback: if 24h window is empty, widen to all pending (ordered by most recent)
+    // 5. Fallback: if 24h window is empty across all callable TZs, widen to 5 days.
+    //    Uses simple tz_priority + recency sort (no proportional — already stale contacts).
     if (!pendingRows.length) {
       const fallbackRes = await readClient.query(`
-        WITH assigned_phones AS (
-          SELECT DISTINCT phone
-          FROM outreach_call_queue
-          WHERE status = 'assigned'
-            AND deleted_at IS NULL
-            AND assigned_at >= NOW() - INTERVAL '5 days'
-        )
+        WITH ${ASSIGNED_PHONES_CTE}
         SELECT id, patient_id, phone FROM (
           SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
             ${tzPriorityExpr} AS tz_priority
@@ -118,15 +149,12 @@ module.exports = async (req, res) => {
           WHERE ocq.status = 'pending'
             AND ocq.deleted_at IS NULL
             AND ap.phone IS NULL
-            AND ocq.state = ANY($3::text[])
+            AND ocq.state = ANY($1::text[])
           ORDER BY ocq.phone, ae.updated_at DESC
         ) sub
-        ORDER BY
-          (CASE WHEN $2 THEN sub.tz_priority ELSE 0 END) ASC,
-          sub.updated_at DESC,
-          (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
-        LIMIT $1
-      `, [REFRESH_BATCH, idealWindow, callableStates]);
+        ORDER BY sub.tz_priority ASC, sub.updated_at DESC
+        LIMIT $2
+      `, [callableStates, REFRESH_BATCH]);
       pendingRows = fallbackRes.rows;
     }
 
@@ -134,6 +162,7 @@ module.exports = async (req, res) => {
       return res.json({ assigned: 0, message: 'No pending contacts' });
     }
 
+    // 6. Scrub active HEALTH members
     let activeMemberIds = new Set();
     try {
       activeMemberIds = await getActiveMemberQueueIds(pendingRows);
@@ -145,6 +174,7 @@ module.exports = async (req, res) => {
       return res.json({ assigned: 0, message: 'No pending contacts after member scrub' });
     }
 
+    // 7. Assign
     const now = new Date();
     const ids = toAssign.map(r => r.id);
     writeClient = await getWritePool().connect();
