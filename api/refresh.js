@@ -84,6 +84,7 @@ module.exports = async (req, res) => {
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
           AND ap.phone IS NULL
+          AND ocq.state = ANY($3::text[])
         ORDER BY ocq.phone, ae.updated_at DESC
       ) sub
       ORDER BY
@@ -91,7 +92,7 @@ module.exports = async (req, res) => {
         sub.updated_at DESC,
         (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
       LIMIT $1
-    `, [REFRESH_BATCH, idealWindow]);
+    `, [REFRESH_BATCH, idealWindow, callableStates]);
 
     let pendingRows = contactsRes.rows;
 
@@ -116,6 +117,7 @@ module.exports = async (req, res) => {
           WHERE ocq.status = 'pending'
             AND ocq.deleted_at IS NULL
             AND ap.phone IS NULL
+            AND ocq.state = ANY($3::text[])
           ORDER BY ocq.phone, ae.updated_at DESC
         ) sub
         ORDER BY
@@ -123,7 +125,7 @@ module.exports = async (req, res) => {
           sub.updated_at DESC,
           (CASE WHEN $2 THEN 0 ELSE sub.tz_priority END) ASC
         LIMIT $1
-      `, [REFRESH_BATCH, idealWindow]);
+      `, [REFRESH_BATCH, idealWindow, callableStates]);
       pendingRows = fallbackRes.rows;
     }
 
