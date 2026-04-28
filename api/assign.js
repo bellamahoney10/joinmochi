@@ -144,12 +144,19 @@ module.exports = async (req, res) => {
     const pending = rawPending.filter(c => !activeMemberIds.has(c.id));
     if (!pending.length) return res.json({ assigned: 0, message: 'No pending contacts after member scrub' });
 
+    // Round-robin interleave: deal contacts like a deck of cards so both agents
+    // get the same TZ mix and recency distribution rather than one agent always
+    // getting the fresher half of the pool.
+    const agentSlices = agents.map(() => []);
+    for (let i = 0; i < pending.length; i++) {
+      agentSlices[i % agents.length].push(pending[i].id);
+    }
+
     const now = new Date();
     let totalAssigned = 0;
     for (let i = 0; i < agents.length; i++) {
-      const slice = pending.splice(0, MORNING_BATCH);
-      if (!slice.length) break;
-      const ids = slice.map(r => r.id);
+      const ids = agentSlices[i];
+      if (!ids.length) continue;
       await client.query(`
         UPDATE outreach_call_queue
         SET status = 'assigned',
