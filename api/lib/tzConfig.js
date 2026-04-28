@@ -9,6 +9,18 @@ const TZ_CONFIG = {
   'Pacific/Honolulu':    { states: ['Hawaii'], start: [8, 0], end: [18, 30] },
 };
 
+// Prime calling windows per TZ (local hours, inclusive start, exclusive end).
+// Based on empirical answer rate + >2min engagement analysis (Apr 17–28 2026, ~4,950 calls).
+const PRIME_HOURS = {
+  'America/New_York':    [[10, 12], [16, 19]],  // 10am–noon (14.8% answer), 4–7pm (14.4% answer / 48.6% >2min)
+  'America/Chicago':     [[10, 12], [15, 19]],  // 10–11am (14.5% / 50% >2min), 3–6pm
+  'America/Denver':      [[9,  15]],             // 9am–3pm (broad window; thin sample)
+  'America/Phoenix':     [[9,  15]],             // same
+  'America/Los_Angeles': [[9,  10], [13, 15]],  // 9am (16% answer), 1–2pm (19% answer / 50% >2min)
+  'America/Anchorage':   [[9,  17]],             // insufficient data; broad window
+  'Pacific/Honolulu':    [[9,  17]],             // insufficient data; broad window
+};
+
 // Returns callable states based on current local time for each TZ
 function getCallableStates() {
   const now = new Date();
@@ -21,30 +33,35 @@ function getCallableStates() {
   return callable;
 }
 
-// Returns a SQL CASE expression that resolves to minutes since that state's TZ opened.
-// 99999 = not currently in calling hours (lowest priority).
-// Contacts in TZs that most recently opened (lowest value) get highest priority.
+// Returns a SQL CASE expression resolving to a priority score (sort ASC):
+//   0     = TZ currently in prime window (best empirical answer + engagement rates)
+//   1     = TZ in calling hours but outside prime window
+//   99999 = TZ outside calling hours
+// Within each tier, callers should use recency (ae.updated_at DESC) as tiebreaker.
 // tableAlias: the table alias whose .state column to use (default 'ocq')
 function getTzPriorityExpr(tableAlias = 'ocq') {
   const now = new Date();
   const parts = [];
-  for (const [tz, { states, start }] of Object.entries(TZ_CONFIG)) {
+  for (const [tz, { states, start, end }] of Object.entries(TZ_CONFIG)) {
     const local = now.toLocaleString('en-US', { timeZone: tz, hour: 'numeric', minute: 'numeric', hour12: false });
     const [h, m] = local.split(':').map(Number);
     const mins = h * 60 + m;
     const startMins = start[0] * 60 + start[1];
-    const minsOpen = mins >= startMins ? mins - startMins : 99999;
+    const endMins   = end[0]   * 60 + end[1];
+    const inCallable = mins >= startMins && mins < endMins;
+    const primeRanges = PRIME_HOURS[tz] ?? [];
+    const inPrime = inCallable && primeRanges.some(([ps, pe]) => h >= ps && h < pe);
+    const score = inPrime ? 0 : inCallable ? 1 : 99999;
     for (const state of states) {
-      parts.push(`WHEN '${state}' THEN ${minsOpen}`);
+      parts.push(`WHEN '${state}' THEN ${score}`);
     }
   }
   return `CASE ${tableAlias}.state ${parts.join(' ')} ELSE 99999 END`;
 }
 
-// True when not all TZs are callable — tz priority is meaningful
-function isIdealWindow(callableStates) {
-  const total = Object.values(TZ_CONFIG).reduce((sum, { states }) => sum + states.length, 0);
-  return callableStates.length < total;
+// Always use tz_priority as primary sort — prime vs callable distinction is always meaningful.
+function isIdealWindow() {
+  return true;
 }
 
 module.exports = { TZ_CONFIG, getCallableStates, getTzPriorityExpr, isIdealWindow };
