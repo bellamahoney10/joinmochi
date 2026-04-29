@@ -97,7 +97,9 @@ module.exports = async (req, res) => {
     // 4. Proportional allocation: one query to count + rank contacts per callable TZ.
     //    Contacts are deduplicated by phone (freshest eligibility record wins).
     //    Within each TZ, ranked by tz_priority ASC then recency DESC.
-    //    Each TZ gets ROUND(tz_share * BATCH) slots, minimum 1.
+    //    Prime-window TZs get 2× weight in slot allocation so agents capitalize
+    //    on high-answer-rate windows without starving other callable TZs.
+    //    Each TZ gets ROUND(weighted_share * BATCH) slots, minimum 1.
     //    Final LIMIT caps to REFRESH_BATCH.
     const contactsRes = await readClient.query(`
       WITH ${ASSIGNED_PHONES_CTE},
@@ -118,10 +120,16 @@ module.exports = async (req, res) => {
         ORDER BY ocq.phone, ae.updated_at DESC
       ),
       tz_totals AS (
-        SELECT tz_key, COUNT(*) AS tz_cnt, SUM(COUNT(*)) OVER () AS total_cnt
+        SELECT tz_key, COUNT(*) AS tz_cnt, MIN(tz_priority) AS tz_prio
         FROM candidates
         WHERE tz_key IS NOT NULL
         GROUP BY tz_key
+      ),
+      tz_weighted AS (
+        SELECT tz_key, tz_cnt,
+          tz_cnt * CASE WHEN tz_prio = 0 THEN 2 ELSE 1 END AS weighted_cnt,
+          SUM(tz_cnt * CASE WHEN tz_prio = 0 THEN 2 ELSE 1 END) OVER () AS weighted_total
+        FROM tz_totals
       ),
       ranked AS (
         SELECT
@@ -130,9 +138,9 @@ module.exports = async (req, res) => {
             PARTITION BY c.tz_key
             ORDER BY c.tz_priority ASC, c.updated_at DESC
           ) AS rn,
-          GREATEST(1, ROUND(tt.tz_cnt::numeric / NULLIF(tt.total_cnt, 0) * $2)) AS slot_limit
+          GREATEST(1, ROUND(tw.weighted_cnt::numeric / NULLIF(tw.weighted_total, 0) * $2)) AS slot_limit
         FROM candidates c
-        JOIN tz_totals tt ON tt.tz_key = c.tz_key
+        JOIN tz_weighted tw ON tw.tz_key = c.tz_key
       )
       SELECT id, patient_id, phone
       FROM ranked
