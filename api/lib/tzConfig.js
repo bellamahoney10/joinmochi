@@ -1,7 +1,7 @@
 // start/end in [hour, minute] (24h), inclusive start, exclusive end
 const TZ_CONFIG = {
   'America/New_York':    { states: ['Connecticut','District of Columbia','Delaware','Florida','Georgia','Indiana','Massachusetts','Maryland','Maine','Michigan','North Carolina','New Hampshire','New Jersey','New York','Ohio','Pennsylvania','Rhode Island','South Carolina','Virginia','Vermont','West Virginia'], start: [8, 0], end: [19, 30] }, // ET extended to 7:30 PM (data supports 7 PM; 8 PM too thin)
-  'America/Chicago':     { states: ['Alabama','Arkansas','Iowa','Illinois','Kansas','Kentucky','Louisiana','Minnesota','Missouri','Mississippi','North Dakota','Nebraska','Oklahoma','South Dakota','Tennessee','Texas','Wisconsin'], start: [8, 0], end: [18, 30] },
+  'America/Chicago':     { states: ['Alabama','Arkansas','Iowa','Illinois','Kansas','Kentucky','Louisiana','Minnesota','Missouri','Mississippi','North Dakota','Nebraska','Oklahoma','South Dakota','Tennessee','Texas','Wisconsin'], start: [8, 0], end: [19, 30] }, // CT extended to 7:30 PM — agents run dry after 4:30 PM PT otherwise
   'America/Denver':      { states: ['Colorado','Idaho','Montana','New Mexico','Utah','Wyoming'], start: [8, 0], end: [18, 30] },
   'America/Phoenix':     { states: ['Arizona'], start: [8, 0], end: [18, 30] },
   'America/Los_Angeles': { states: ['California','Nevada','Oregon','Washington'], start: [8, 0], end: [18, 30] },
