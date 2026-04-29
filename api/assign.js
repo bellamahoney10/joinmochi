@@ -48,12 +48,11 @@ module.exports = async (req, res) => {
     return res.status(405).end();
   }
 
-  const writeClient = await getWritePool().connect();
-  let readClient;
+  let writeClient;
+  const readClient = await getReadPool().connect();
   try {
     // Guard: skip if any agent already has contacts assigned today.
-    // Uses write DB to avoid replication lag giving a stale result.
-    const alreadyAssigned = await writeClient.query(`
+    const alreadyAssigned = await readClient.query(`
       SELECT COUNT(*) AS cnt
       FROM outreach_call_queue ocq
       JOIN admins a ON a.id = ocq.assigned_agent_id
@@ -68,7 +67,7 @@ module.exports = async (req, res) => {
       return res.json({ assigned: 0, message: 'Already assigned today — skipping' });
     }
 
-    const agentsRes = await writeClient.query(`
+    const agentsRes = await readClient.query(`
       SELECT a.id, a.first_name, a.last_name
       FROM admins a
       JOIN outreach_agents oa ON a.id = oa.admin_id
@@ -82,9 +81,6 @@ module.exports = async (req, res) => {
     const needed = MORNING_BATCH * agents.length;
     const callableStates = getCallableStates(); // no buffer — contacts sit in queue until called
     const tzPriorityExpr = getTzPriorityExpr();
-
-    // Contact selection queries use read replica — large scans, no freshness requirement
-    readClient = await getReadPool().connect();
 
     // Primary window: 24h eligibility recency, sorted by tz_priority then recency
     const contactsRes = await readClient.query(`
@@ -176,6 +172,7 @@ module.exports = async (req, res) => {
 
     const now = new Date();
     let totalAssigned = 0;
+    writeClient = await getWritePool().connect();
     for (let i = 0; i < agents.length; i++) {
       const ids = agentSlices[i];
       if (!ids.length) continue;
@@ -195,7 +192,7 @@ module.exports = async (req, res) => {
     console.error(e);
     res.status(500).json({ error: e.message });
   } finally {
-    writeClient.release();
-    if (readClient) readClient.release();
+    readClient.release();
+    if (writeClient) writeClient.release();
   }
 };
