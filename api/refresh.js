@@ -54,13 +54,7 @@ module.exports = async (req, res) => {
     return res.json({ assigned: 0, message: 'Outside calling hours (or all windows closing within 30 min)' });
   }
 
-  // 2. Guard: don't add more if agent still has 10+ uncalled contacts
-  const uncalledCount = parseInt(req.body.uncalled_count ?? -1, 10);
-  if (uncalledCount >= 10) {
-    return res.json({ assigned: 0, message: `Agent still has ${uncalledCount} uncalled contacts` });
-  }
-
-  // 3. Build callable TZ map: tzKey → [states within that TZ that are callable]
+  // 2. Build callable TZ map: tzKey → [states within that TZ that are callable]
   const callableTzStates = {};
   for (const [tz, { states }] of Object.entries(TZ_CONFIG)) {
     const tzCallable = states.filter(s => callableStates.includes(s));
@@ -82,6 +76,23 @@ module.exports = async (req, res) => {
   let readClient, writeClient;
   try {
     readClient = await getReadPool().connect();
+
+    // 3. Guard: block refresh if agent has 10+ uncalled contacts in currently callable TZs.
+    //    Uncalled PT contacts at 6 AM PT don't count — they can't be called yet.
+    const uncalledRes = await readClient.query(`
+      SELECT COUNT(*) AS cnt
+      FROM outreach_call_queue
+      WHERE assigned_agent_id = $1
+        AND status = 'assigned'
+        AND contact_result IS NULL
+        AND deleted_at IS NULL
+        AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
+        AND state = ANY($2::text[])
+    `, [agent_id, callableStates]);
+    const uncalledCount = parseInt(uncalledRes.rows[0].cnt, 10);
+    if (uncalledCount >= 10) {
+      return res.json({ assigned: 0, message: `Agent still has ${uncalledCount} uncalled contacts in callable TZs` });
+    }
 
     // 4. Proportional allocation: one query to count + rank contacts per callable TZ.
     //    Contacts are deduplicated by phone (freshest eligibility record wins).
