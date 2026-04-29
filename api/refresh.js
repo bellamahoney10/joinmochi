@@ -77,24 +77,7 @@ module.exports = async (req, res) => {
   try {
     readClient = await getReadPool().connect();
 
-    // 3. Guard: block refresh if agent has 10+ uncalled contacts in currently callable TZs.
-    //    Uncalled PT contacts at 6 AM PT don't count — they can't be called yet.
-    const uncalledRes = await readClient.query(`
-      SELECT COUNT(*) AS cnt
-      FROM outreach_call_queue
-      WHERE assigned_agent_id = $1
-        AND status = 'assigned'
-        AND contact_result IS NULL
-        AND deleted_at IS NULL
-        AND DATE(assigned_at AT TIME ZONE 'America/Los_Angeles') = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Los_Angeles')::date
-        AND state = ANY($2::text[])
-    `, [agent_id, callableStates]);
-    const uncalledCount = parseInt(uncalledRes.rows[0].cnt, 10);
-    if (uncalledCount >= 10) {
-      return res.json({ assigned: 0, message: `Agent still has ${uncalledCount} uncalled contacts in callable TZs` });
-    }
-
-    // 4. Proportional allocation: one query to count + rank contacts per callable TZ.
+    // 3. Proportional allocation: one query to count + rank contacts per callable TZ.
     //    Contacts are deduplicated by phone (freshest eligibility record wins).
     //    Within each TZ, ranked by tz_priority ASC then recency DESC.
     //    Prime-window TZs get 2× weight in slot allocation so agents capitalize
