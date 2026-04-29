@@ -5,13 +5,14 @@ let pool;
 function getPool() {
   if (!pool) {
     pool = new Pool({
-      host: process.env.DB_WRITE_HOST || 'db-prod.ourmochi.com',
+      host: process.env.DB_READ_HOST || 'prod-mochi-portal-db-read-replica-xl-2.ciy49seo1hcc.us-east-1.rds.amazonaws.com',
       port: 5432,
       database: 'postgres',
       user: process.env.DB_USER || 'bella_mahoney_prod',
-      password: process.env.DB_PASSWORD,
+      password: process.env.DB_READ_PASSWORD || process.env.DB_PASSWORD,
       ssl: { rejectUnauthorized: false },
-      max: 1
+      max: 1,
+      connectionTimeoutMillis: 8000
     });
   }
   return pool;

@@ -2,10 +2,10 @@ const { Pool } = require('pg');
 const { getActiveMemberQueueIds } = require('./lib/dataPool');
 const { getCallableStates, getTzPriorityExpr } = require('./lib/tzConfig');
 
-let pool;
-function getPool() {
-  if (!pool) {
-    pool = new Pool({
+let writePool;
+function getWritePool() {
+  if (!writePool) {
+    writePool = new Pool({
       host: process.env.DB_WRITE_HOST || 'db-prod.ourmochi.com',
       port: 5432,
       database: 'postgres',
@@ -15,7 +15,24 @@ function getPool() {
       max: 1
     });
   }
-  return pool;
+  return writePool;
+}
+
+let readPool;
+function getReadPool() {
+  if (!readPool) {
+    readPool = new Pool({
+      host: process.env.DB_READ_HOST || 'prod-mochi-portal-db-read-replica-xl-2.ciy49seo1hcc.us-east-1.rds.amazonaws.com',
+      port: 5432,
+      database: 'postgres',
+      user: process.env.DB_USER || 'bella_mahoney_prod',
+      password: process.env.DB_READ_PASSWORD || process.env.DB_PASSWORD,
+      ssl: { rejectUnauthorized: false },
+      max: 1,
+      connectionTimeoutMillis: 8000
+    });
+  }
+  return readPool;
 }
 
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -31,10 +48,12 @@ module.exports = async (req, res) => {
     return res.status(405).end();
   }
 
-  const client = await getPool().connect();
+  const writeClient = await getWritePool().connect();
+  let readClient;
   try {
-    // Guard: skip if any agent already has contacts assigned today
-    const alreadyAssigned = await client.query(`
+    // Guard: skip if any agent already has contacts assigned today.
+    // Uses write DB to avoid replication lag giving a stale result.
+    const alreadyAssigned = await writeClient.query(`
       SELECT COUNT(*) AS cnt
       FROM outreach_call_queue ocq
       JOIN admins a ON a.id = ocq.assigned_agent_id
@@ -49,7 +68,7 @@ module.exports = async (req, res) => {
       return res.json({ assigned: 0, message: 'Already assigned today — skipping' });
     }
 
-    const agentsRes = await client.query(`
+    const agentsRes = await writeClient.query(`
       SELECT a.id, a.first_name, a.last_name
       FROM admins a
       JOIN outreach_agents oa ON a.id = oa.admin_id
@@ -64,8 +83,11 @@ module.exports = async (req, res) => {
     const callableStates = getCallableStates(); // no buffer — contacts sit in queue until called
     const tzPriorityExpr = getTzPriorityExpr();
 
+    // Contact selection queries use read replica — large scans, no freshness requirement
+    readClient = await getReadPool().connect();
+
     // Primary window: 24h eligibility recency, sorted by tz_priority then recency
-    const contactsRes = await client.query(`
+    const contactsRes = await readClient.query(`
       SELECT id, patient_id, phone FROM (
         SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
           ${tzPriorityExpr} AS tz_priority
@@ -100,7 +122,7 @@ module.exports = async (req, res) => {
     if (rawPending.length < needed) {
       const fetchedPhones = rawPending.map(r => r.phone);
       const remaining = needed - rawPending.length;
-      const fallbackRes = await client.query(`
+      const fallbackRes = await readClient.query(`
         SELECT id, patient_id, phone FROM (
           SELECT DISTINCT ON (ocq.phone) ocq.id, ocq.patient_id, ocq.phone, ae.updated_at,
             ${tzPriorityExpr} AS tz_priority
@@ -157,7 +179,7 @@ module.exports = async (req, res) => {
     for (let i = 0; i < agents.length; i++) {
       const ids = agentSlices[i];
       if (!ids.length) continue;
-      await client.query(`
+      await writeClient.query(`
         UPDATE outreach_call_queue
         SET status = 'assigned',
             assigned_agent_id = $1,
@@ -173,6 +195,7 @@ module.exports = async (req, res) => {
     console.error(e);
     res.status(500).json({ error: e.message });
   } finally {
-    client.release();
+    writeClient.release();
+    if (readClient) readClient.release();
   }
 };
