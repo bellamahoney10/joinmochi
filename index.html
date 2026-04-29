@@ -969,7 +969,8 @@ function clearFromList(contactId, resultFilter, tzFilter, remainingOnly){
 }
 
 function callFromList(contactId){
-  // Move selected contact to front of uncalled queue, then go to My Contacts
+  // Remove from skipped set (handles accidental skips), move to front, go to My Contacts
+  skippedIds.delete(contactId);
   var idx=contacts.findIndex(function(c){return c.id===contactId;});
   if(idx>0){contacts.unshift(contacts.splice(idx,1)[0]);}
   showContacts();
