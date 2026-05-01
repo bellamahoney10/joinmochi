@@ -41,12 +41,8 @@ module.exports = async (req, res) => {
         AND ocq.deleted_at IS NULL
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
-          JOIN patients p ON p.id = s.patient_id
-          WHERE s.descriptor = 'HEALTH'
-            AND (
-              s.patient_id = ocq.patient_id
-              OR RIGHT(REGEXP_REPLACE(p.phone, '[^0-9]', '', 'g'), 10) = RIGHT(REGEXP_REPLACE(ocq.phone, '[^0-9]', '', 'g'), 10)
-            )
+          WHERE s.patient_id = ocq.patient_id
+            AND s.descriptor = 'HEALTH'
         )
       ORDER BY ${tzPriorityExpr} ASC, ocq.assigned_at ASC
     `, [agent_id]);
