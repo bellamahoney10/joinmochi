@@ -36,7 +36,14 @@ function getReadPool() {
 }
 
 const CRON_SECRET = process.env.CRON_SECRET;
-const MORNING_BATCH = 20;
+
+// Monday gets a larger batch to absorb the weekend backlog.
+// ET fills first (only TZ callable at 5 AM PT); CT opens at 6 AM PT and floats
+// up automatically via contacts.js dynamic tz_priority re-sort.
+function getMorningBatch() {
+  const day = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' });
+  return day === 'Mon' ? 30 : 20;
+}
 
 module.exports = async (req, res) => {
   // Allow cron (GET with secret) or manual POST trigger
@@ -78,6 +85,7 @@ module.exports = async (req, res) => {
     const agents = agentsRes.rows;
     if (!agents.length) return res.json({ assigned: 0, message: 'No active agents' });
 
+    const MORNING_BATCH = getMorningBatch();
     const needed = MORNING_BATCH * agents.length;
     const callableStates = getCallableStates(); // no buffer — contacts sit in queue until called
     const tzPriorityExpr = getTzPriorityExpr();
