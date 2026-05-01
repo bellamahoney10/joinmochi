@@ -203,6 +203,7 @@ header{background:var(--navy);padding:0 24px;display:flex;align-items:center;jus
       <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContacts()">&#128222; My Contacts</button>
       <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showContactList('all')">&#128101; All Contacts</button>
       <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showCallbacks()">&#128337; Callbacks <span id="cb-badge" style="display:none;margin-left:4px;background:#E24B4A;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;vertical-align:middle"></span></button>
+      <button class="qbtn n" style="margin:0;width:100%;margin-bottom:6px" onclick="showOutcomeKey()">Outcome Key</button>
       <button class="qbtn n" style="margin:0;width:100%" onclick="showSchedule()">Call Schedule</button>
     </div>
     <hr class="sbdiv">
@@ -868,15 +869,6 @@ function renderDashboard(){
     +statCard(st['Screened/Declined'],'Screened/Declined','#7f1d1d','Screened/Declined')
     +statCard(st['Phone Unavailable'],'Phone Unavailable','#555','Phone Unavailable')
     +'</div>'
-    +'<div style="margin-top:14px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden">'
-    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);padding:7px 12px;background:var(--surface);border-bottom:1px solid var(--border)">Outcome Key</div>'
-    +'<div style="padding:8px 12px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-secondary)">'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark);margin-right:6px">Hung Up</span>patient physically picked up and ended the call</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--border);background:#fff;color:var(--text);margin-right:6px">Inbox Full</span>No voicemail could be left due to a full mailbox</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489;margin-right:6px">Voicemail Left</span>agent successfully left a message; this includes iOS screened calls</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d;margin-right:6px">Screened/Declined</span>patient heard the opening via iOS screening, declined, voicemail blocked</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--border);background:#f0f0f5;color:#555;margin-right:6px">Phone Unavailable</span>number disconnected or voicemail seems to be not for the contact</div>'
-    +'</div></div>'
     +'</div>';
   document.getElementById('content').innerHTML=html;
 }
@@ -1129,15 +1121,6 @@ function renderContactPanel(){
     html+='<button onclick="selectOutcome('+idx+',\''+o+'\')" style="padding:10px;font-size:13px;font-weight:600;border-radius:var(--radius-md);'+btStyles[o]+';cursor:pointer;font-family:var(--font)">'+o+'</button>';
   });
   html+='</div>'
-    +'<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden">'
-    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);padding:7px 12px;background:var(--surface);border-bottom:1px solid var(--border)">Outcome Key</div>'
-    +'<div style="padding:8px 12px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-secondary)">'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark);margin-right:6px">Hung Up</span>Patient physically picked up and ended the call</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--border);background:#fff;color:var(--text);margin-right:6px">Inbox Full</span>No voicemail could be left due to a full mailbox</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489;margin-right:6px">Voicemail Left</span>Agent successfully left a message; this includes iOS screened calls</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d;margin-right:6px">Screened/Declined</span>Patient heard the opening via iOS screening, declined, voicemail blocked</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--border);background:#f0f0f5;color:#555;margin-right:6px">Phone Unavailable</span>Number disconnected or voicemail seems to be not for the contact</div>'
-    +'</div></div>'
     +'<div id="notes-panel" style="display:none">'
     +'<div id="cb-request-row" style="display:none;margin-bottom:10px">'
     +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff">'
@@ -1396,15 +1379,6 @@ function showLogResult(){
     +contactInfo
     +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Select Outcome</div>'
     +'<div id="log-outcome-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+btns+'</div>'
-    +'<div style="margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden">'
-    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);padding:7px 12px;background:var(--surface);border-bottom:1px solid var(--border)">Outcome Key</div>'
-    +'<div style="padding:8px 12px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-secondary)">'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark);margin-right:6px">Hung Up</span>Patient physically picked up and ended the call</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--border);background:#fff;color:var(--text);margin-right:6px">Inbox Full</span>No voicemail could be left due to a full mailbox</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid #534AB7;background:#EEEDFE;color:#3C3489;margin-right:6px">Voicemail Left</span>Agent successfully left a message; this includes iOS screened calls</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid #fca5a5;background:#fee2e2;color:#7f1d1d;margin-right:6px">Screened/Declined</span>Patient heard the opening via iOS screening, declined, voicemail blocked</div>'
-    +'<div><span style="display:inline-block;padding:1px 7px;border-radius:6px;font-weight:700;font-size:11px;border:1.5px solid var(--border);background:#f0f0f5;color:#555;margin-right:6px">Phone Unavailable</span>Number disconnected or voicemail seems to be not for the contact</div>'
-    +'</div></div>'
     +'<div id="log-cb-row" style="display:none;margin-bottom:10px">'
     +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:#fff">'
     +'<input type="checkbox" id="log-cb-checkbox" onchange="toggleCbFields(\'log\')" style="width:15px;height:15px;cursor:pointer;accent-color:var(--brand)">'
@@ -1770,6 +1744,23 @@ function showSchedule(){
   scrollTop();
 }
 
+function showOutcomeKey(){
+  hist.push({id:cur});cur='_okey';
+  document.getElementById('crumb').innerHTML='<span class="crumb-a">Outcome Key</span>';
+  var sp=function(border,bg,color,label){return '<span style="display:inline-block;padding:2px 9px;border-radius:6px;font-weight:700;font-size:12px;border:1.5px solid '+border+';background:'+bg+';color:'+color+';margin-right:8px">'+label+'</span>';};
+  document.getElementById('content').innerHTML='<div class="panel"><div class="panel-title">Outcome Key</div>'
+    +'<div style="display:flex;flex-direction:column;gap:12px;font-size:13px;color:var(--text-secondary)">'
+    +'<div>'+sp('#1D9E75','#E1F5EE','#085041','Call Answered')+'patient picked up and engaged</div>'
+    +'<div>'+sp('#534AB7','#EEEDFE','#3C3489','Voicemail Left')+'agent left a message; includes iOS screened calls</div>'
+    +'<div>'+sp('var(--amber-mid)','var(--amber-light)','var(--amber-dark)','Hung Up')+'patient physically picked up and ended the call</div>'
+    +'<div>'+sp('var(--border)','#fff','var(--text)','Inbox Full')+'no voicemail could be left due to a full mailbox</div>'
+    +'<div>'+sp('#fca5a5','#fee2e2','#7f1d1d','Screened/Declined')+'patient heard the opening via iOS screening, declined, voicemail blocked</div>'
+    +'<div>'+sp('var(--border)','#f0f0f5','#555','Phone Unavailable')+'number disconnected or voicemail seems to be not for the contact</div>'
+    +'</div></div>';
+  document.getElementById('back-btn').disabled=false;
+  document.getElementById('tbr').innerHTML='';
+  scrollTop();
+}
 function showCompliance(){
   hist.push({id:cur});cur='_comp';
   document.getElementById('crumb').innerHTML='<span class="crumb-a">Compliance Rules</span>';
