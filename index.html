@@ -757,6 +757,16 @@ function idealWindowTzs(){
     return cfg.prime.some(function(r){return loc>=r[0]&&loc<r[1];});
   });
 }
+function getWindowNudge(){
+  var ptD=getPtDecimal();
+  if(ptD<7||ptD>=18.5)return '';
+  var ideal=idealWindowTzs();
+  if(ideal.length>0)return '<div style="margin-bottom:14px;padding:10px 14px;background:#E1F5EE;border-radius:8px;border-left:3px solid #1D9E75;font-size:13px;color:#085041;font-weight:600">Prime window active \u2014 '+ideal.join(' + ')+'. Best answer rates now. Keep calling.</div>';
+  if(ptD>=10&&ptD<11)return '<div style="margin-bottom:14px;padding:10px 14px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:13px;color:#633806;font-weight:600">Slow window \u2014 ET/CT morning prime just ended. Good time for a short break ('+(Math.round((13-ptD)*60))+' min until afternoon prime at 1 PM PT).</div>';
+  if(ptD>=11&&ptD<12)return '<div style="margin-bottom:14px;padding:10px 14px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:13px;color:#633806;font-weight:600">Lunch window \u2014 no prime windows active. Good time to eat or step away ('+(Math.round((13-ptD)*60))+' min until afternoon prime at 1 PM PT).</div>';
+  if(ptD>=12&&ptD<13)return '<div style="margin-bottom:14px;padding:10px 14px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:13px;color:#633806;font-weight:600">Afternoon prime opens in '+(Math.round((13-ptD)*60))+' min (1 PM PT). Wrap up any break or admin before the ET/CT push.</div>';
+  return '';
+}
 function capCheck(uncalled){
   // Always allow if under cap
   if(uncalled.length<10)return null;
@@ -842,6 +852,7 @@ function renderDashboard(){
     +'<div style="font-size:13px;color:var(--text-secondary)">'+dateStr+'</div></div>'
     +'<button onclick="showContacts()" style="padding:8px 16px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Start Calling</button>'
     +'</div>'
+    +getWindowNudge()
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Overview <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint)">(click any card to view contacts)</span></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'
     +statCard(st.total,'Assigned Today','#0a0a74','all')
@@ -1744,6 +1755,9 @@ function showSchedule(){
   }).join('');
   var note='';
   if(ptD>=6&&ptD<8)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Early shift: ET and CT callable — MT and PT not yet at 8 AM local. ET enters ideal window at 7 AM PT (10 AM ET).</div>';
+  else if(ptD>=10&&ptD<11)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Slow window \u2014 ET/CT morning prime just ended. Good time for a short break ('+(Math.round((13-ptD)*60))+' min until afternoon prime at 1 PM PT).</div>';
+  else if(ptD>=11&&ptD<12)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Lunch window \u2014 no prime windows active. Good time to eat or step away ('+(Math.round((13-ptD)*60))+' min until afternoon prime at 1 PM PT).</div>';
+  else if(ptD>=12&&ptD<13)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">Afternoon prime opens in '+(Math.round((13-ptD)*60))+' min (1 PM PT). Wrap up any break or admin before the ET/CT push.</div>';
   else if(ptD>=13&&ptD<16.5)note='<div style="margin-bottom:14px;padding:10px 12px;background:#EEEDFE;border-radius:8px;border-left:3px solid #534AB7;font-size:12px;color:#3C3489;font-weight:600">Afternoon ideal windows active — ET (4–7 PM ET), CT (3–7 PM CT), PT (1–3 PM PT). Best answer rates now.</div>';
   else if(ptD>=16.5&&ptD<17.5)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">ET closed (7:30 PM ET). Focus on CT (closes 5:30 PM PT) and PT (closes 6:30 PM PT).</div>';
   else if(ptD>=17.5&&ptD<18.5)note='<div style="margin-bottom:14px;padding:10px 12px;background:#FDF6E8;border-radius:8px;border-left:3px solid #EF9F27;font-size:12px;color:#633806;font-weight:600">CT and MT closed. PT is the only active zone.</div>';

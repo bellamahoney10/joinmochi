@@ -84,6 +84,12 @@ module.exports = async (req, res) => {
     //    on high-answer-rate windows without starving other callable TZs.
     //    Each TZ gets ROUND(weighted_share * BATCH) slots, minimum 1.
     //    Final LIMIT caps to REFRESH_BATCH.
+    //    ET and CT use a 48h eligibility window so they stay well-represented
+    //    in the proportional pool even when the same-day pool runs thin.
+    const etCtStates = [
+      ...TZ_CONFIG['America/New_York'].states,
+      ...TZ_CONFIG['America/Chicago'].states,
+    ];
     const contactsRes = await readClient.query(`
       WITH ${ASSIGNED_PHONES_CTE},
       candidates AS (
@@ -94,7 +100,10 @@ module.exports = async (req, res) => {
         FROM outreach_call_queue ocq
         JOIN adult_eligibility ae ON ae.id = ocq.adult_eligibility_id
           AND ae.completed = true
-          AND ae.updated_at >= NOW() - INTERVAL '24 hours'
+          AND ae.updated_at >= NOW() - CASE
+            WHEN ocq.state = ANY($3::text[]) THEN INTERVAL '48 hours'
+            ELSE INTERVAL '24 hours'
+          END
         LEFT JOIN assigned_phones ap ON ap.phone = ocq.phone
         WHERE ocq.status = 'pending'
           AND ocq.deleted_at IS NULL
@@ -135,7 +144,7 @@ module.exports = async (req, res) => {
       WHERE rn <= slot_limit
       ORDER BY tz_priority ASC, updated_at DESC
       LIMIT $2
-    `, [callableStates, REFRESH_BATCH]);
+    `, [callableStates, REFRESH_BATCH, etCtStates]);
 
     let pendingRows = contactsRes.rows;
 
