@@ -853,7 +853,6 @@ function renderDashboard(){
     +'<div style="font-size:13px;color:var(--text-secondary)">'+dateStr+'</div></div>'
     +'<button onclick="showContacts()" style="padding:8px 16px;font-size:13px;font-weight:600;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;cursor:pointer;font-family:var(--font)">Start Calling</button>'
     +'</div>'
-    +getWindowNudge()
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Overview <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint)">(click any card to view contacts)</span></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'
     +statCard(st.total,'Assigned Today','#0a0a74','all')
@@ -1096,7 +1095,7 @@ function renderContactPanel(){
   var tzColors={ET:'#185FA5',CT:'#0F6E56',MT:'#854F0B',PT:'#993C1D'};
   var bc=tzColors[tz]||'#534AB7';
   var initials=(c['Name']||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-  var html='<div class="panel">'
+  var html=getWindowNudge()+'<div class="panel">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
     +'<div class="panel-title" style="margin-bottom:0">Next Contact</div>'
     +'<div style="font-size:12px;color:var(--text-hint)">'+uncalled.length+' remaining today</div>'
