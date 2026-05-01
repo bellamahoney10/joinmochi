@@ -100,6 +100,11 @@ module.exports = async (req, res) => {
           AND ocq.deleted_at IS NULL
           AND ap.phone IS NULL
           AND ocq.state = ANY($1::text[])
+          AND NOT EXISTS (
+            SELECT 1 FROM subscriptions s
+            WHERE s.patient_id = ocq.patient_id
+              AND s.descriptor = 'HEALTH'
+          )
         ORDER BY ocq.phone, ae.updated_at DESC
       ),
       tz_totals AS (
