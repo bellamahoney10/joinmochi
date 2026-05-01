@@ -111,8 +111,12 @@ module.exports = async (req, res) => {
           AND ocq.state = ANY($1::text[])
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
-            WHERE s.patient_id = ocq.patient_id
-              AND s.descriptor = 'HEALTH'
+            JOIN patients p ON p.id = s.patient_id
+            WHERE s.descriptor = 'HEALTH'
+              AND (
+                s.patient_id = ocq.patient_id
+                OR RIGHT(REGEXP_REPLACE(p.phone, '[^0-9]', '', 'g'), 10) = RIGHT(REGEXP_REPLACE(ocq.phone, '[^0-9]', '', 'g'), 10)
+              )
           )
         ORDER BY ocq.phone, ae.updated_at DESC
       ),
