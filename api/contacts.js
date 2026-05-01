@@ -42,7 +42,7 @@ module.exports = async (req, res) => {
         AND NOT EXISTS (
           SELECT 1 FROM subscriptions s
           WHERE s.patient_id = ocq.patient_id
-            AND s.active = true AND s.descriptor = 'HEALTH' AND s.deleted_at IS NULL
+            AND s.descriptor = 'HEALTH'
         )
       ORDER BY ${tzPriorityExpr} ASC, ocq.assigned_at ASC
     `, [agent_id]);

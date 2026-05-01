@@ -96,9 +96,7 @@ module.exports = async (req, res) => {
           AND NOT EXISTS (
             SELECT 1 FROM subscriptions s
             WHERE s.patient_id = ocq.patient_id
-              AND s.active = true
               AND s.descriptor = 'HEALTH'
-              AND s.deleted_at IS NULL
           )
           AND NOT EXISTS (
             SELECT 1 FROM outreach_call_queue ocq2
@@ -133,9 +131,7 @@ module.exports = async (req, res) => {
             AND NOT EXISTS (
               SELECT 1 FROM subscriptions s
               WHERE s.patient_id = ocq.patient_id
-                AND s.active = true
                 AND s.descriptor = 'HEALTH'
-                AND s.deleted_at IS NULL
             )
             AND NOT EXISTS (
               SELECT 1 FROM outreach_call_queue ocq2
